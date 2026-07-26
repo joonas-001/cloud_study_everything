@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/registry.schema.json",
+  "title": "Built-in skill package registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "packages"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "path",
+          "state",
+          "availability",
+          "manifest_sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^skill-packs/[a-z][a-z0-9-]*/versions/[^/]+$"
+          },
+          "state": {
+            "enum": ["draft", "validating", "active", "deprecated", "archived"]
+          },
+          "availability": {
+            "enum": ["available", "suspended"]
+          },
+          "manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  }
+}

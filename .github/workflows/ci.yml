@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  markdown_structure:
+    name: markdown-and-structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:markdown
+      - run: pnpm check:structure
+
+  registry_consistency:
+    name: registry-consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:registry
+
+  manifest_schema:
+    name: manifest-schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:manifest
+      - run: pnpm check:contracts
+
+  dependency_resolution:
+    name: dependency-resolution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:dependencies
+
+  api_tests:
+    name: api-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:api
+
+  web_tests:
+    name: web-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:web
+
+  contract_drift:
+    name: contract-drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:contract-drift
+
+  secret_scan:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:secrets
+
+  release_readiness:
+    name: release-readiness
+    if: always()
+    needs:
+      - markdown_structure
+      - registry_consistency
+      - manifest_schema
+      - dependency_resolution
+      - api_tests
+      - web_tests
+      - contract_drift
+      - secret_scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every baseline check
+        shell: bash
+        run: |
+          test "${{ needs.markdown_structure.result }}" = "success"
+          test "${{ needs.registry_consistency.result }}" = "success"
+          test "${{ needs.manifest_schema.result }}" = "success"
+          test "${{ needs.dependency_resolution.result }}" = "success"
+          test "${{ needs.api_tests.result }}" = "success"
+          test "${{ needs.web_tests.result }}" = "success"
+          test "${{ needs.contract_drift.result }}" = "success"
+          test "${{ needs.secret_scan.result }}" = "success"

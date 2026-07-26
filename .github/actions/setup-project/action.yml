@@ -1,0 +1,31 @@
+name: Set up project
+description: Install the repository's locked Node.js and Python dependencies.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version-file: .node-version
+        package-manager-cache: false
+
+    - name: Enable pinned pnpm
+      shell: bash
+      run: |
+        corepack enable
+        corepack install
+
+    - name: Install JavaScript dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Set up uv and Python
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      with:
+        python-version: 3.14.3
+        enable-cache: true
+
+    - name: Install Python dependencies
+      shell: bash
+      run: uv sync --project apps/api --locked
