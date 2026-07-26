@@ -396,7 +396,13 @@ Runner 失败不能导致 API 静默使用另一个评分器。需要重试或�
 ## 11. 待项目所有者确认
 
 1. 连接 GitHub 后，由哪些用户或团队担任 Skill Owner、Runtime Owner、Security Owner 和 Release Manager。
-2. CI 平台和后端 Python 依赖管理工具。
+
+已于 2026-07-27 确认首版本地工程基线：
+
+- CI 使用 GitHub Actions；
+- Python 依赖管理使用 uv；
+- 运行时使用 Node.js 24 LTS 和 Python 3.14.3。
+- SQLite 数据访问使用 SQLAlchemy 2，迁移使用 Alembic；必要依赖不支持 Python 3.14 时停止并报告，不得静默降级。
 
 ## 12. 参考资料
 
@@ -435,4 +441,4 @@ Runner 失败不能导致 API 静默使用另一个评分器。需要重试或�
 - 密钥与敏感信息扫描；
 - `release-readiness` 汇总结果。
 
-仓库当前没有 GitHub remote，因此第一阶段只能创建并本地验证工作流文件。连接 GitHub 后再配置 CODEOWNERS、规则集、必需检查和禁止绕过策略。
+仓库已经配置 GitHub remote，因此第一阶段创建工作流并在本地验证其调用的全部命令。由于实际角色和 GitHub 用户名仍未确认，本阶段不生成虚假的 `CODEOWNERS` 条目，也不擅自修改远程规则集、必需检查或禁止绕过策略。

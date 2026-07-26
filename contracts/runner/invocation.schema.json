@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/runner/invocation.schema.json",
+  "title": "Isolated runner invocation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "audit_id",
+    "artifact_sha256",
+    "runtime",
+    "limits"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.0.0"
+    },
+    "audit_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu_seconds", "memory_mb", "output_bytes"],
+      "properties": {
+        "cpu_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 16
+        },
+        "output_bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

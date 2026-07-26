@@ -1,0 +1,16 @@
+schema_version: 1.0.0
+id: algorithm
+version: 0.1.0
+title: 算法技能包草稿
+state: draft
+availability: available
+engine_contract:
+  version: ">=0.1.0 <0.2.0"
+runner_protocol:
+  version: "1.0.0"
+runtime_profiles: []
+skill_dependencies: []
+content_files:
+  - path: curriculum/README.md
+    sha256: 4d8e287747d55abf417d11de1ad77aff92459ce7fdcc47fd1f65fbf695033e9e
+sources: []

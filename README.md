@@ -1,0 +1,236 @@
+# 云奕学
+
+> 一个以掌握证据为核心的本地 AI 技能学习平台。
+
+一个本地优先、以可观察证据评估掌握程度的 AI 学习系统。它的目标不只是帮助用户“看完课程”，而是形成完整闭环：
+
+**诊断 → 学习 → 练习 → 项目 → 评估 → 复习 → 变现实验**
+
+当前项目仅供仓库所有者本人使用，首个技能为**算法**。项目仍处于早期开发阶段，请参阅下方的[当前进度](#当前进度)，不要将路线图中的能力视为已经实现。
+
+## 项目目标
+
+这个项目希望帮助用户：
+
+- 系统学习一项技能，并找出真正的知识缺口；
+- 通过解释、练习、迁移任务和真实作品证明掌握程度；
+- 根据实际能力证据，评估就业、自由职业接单和产品化三条路径；
+- 追踪知识与市场变化，在用户确认后更新学习安排；
+- 保留来源、版本、评估和计划变更记录，使关键结论可以追溯。
+
+系统不会因为用户看完内容或通过一次简单测验就宣称“完全掌握”，也不会把预测的工作机会或收入描述为确定结果。
+
+## 首个技能：算法
+
+算法技能包采用“共同主干 + 分支解锁”的结构：
+
+1. 先通过诊断确认 Python、C/C++ 和必要数学基础；
+2. 补牢数据结构与算法共同主干；
+3. 通过阶段评估后，逐步解锁以下方向：
+   - 工程应用；
+   - 求职面试；
+   - 算法竞赛；
+   - 算法理论。
+
+实践以 C++ 为主，同时支持 Python，并比较两种语言的实现方式、标准库和性能差异。学习任务预计可拆分为每天约 2 小时的可调整安排，但最终计划必须基于真实诊断结果生成。
+
+## 当前进度
+
+| 能力 | 状态 | 说明 |
+| --- | --- | --- |
+| 项目骨架 | 已完成 | Next.js、FastAPI、SQLite、SQLAlchemy 2、Alembic |
+| 确定性本地检查 | 已完成 | 仓库治理、前后端质量、契约漂移和敏感信息扫描 |
+| GitHub Actions 基线 | 已创建 | 工作流已落盘，尚待推送后验证远程运行结果 |
+| 技能包治理骨架 | 已完成 | 注册表、manifest、内容哈希、Schema 和依赖图检查 |
+| 初版视觉方向 | 已提案 | “静水深流”：克制、清晰、重证据，可根据真实使用体验修改 |
+| 算法技能包 | 草稿 | 仅作为治理校验对象，不能生成正式学习计划 |
+| 自适应诊断访谈 | 未开始 | CI 基线通过后进入下一里程碑 |
+| AI 供应商适配器 | 未开始 | 计划支持 OpenAI、DeepSeek、Moonshot AI |
+| 学习计划与面板 | 未开始 | 需要先完成诊断访谈闭环 |
+| 隔离代码运行 | 延后 | 编程练习阶段经确认后再评估 Docker/WSL |
+| 互联网部署 | 延后 | 本地验证达标并获得确认后再设计 |
+
+当前 Web 页面仍是功能骨架。初版视觉方向已经形成提案，但尚未完整应用到产品界面。
+
+## 架构概览
+
+```mermaid
+flowchart LR
+    Web["云奕学 Web<br/>Next.js"] -->|OpenAPI contract| API["FastAPI API<br/>启动与编排边界"]
+    API --> DB[("SQLite<br/>SQLAlchemy 2 + Alembic")]
+    API --> Registry["内置技能包注册表"]
+    Registry --> Packs["版本化技能包"]
+    Contracts["contracts/<br/>API · Skill Pack · Runner"] --> Web
+    Contracts --> API
+    Contracts -.未来版本化协议.-> Runner["隔离 Runner<br/>尚未实现"]
+```
+
+FastAPI 启动时会验证仓库内置技能包的一致性。注册表缺失、manifest 校验失败、内容哈希不符或依赖图无效时，应用必须拒绝启动。
+
+技能包中的评分器、自定义校验脚本和用户代码不得直接进入 FastAPI 进程。未来需要执行代码时，只能通过版本化、资源受限的隔离 Runner 协议调用。
+
+## 技术栈
+
+### Web
+
+- Node.js 24 LTS
+- Next.js 16
+- React 19
+- TypeScript
+- pnpm 11
+- ESLint
+- Vitest
+
+### API 与数据
+
+- Python 3.14.3
+- FastAPI
+- SQLAlchemy 2
+- Alembic
+- SQLite
+- uv
+- Ruff、mypy、pytest
+
+### 工程治理
+
+- JSON Schema
+- OpenAPI 与生成的 TypeScript 契约
+- GitHub Actions
+- 技能包注册表、内容摘要和依赖图校验
+
+## 仓库结构
+
+```text
+.
+├── apps/
+│   ├── api/                    # FastAPI、SQLAlchemy、Alembic 与后端测试
+│   └── web/                    # Next.js Web 应用
+├── contracts/
+│   ├── api/                    # 由 FastAPI 生成的 OpenAPI 契约
+│   ├── runner/                 # 隔离 Runner 协议 Schema
+│   └── skill-pack/             # 注册表与 manifest Schema
+├── docs/
+│   └── architecture/           # 已确认的架构设计
+├── skill-packs/
+│   ├── registry.yaml           # 内置技能包注册表
+│   └── algorithm/              # 算法技能包草稿
+├── tools/                      # 仓库检查和契约生成工具
+├── AGENTS.md                   # 项目级产品与工程约束
+├── package.json                # 本地与 CI 的统一命令入口
+├── pnpm-lock.yaml              # JavaScript 依赖锁
+└── pnpm-workspace.yaml
+```
+
+## 本地运行
+
+### 环境要求
+
+- Node.js 24 LTS
+- pnpm 11
+- Python 3.14.3
+- uv 0.11.x
+
+项目和 CI 固定使用 Node.js 24 LTS。后端暂时固定 Python 3.14.3；如果必要依赖无法支持 Python 3.14，项目会停止并报告，不会静默降低 Python 版本。
+
+### 安装依赖
+
+在仓库根目录执行：
+
+```powershell
+pnpm install --frozen-lockfile
+uv sync --project apps/api --locked
+```
+
+pnpm 只允许锁定依赖 `sharp` 和 `unrs-resolver` 执行安装脚本，其他依赖脚本不会被默认放行。
+
+### 启动开发服务
+
+分别打开两个终端：
+
+```powershell
+pnpm dev:api
+```
+
+```powershell
+pnpm dev:web
+```
+
+- Web：<http://localhost:3000>
+- API：<http://localhost:8000>
+- API 文档：<http://localhost:8000/docs>
+- 健康检查：<http://localhost:8000/health>
+
+本地验证阶段没有账号登录。请勿将开发服务直接暴露到不受信任的网络。
+
+## 质量检查
+
+运行完整的发布就绪基线：
+
+```powershell
+pnpm release-readiness
+```
+
+该命令和 GitHub Actions 使用相同的本地子命令，包括：
+
+- Markdown 与仓库结构检查；
+- 技能包注册表、manifest、内容哈希和依赖图检查；
+- JSON Schema 与 OpenAPI 契约检查；
+- Ruff 格式检查和 lint；
+- mypy 严格类型检查；
+- pytest 后端测试；
+- ESLint、TypeScript 和 Vitest 前端检查；
+- Next.js 生产构建；
+- 前后端契约无漂移检查；
+- 敏感信息基线扫描。
+
+单独运行某项检查时，可查看根目录 [`package.json`](package.json) 中的 `check:*` 命令。
+
+## 数据、隐私与安全边界
+
+- 当前版本不会向外部 AI API 发送数据；
+- 未来外部发送默认遵循最小必要原则，并提供关闭开关；
+- 本地 API 密钥计划保存在 Windows 凭据管理器中，SQLite 只保存凭据引用和非敏感元数据；
+- 后端不得向前端返回密钥原文，也不得把密钥写入日志；
+- 外部内容、AI 输出、用户输入和第三方技能包都视为不可信输入；
+- 无效的未来第三方技能包只能进入不可执行的只读隔离区；
+- 当前没有执行用户代码、技能包评分器或自定义校验脚本。
+
+## 开发路线
+
+路线图表示当前方向，不是交付时间承诺。
+
+1. **工程基线**
+   - 项目骨架；
+   - 本地确定性检查；
+   - GitHub Actions；
+   - 远程 CI 验证。
+2. **算法诊断访谈最小闭环**
+   - 保存访谈会话与可纠正回答；
+   - 展示每个问题的提问原因；
+   - 支持跳过、不确定和恢复会话；
+   - 建立 AI 供应商适配器与对话模型锁定。
+3. **学习规划、来源和面板**
+   - 生成可修改、可否决的学习计划；
+   - 保存来源、证据强度和最近复核时间；
+   - 记录计划变化及其原因。
+4. **练习、项目和掌握评估**
+   - 诊断、练习、迁移任务和作品证据；
+   - 间隔复习与纠错能力记录；
+   - 经确认后实现隔离代码运行。
+5. **变现实验与持续更新**
+   - 基于实际能力证据评估就业、接单和产品化；
+   - 使用最新可验证市场信息；
+   - 不保证工作、订单或收入。
+6. **互联网部署评估**
+   - 本地版本通过约定标准后再选择平台；
+   - 增加身份验证、访问控制和数据迁移方案。
+
+## 项目约束与设计文档
+
+开始修改前请先阅读：
+
+- [项目级约束](AGENTS.md)
+- [技能包系统架构提案](docs/architecture/skill-pack-system.md)
+- [初版视觉方向提案](docs/design/visual-direction.md)
+
+这些文档定义了产品边界、内容可信度、掌握评估、技能包治理、安全隔离和开发顺序。CI 基线未通过前，不得提前实现自适应访谈等业务功能。

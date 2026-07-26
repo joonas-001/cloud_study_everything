@@ -1,0 +1,8 @@
+schema_version: 1.0.0
+packages:
+  - id: algorithm
+    version: 0.1.0
+    path: skill-packs/algorithm/versions/0.1.0
+    state: draft
+    availability: available
+    manifest_sha256: dc55af7e2eb061009ffee4febdf22f9d71285bd28af68e342c4093969e7ffa2d
