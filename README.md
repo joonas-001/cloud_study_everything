@@ -234,3 +234,17 @@ pnpm release-readiness
 - [初版视觉方向提案](docs/design/visual-direction.md)
 
 这些文档定义了产品边界、内容可信度、掌握评估、技能包治理、安全隔离和开发顺序。CI 基线未通过前，不得提前实现自适应访谈等业务功能。
+
+## 许可证
+
+Copyright © 2026 云奕学项目所有者（joonas-001）。
+
+项目所有者拥有版权的项目代码和文档采用 [PolyForm Noncommercial License 1.0.0](LICENSE.md)：
+
+- 允许许可证规定范围内的个人学习、研究、实验、修改和非商业分发；
+- 不允许未经授权的商业使用；
+- 商业使用需要另行获得版权所有者许可；
+- 这是一份 source-available 非商业软件许可证，不是 MIT License，也不是 OSI 认可的开源许可证；
+- 第三方依赖、工具和引用内容继续适用各自的许可证与条款。
+
+请以 [`LICENSE.md`](LICENSE.md) 中的完整英文条款为准。
