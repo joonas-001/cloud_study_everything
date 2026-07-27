@@ -11,6 +11,10 @@ runner_protocol:
 runtime_profiles: []
 skill_dependencies: []
 content_files:
-  - path: curriculum/README.md
+  - kind: curriculum
+    path: curriculum/README.md
     sha256: 4d8e287747d55abf417d11de1ad77aff92459ce7fdcc47fd1f65fbf695033e9e
+  - kind: diagnostic_definition
+    path: assessments/diagnostic.yaml
+    sha256: 0277ba4c429926c6c356504d077d491c6edf44daef6450fa1c092f11aa520708
 sources: []

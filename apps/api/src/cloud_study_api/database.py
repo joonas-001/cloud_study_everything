@@ -5,6 +5,7 @@ from pathlib import Path
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
 
 
 def create_database_url(database_path: Path) -> str:
@@ -14,7 +15,19 @@ def create_database_url(database_path: Path) -> str:
 
 def create_database_engine(database_path: Path) -> Engine:
     """Create the SQLAlchemy engine used by application database boundaries."""
-    return create_engine(create_database_url(database_path))
+    return create_engine(
+        create_database_url(database_path),
+        connect_args={"check_same_thread": False},
+    )
+
+
+def create_session_factory(database_path: Path) -> sessionmaker[Session]:
+    """Create the SQLAlchemy session factory for application requests."""
+    return sessionmaker(
+        bind=create_database_engine(database_path),
+        class_=Session,
+        expire_on_commit=False,
+    )
 
 
 def upgrade_database(database_path: Path, repository_root: Path) -> None:

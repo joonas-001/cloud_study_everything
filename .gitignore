@@ -5,6 +5,9 @@ node_modules/
 out/
 coverage/
 *.tsbuildinfo
+test-results/
+playwright-report/
+.playwright-data/
 
 # Python
 .venv/

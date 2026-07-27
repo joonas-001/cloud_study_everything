@@ -1,0 +1,54 @@
+schema_version: 1.0.0
+id: algorithm-initial-diagnostic
+skill_id: algorithm
+skill_version: 0.1.0
+start_question_id: programming-background
+questions:
+  - id: programming-background
+    prompt: 请描述你目前使用 Python、C 或 C++ 编写程序的经验，并举一个你独立完成过的小程序例子。
+    reason: 先确认编程基础和独立实践程度，避免直接安排超出当前基础的算法任务。
+    response_type: free_text
+    transitions:
+      answered: data-structure-understanding
+      skipped: programming-foundation-check
+      uncertain: programming-foundation-check
+  - id: programming-foundation-check
+    prompt: 你对变量、条件判断、循环、函数和数组分别有多熟悉？可以指出最不确定的一项。
+    reason: 当编程经历不明确时，需要先定位最可能阻碍算法学习的基础缺口。
+    response_type: free_text
+    transitions:
+      answered: data-structure-understanding
+      skipped: math-foundation
+      uncertain: math-foundation
+  - id: data-structure-understanding
+    prompt: 请用自己的话比较数组和链表在访问元素与插入元素时的差异；不知道的部分可以明确写出来。
+    reason: 数组和链表是共同主干的基础，这个回答用于观察概念理解和解释能力，不因一次回答直接判定掌握。
+    response_type: free_text
+    transitions:
+      answered: math-foundation
+      skipped: math-foundation
+      uncertain: math-foundation
+  - id: math-foundation
+    prompt: 看到 O(n)、O(n log n) 和 O(n²) 时，你目前如何理解它们？哪些数学概念最没有把握？
+    reason: 算法分析需要函数增长、对数和基本证明思维，必须先确认是否需要补充数学基础。
+    response_type: free_text
+    transitions:
+      answered: code-reading
+      skipped: learning-goals
+      uncertain: learning-goals
+  - id: code-reading
+    prompt: 请粘贴或手写一段遍历整数数组并找出最大值的 C++ 或 Python 代码。代码只作为文本保存，不会执行。
+    reason: 通过一个低风险代码阅读任务观察语法、循环、变量更新和边界意识；当前预览不会自动运行或判分。
+    response_type: code_text
+    transitions:
+      answered: learning-goals
+      skipped: learning-goals
+      uncertain: learning-goals
+  - id: learning-goals
+    prompt: 在工程应用、求职面试、算法竞赛和算法理论中，你现在最希望优先改善什么？为什么？
+    reason: 四条分支共享共同主干，但后续练习和项目侧重点需要与真实目标一致。
+    response_type: free_text
+    transitions:
+      answered: null
+      skipped: null
+      uncertain: null

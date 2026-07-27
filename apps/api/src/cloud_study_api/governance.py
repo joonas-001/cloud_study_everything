@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import InvalidVersion, Version
 
@@ -49,12 +49,39 @@ def _validate_with_schema(instance: dict[str, Any], schema_path: Path, label: st
     schema = _load_json(schema_path)
     Draft202012Validator.check_schema(schema)
     errors = sorted(
-        Draft202012Validator(schema).iter_errors(instance),
+        Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(instance),
         key=lambda error: tuple(str(part) for part in error.absolute_path),
     )
     if errors:
         details = "; ".join(error.message for error in errors)
         raise RepositoryValidationError(f"{label}: {details}")
+
+
+def _validate_diagnostic_definition(
+    definition: dict[str, Any],
+    schema_path: Path,
+    label: str,
+    package_id: str,
+    package_version: str,
+) -> None:
+    _validate_with_schema(definition, schema_path, label)
+    if definition["skill_id"] != package_id or definition["skill_version"] != package_version:
+        raise RepositoryValidationError(
+            f"{label}: skill_id and skill_version must match the package manifest"
+        )
+    questions = definition["questions"]
+    question_ids = [question["id"] for question in questions]
+    if len(question_ids) != len(set(question_ids)):
+        raise RepositoryValidationError(f"{label}: duplicate diagnostic question id")
+    known_ids = set(question_ids)
+    if definition["start_question_id"] not in known_ids:
+        raise RepositoryValidationError(f"{label}: start_question_id does not exist")
+    for question in questions:
+        for next_question_id in question["transitions"].values():
+            if next_question_id is not None and next_question_id not in known_ids:
+                raise RepositoryValidationError(
+                    f"{label}: transition points to unknown question {next_question_id}"
+                )
 
 
 def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
@@ -122,6 +149,18 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 raise RepositoryValidationError(
                     f"{content_path}: sha256 mismatch; expected {content['sha256']}, "
                     f"got {actual_content_hash}"
+                )
+            if content["kind"] == "diagnostic_definition":
+                definition = _load_yaml(content_path)
+                _validate_diagnostic_definition(
+                    definition,
+                    repository_root
+                    / "contracts"
+                    / "skill-pack"
+                    / "diagnostic-definition.schema.json",
+                    str(content_path),
+                    entry["id"],
+                    entry["version"],
                 )
 
         packages.append(

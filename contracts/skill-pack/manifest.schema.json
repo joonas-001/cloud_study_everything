@@ -64,8 +64,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "sha256"],
+        "required": ["kind", "path", "sha256"],
         "properties": {
+          "kind": {
+            "enum": ["curriculum", "diagnostic_definition"]
+          },
           "path": {
             "type": "string",
             "pattern": "^(?!/)(?!.*\\.\\.)[^\\\\]+$"
