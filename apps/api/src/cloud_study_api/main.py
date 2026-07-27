@@ -4,11 +4,19 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from cloud_study_api.config import Settings
-from cloud_study_api.database import read_schema_version, upgrade_database
+from cloud_study_api.database import (
+    create_session_factory,
+    read_schema_version,
+    upgrade_database,
+)
+from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.governance import validate_repository
+from cloud_study_api.providers import ProviderRegistry
+from cloud_study_api.routes import router
 
 
 class HealthResponse(BaseModel):
@@ -23,17 +31,35 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = Settings.from_environment()
     packages = validate_repository(settings.repository_root)
     upgrade_database(settings.database_path, settings.repository_root)
+    session_factory = create_session_factory(settings.database_path)
     app.state.settings = settings
     app.state.registered_skill_packages = len(packages)
-    yield
+    app.state.diagnostic_service = DiagnosticService(
+        repository_root=settings.repository_root,
+        packages=packages,
+        session_factory=session_factory,
+        provider_registry=ProviderRegistry(),
+    )
+    try:
+        yield
+    finally:
+        session_factory.kw["bind"].dispose()
 
 
 app = FastAPI(
-    title="Cloud Study API",
+    title="云奕学 API",
     version="0.1.0",
     description="Local API for the AI skill learning platform.",
     lifespan=lifespan,
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT"],
+    allow_headers=["Content-Type"],
+)
+app.include_router(router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])

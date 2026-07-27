@@ -61,6 +61,15 @@ jobs:
       - uses: ./.github/actions/setup-project
       - run: pnpm check:web
 
+  end_to_end:
+    name: end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm --filter @cloud-study/web exec playwright install --with-deps chromium
+      - run: pnpm check:e2e
+
   contract_drift:
     name: contract-drift
     runs-on: ubuntu-latest
@@ -87,6 +96,7 @@ jobs:
       - dependency_resolution
       - api_tests
       - web_tests
+      - end_to_end
       - contract_drift
       - secret_scan
     runs-on: ubuntu-latest
@@ -100,5 +110,6 @@ jobs:
           test "${{ needs.dependency_resolution.result }}" = "success"
           test "${{ needs.api_tests.result }}" = "success"
           test "${{ needs.web_tests.result }}" = "success"
+          test "${{ needs.end_to_end.result }}" = "success"
           test "${{ needs.contract_drift.result }}" = "success"
           test "${{ needs.secret_scan.result }}" = "success"
