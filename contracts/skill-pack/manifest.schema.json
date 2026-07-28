@@ -67,7 +67,12 @@
         "required": ["kind", "path", "sha256"],
         "properties": {
           "kind": {
-            "enum": ["curriculum", "diagnostic_definition"]
+            "enum": [
+              "curriculum",
+              "diagnostic_definition",
+              "source_catalog",
+              "planning_template"
+            ]
           },
           "path": {
             "type": "string",

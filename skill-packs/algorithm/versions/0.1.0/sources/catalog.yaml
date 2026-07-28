@@ -1,0 +1,64 @@
+schema_version: 1.0.0
+skill_id: algorithm
+skill_version: 0.1.0
+sources:
+  - id: python-tutorial
+    title: The Python Tutorial
+    publisher: Python Software Foundation
+    url: https://docs.python.org/3/tutorial/
+    source_type: official_documentation
+    authority_tier: 1
+    authority_rationale: Python 官方文档，由 Python Software Foundation 维护。
+    published_version: "3.14"
+    retrieved_at: "2026-07-27"
+    check_mode: http_metadata
+    access_note: 只保存链接、版本、响应元数据和必要摘要，不复制完整文档。
+  - id: mit-ocw-6006
+    title: Introduction to Algorithms
+    publisher: MIT OpenCourseWare
+    url: https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/
+    source_type: university_course
+    authority_tier: 2
+    authority_rationale: 麻省理工学院公开的算法课程材料，由课程教师和 MIT OpenCourseWare 发布。
+    published_at: "2011-09-01"
+    retrieved_at: "2026-07-27"
+    check_mode: http_metadata
+    access_note: 遵守 MIT OpenCourseWare 使用条款，仅保存结构化引用和摘要。
+  - id: open-data-structures
+    title: Open Data Structures
+    publisher: Pat Morin
+    url: https://opendatastructures.org/
+    source_type: textbook
+    authority_tier: 3
+    authority_rationale: 由计算机科学教授公开维护的数据结构教材，提供可追溯版本和许可说明。
+    published_version: "0.1G"
+    retrieved_at: "2026-07-27"
+    check_mode: http_metadata
+    access_note: 按原站许可使用，只保存规划所需摘要、章节关系和出处。
+  - id: iso-cpp-standard
+    title: The C++ Standards Committee
+    publisher: ISO C++ Foundation
+    url: https://isocpp.org/std/the-standard
+    source_type: standard
+    authority_tier: 1
+    authority_rationale: ISO C++ Foundation 提供的 C++ 标准与委员会信息入口。
+    retrieved_at: "2026-07-27"
+    check_mode: http_metadata
+    access_note: 不复制受版权保护的标准全文，仅记录公开版本信息和链接。
+experts:
+  - id: mit-algorithms-faculty
+    name: MIT 6.006 课程教师团队
+    expertise_evidence: 公开教授 MIT Introduction to Algorithms，并由 MIT OpenCourseWare 发布课程材料。
+    source_ids:
+      - mit-ocw-6006
+    planning_principles:
+      - 将数据结构、算法设计与复杂度分析放在同一学习序列中。
+      - 通过问题求解和可检查练习连接概念与实际应用。
+  - id: pat-morin
+    name: Pat Morin
+    expertise_evidence: Open Data Structures 作者和计算机科学教授，公开维护多语言数据结构教材。
+    source_ids:
+      - open-data-structures
+    planning_principles:
+      - 用实现、复杂度和适用场景共同解释数据结构。
+      - 在抽象概念后安排可运行或可手工检查的代表性任务。

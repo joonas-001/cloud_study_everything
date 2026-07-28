@@ -103,6 +103,12 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         assert ended.status_code == 200
         assert ended.json()["status"] == "ended"
         assert ended.json()["end_reason"] == "user_ended"
+        latest = client.get(
+            "/diagnostic-sessions/latest",
+            params={"skill_id": "algorithm", "skill_version": "0.1.0"},
+        )
+        assert latest.status_code == 200
+        assert latest.json()["id"] == session_id
 
         write_after_end = client.post(
             f"/diagnostic-sessions/{session_id}/answers",

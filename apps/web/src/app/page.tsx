@@ -9,7 +9,11 @@ export default function Home() {
     <main className="page">
       <nav className="top-nav" aria-label="页面导航">
         <span className="wordmark">云奕学</span>
-        <span>本地验证环境</span>
+        <div className="nav-links">
+          <Link href="/diagnostic">诊断</Link>
+          <Link href="/learning">学习面板</Link>
+          <Link href="/settings">设置</Link>
+        </div>
       </nav>
       <header className="hero">
         <div className="eyebrow">Evidence before confidence</div>
@@ -19,6 +23,9 @@ export default function Home() {
         </p>
         <Link className="primary-button" href="/diagnostic">
           进入算法诊断预览
+        </Link>
+        <Link className="secondary-link" href="/learning">
+          查看学习面板
         </Link>
       </header>
       <div className="status">开发状态：诊断访谈里程碑</div>

@@ -1,6 +1,141 @@
 {
   "components": {
     "schemas": {
+      "AiProviderProfileResponse": {
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "credential_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Reference"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "executable": {
+            "title": "Executable",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "status_note": {
+            "title": "Status Note",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "provider_id",
+          "display_name",
+          "base_url",
+          "credential_reference",
+          "enabled",
+          "executable",
+          "status_note",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiProviderProfileResponse",
+        "type": "object"
+      },
+      "AiProviderResponse": {
+        "properties": {
+          "capabilities": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Capabilities",
+            "type": "object"
+          },
+          "default_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Base Url"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "executable": {
+            "title": "Executable",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_external": {
+            "title": "Is External",
+            "type": "boolean"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "status_note": {
+            "title": "Status Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "default_base_url",
+          "is_external",
+          "executable",
+          "models",
+          "capabilities",
+          "status_note"
+        ],
+        "title": "AiProviderResponse",
+        "type": "object"
+      },
       "CorrectAnswerRequest": {
         "properties": {
           "content": {
@@ -29,6 +164,58 @@
           "response_kind"
         ],
         "title": "CorrectAnswerRequest",
+        "type": "object"
+      },
+      "CreateAiProviderProfileRequest": {
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "provider_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "display_name"
+        ],
+        "title": "CreateAiProviderProfileRequest",
         "type": "object"
       },
       "CreateDiagnosticSessionRequest": {
@@ -87,6 +274,67 @@
           "external_ai_consent"
         ],
         "title": "CreateDiagnosticSessionRequest",
+        "type": "object"
+      },
+      "CreatePlanningProposalRequest": {
+        "properties": {
+          "diagnostic_session_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Diagnostic Session Id",
+            "type": "string"
+          },
+          "model_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "boolean"
+          },
+          "provider_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "diagnostic_session_id",
+          "preview",
+          "provider_id",
+          "model_id"
+        ],
+        "title": "CreatePlanningProposalRequest",
+        "type": "object"
+      },
+      "CreateSourceCheckRequest": {
+        "properties": {
+          "manual": {
+            "default": false,
+            "title": "Manual",
+            "type": "boolean"
+          },
+          "skill_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Skill Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill_id",
+          "skill_version"
+        ],
+        "title": "CreateSourceCheckRequest",
         "type": "object"
       },
       "DiagnosticAnswerResponse": {
@@ -314,6 +562,29 @@
         "title": "DiagnosticSessionResponse",
         "type": "object"
       },
+      "EmailOutboxProcessResponse": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "sent": {
+            "title": "Sent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sent",
+          "cancelled",
+          "failed"
+        ],
+        "title": "EmailOutboxProcessResponse",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -355,6 +626,427 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "NotificationPreferenceResponse": {
+        "properties": {
+          "credential_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Reference"
+          },
+          "email_action_required": {
+            "title": "Email Action Required",
+            "type": "boolean"
+          },
+          "email_delay_minutes": {
+            "title": "Email Delay Minutes",
+            "type": "integer"
+          },
+          "email_enabled": {
+            "title": "Email Enabled",
+            "type": "boolean"
+          },
+          "email_warning": {
+            "title": "Email Warning",
+            "type": "boolean"
+          },
+          "recipient_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Email"
+          },
+          "sender_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Email"
+          },
+          "smtp_host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Host"
+          },
+          "smtp_port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Port"
+          },
+          "smtp_security": {
+            "enum": [
+              "starttls",
+              "ssl"
+            ],
+            "title": "Smtp Security",
+            "type": "string"
+          },
+          "smtp_username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Username"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email_enabled",
+          "email_action_required",
+          "email_warning",
+          "email_delay_minutes",
+          "recipient_email",
+          "sender_email",
+          "smtp_host",
+          "smtp_port",
+          "smtp_username",
+          "smtp_security",
+          "credential_reference",
+          "updated_at"
+        ],
+        "title": "NotificationPreferenceResponse",
+        "type": "object"
+      },
+      "NotificationResponse": {
+        "properties": {
+          "archived_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "email_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "queued",
+                  "sent",
+                  "cancelled",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Status"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "related_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Id"
+          },
+          "related_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Type"
+          },
+          "severity": {
+            "enum": [
+              "required",
+              "action_required",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "severity",
+          "title",
+          "message",
+          "related_type",
+          "related_id",
+          "created_at",
+          "read_at",
+          "archived_at",
+          "email_status"
+        ],
+        "title": "NotificationResponse",
+        "type": "object"
+      },
+      "PlanningProposalResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "diagnostic_session_id": {
+            "title": "Diagnostic Session Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_preview": {
+            "title": "Is Preview",
+            "type": "boolean"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "saved_preview",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "template_id": {
+            "title": "Template Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/PlanningUnitResponse"
+            },
+            "title": "Units",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "diagnostic_session_id",
+          "skill_id",
+          "skill_version",
+          "template_id",
+          "provider_id",
+          "model_id",
+          "is_preview",
+          "status",
+          "title",
+          "rationale",
+          "limitations",
+          "units",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PlanningProposalResponse",
+        "type": "object"
+      },
+      "PlanningSourceResponse": {
+        "properties": {
+          "authority_tier": {
+            "title": "Authority Tier",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "url",
+          "authority_tier",
+          "retrieved_at"
+        ],
+        "title": "PlanningSourceResponse",
+        "type": "object"
+      },
+      "PlanningUnitResponse": {
+        "properties": {
+          "completion_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Completion Criteria",
+            "type": "array"
+          },
+          "estimated_minutes": {
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/PlanningSourceResponse"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "template_unit_id": {
+            "title": "Template Unit Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "template_unit_id",
+          "sequence",
+          "title",
+          "objective",
+          "reason",
+          "estimated_minutes",
+          "completion_criteria",
+          "sources"
+        ],
+        "title": "PlanningUnitResponse",
+        "type": "object"
+      },
       "PrivacySettingsResponse": {
         "properties": {
           "external_ai_enabled": {
@@ -377,6 +1069,269 @@
           "updated_at"
         ],
         "title": "PrivacySettingsResponse",
+        "type": "object"
+      },
+      "ResolveSourceChangeRequest": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "dismissed",
+              "accepted"
+            ],
+            "title": "Decision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "ResolveSourceChangeRequest",
+        "type": "object"
+      },
+      "SourceChangeCandidateResponse": {
+        "properties": {
+          "change_kind": {
+            "title": "Change Kind",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_title": {
+            "title": "Source Title",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "dismissed",
+              "accepted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "skill_id",
+          "skill_version",
+          "source_id",
+          "source_title",
+          "status",
+          "change_kind",
+          "summary",
+          "evidence",
+          "created_at",
+          "resolved_at"
+        ],
+        "title": "SourceChangeCandidateResponse",
+        "type": "object"
+      },
+      "SourceCheckResultResponse": {
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "http_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Status"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_title": {
+            "title": "Source Title",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "baseline_created",
+              "unchanged",
+              "changed",
+              "failed",
+              "manual",
+              "indeterminate"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "source_title",
+          "status",
+          "http_status",
+          "error_message",
+          "last_success_at",
+          "checked_at"
+        ],
+        "title": "SourceCheckResultResponse",
+        "type": "object"
+      },
+      "SourceCheckRunResponse": {
+        "properties": {
+          "changed_count": {
+            "title": "Changed Count",
+            "type": "integer"
+          },
+          "checked_count": {
+            "title": "Checked Count",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "failed_count": {
+            "title": "Failed Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "local_date": {
+            "title": "Local Date",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCheckResultResponse"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "reused": {
+            "title": "Reused",
+            "type": "boolean"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "completed",
+              "completed_with_failures"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "trigger": {
+            "enum": [
+              "automatic",
+              "manual"
+            ],
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "skill_id",
+          "skill_version",
+          "local_date",
+          "trigger",
+          "status",
+          "checked_count",
+          "changed_count",
+          "failed_count",
+          "started_at",
+          "completed_at",
+          "reused",
+          "results"
+        ],
+        "title": "SourceCheckRunResponse",
         "type": "object"
       },
       "SubmitAnswerRequest": {
@@ -414,6 +1369,182 @@
           "response_kind"
         ],
         "title": "SubmitAnswerRequest",
+        "type": "object"
+      },
+      "UpdateNotificationPreferenceRequest": {
+        "properties": {
+          "email_action_required": {
+            "title": "Email Action Required",
+            "type": "boolean"
+          },
+          "email_delay_minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Email Delay Minutes",
+            "type": "integer"
+          },
+          "email_enabled": {
+            "title": "Email Enabled",
+            "type": "boolean"
+          },
+          "email_warning": {
+            "title": "Email Warning",
+            "type": "boolean"
+          },
+          "recipient_email": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Email"
+          },
+          "sender_email": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Email"
+          },
+          "smtp_host": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Host"
+          },
+          "smtp_password": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Password"
+          },
+          "smtp_port": {
+            "anyOf": [
+              {
+                "maximum": 65535.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Port"
+          },
+          "smtp_security": {
+            "enum": [
+              "starttls",
+              "ssl"
+            ],
+            "title": "Smtp Security",
+            "type": "string"
+          },
+          "smtp_username": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smtp Username"
+          }
+        },
+        "required": [
+          "email_enabled",
+          "email_action_required",
+          "email_warning",
+          "email_delay_minutes",
+          "smtp_security"
+        ],
+        "title": "UpdateNotificationPreferenceRequest",
+        "type": "object"
+      },
+      "UpdatePlanningStatusRequest": {
+        "properties": {
+          "status": {
+            "enum": [
+              "saved_preview",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "UpdatePlanningStatusRequest",
+        "type": "object"
+      },
+      "UpdatePlanningUnitRequest": {
+        "properties": {
+          "completion_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Completion Criteria",
+            "type": "array"
+          },
+          "estimated_minutes": {
+            "maximum": 180.0,
+            "minimum": 15.0,
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "objective": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Objective",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "objective",
+          "reason",
+          "estimated_minutes",
+          "completion_criteria"
+        ],
+        "title": "UpdatePlanningUnitRequest",
         "type": "object"
       },
       "UpdatePrivacySettingsRequest": {
@@ -478,6 +1609,95 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/ai/provider-profiles": {
+      "get": {
+        "operationId": "list_ai_provider_profiles_ai_provider_profiles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AiProviderProfileResponse"
+                  },
+                  "title": "Response List Ai Provider Profiles Ai Provider Profiles Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Ai Provider Profiles",
+        "tags": [
+          "ai-configuration"
+        ]
+      },
+      "post": {
+        "operationId": "create_ai_provider_profile_ai_provider_profiles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiProviderProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Ai Provider Profile",
+        "tags": [
+          "ai-configuration"
+        ]
+      }
+    },
+    "/ai/providers": {
+      "get": {
+        "operationId": "list_ai_providers_ai_providers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AiProviderResponse"
+                  },
+                  "title": "Response List Ai Providers Ai Providers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Ai Providers",
+        "tags": [
+          "ai-configuration"
+        ]
+      }
+    },
     "/diagnostic-sessions": {
       "post": {
         "operationId": "create_diagnostic_session_diagnostic_sessions_post",
@@ -569,6 +1789,61 @@
           }
         },
         "summary": "Get Active Diagnostic Session",
+        "tags": [
+          "diagnostics"
+        ]
+      }
+    },
+    "/diagnostic-sessions/latest": {
+      "get": {
+        "operationId": "get_latest_diagnostic_session_diagnostic_sessions_latest_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Latest Diagnostic Session",
         "tags": [
           "diagnostics"
         ]
@@ -792,6 +2067,490 @@
         ]
       }
     },
+    "/notifications": {
+      "get": {
+        "operationId": "list_notifications_notifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationResponse"
+                  },
+                  "title": "Response List Notifications Notifications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Notifications",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/notifications/email-outbox/process": {
+      "post": {
+        "operationId": "process_email_outbox_notifications_email_outbox_process_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailOutboxProcessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Process Email Outbox",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/notifications/{notification_id}/archive": {
+      "post": {
+        "operationId": "archive_notification_notifications__notification_id__archive_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive Notification",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "mark_notification_read_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Notification Read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/planning-proposals": {
+      "post": {
+        "operationId": "create_planning_proposal_planning_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlanningProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Planning Proposal",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/planning-proposals/latest": {
+      "get": {
+        "operationId": "get_latest_planning_proposal_planning_proposals_latest_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Latest Planning Proposal",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/planning-proposals/{proposal_id}": {
+      "get": {
+        "operationId": "get_planning_proposal_planning_proposals__proposal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Planning Proposal",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/planning-proposals/{proposal_id}/status": {
+      "post": {
+        "operationId": "update_planning_status_planning_proposals__proposal_id__status_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlanningStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Planning Status",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/planning-proposals/{proposal_id}/units/{unit_id}": {
+      "put": {
+        "operationId": "update_planning_unit_planning_proposals__proposal_id__units__unit_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "unit_id",
+            "required": true,
+            "schema": {
+              "title": "Unit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlanningUnitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Planning Unit",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/settings/notifications": {
+      "get": {
+        "operationId": "get_notification_preferences_settings_notifications_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Notification Preferences",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "update_notification_preferences_settings_notifications_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Notification Preferences",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/settings/notifications/test-email": {
+      "post": {
+        "operationId": "send_test_email_settings_notifications_test_email_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Send Test Email",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
     "/settings/privacy": {
       "get": {
         "operationId": "get_privacy_settings_settings_privacy_get",
@@ -849,6 +2608,158 @@
         "summary": "Update Privacy Settings",
         "tags": [
           "settings"
+        ]
+      }
+    },
+    "/source-change-candidates": {
+      "get": {
+        "operationId": "list_source_change_candidates_source_change_candidates_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceChangeCandidateResponse"
+                  },
+                  "title": "Response List Source Change Candidates Source Change Candidates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Source Change Candidates",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/source-change-candidates/{candidate_id}/decision": {
+      "post": {
+        "operationId": "resolve_source_change_candidate_source_change_candidates__candidate_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "candidate_id",
+            "required": true,
+            "schema": {
+              "title": "Candidate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveSourceChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceChangeCandidateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Source Change Candidate",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/source-check-runs": {
+      "post": {
+        "operationId": "create_source_check_run_source_check_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSourceCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceCheckRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Source Check Run",
+        "tags": [
+          "sources"
         ]
       }
     }
