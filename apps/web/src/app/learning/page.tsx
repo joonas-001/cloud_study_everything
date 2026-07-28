@@ -24,7 +24,7 @@ export default function LearningPage() {
           当前页面验证来源、规划、通知和每日检查闭环。规划仍是本地模拟预览，不代表正式技能包已经激活。
         </p>
       </header>
-      <LearningDashboard />
+      <LearningDashboard skillId="algorithm" skillVersion="0.1.0" />
     </main>
   );
 }

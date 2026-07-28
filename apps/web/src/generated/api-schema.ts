@@ -214,7 +214,7 @@ export interface SourceCheckResultResponse {
   last_success_at: string | null;
   source_id: string;
   source_title: string;
-  status: "baseline_created" | "unchanged" | "changed" | "failed" | "manual";
+  status: "baseline_created" | "unchanged" | "changed" | "failed" | "manual" | "indeterminate";
 }
 
 export interface SourceCheckRunResponse {

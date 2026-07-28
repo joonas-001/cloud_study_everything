@@ -151,7 +151,14 @@ class CreateSourceCheckRequest(BaseModel):
 class SourceCheckResultResponse(BaseModel):
     source_id: str
     source_title: str
-    status: Literal["baseline_created", "unchanged", "changed", "failed", "manual"]
+    status: Literal[
+        "baseline_created",
+        "unchanged",
+        "changed",
+        "failed",
+        "manual",
+        "indeterminate",
+    ]
     http_status: int | None
     error_message: str | None
     last_success_at: datetime | None

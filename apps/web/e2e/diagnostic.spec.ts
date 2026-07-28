@@ -64,4 +64,10 @@ test("completes the guarded diagnostic preview and preserves corrections", async
     path: testInfo.outputPath("learning-plan-preview.png"),
     fullPage: true,
   });
+  await page.getByRole("button", { name: "否决这份预览" }).click();
+  await expect(generateButton).toBeVisible();
+  await generateButton.click();
+  await expect(planningTitle).toBeVisible();
+  await page.getByRole("button", { name: "保存这份预览" }).click();
+  await expect(page.getByText("预览已保存")).toBeVisible();
 });

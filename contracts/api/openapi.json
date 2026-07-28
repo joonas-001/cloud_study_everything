@@ -1221,7 +1221,8 @@
               "unchanged",
               "changed",
               "failed",
-              "manual"
+              "manual",
+              "indeterminate"
             ],
             "title": "Status",
             "type": "string"

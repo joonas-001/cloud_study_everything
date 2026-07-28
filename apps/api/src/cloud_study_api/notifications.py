@@ -148,7 +148,24 @@ class NotificationService:
         with self._session_factory() as database:
             preference = self._preference(database)
             credential_reference = preference.credential_reference
+            prospective_reference = credential_reference
             if smtp_password:
+                prospective_reference = SMTP_CREDENTIAL_REFERENCE
+            if email_enabled and (not configured or not prospective_reference):
+                raise NotificationError(
+                    422,
+                    "email_configuration_incomplete",
+                    "A complete SMTP configuration and saved credential are required.",
+                )
+
+            previous_secret: str | None = None
+            previous_username = preference.smtp_username
+            if smtp_password:
+                if credential_reference:
+                    try:
+                        previous_secret = self._credential_store.get(SMTP_CREDENTIAL_REFERENCE)
+                    except CredentialStoreError:
+                        previous_secret = None
                 try:
                     self._credential_store.put(
                         SMTP_CREDENTIAL_REFERENCE,
@@ -162,12 +179,6 @@ class NotificationService:
                         str(error),
                     ) from error
                 credential_reference = SMTP_CREDENTIAL_REFERENCE
-            if email_enabled and (not configured or not credential_reference):
-                raise NotificationError(
-                    422,
-                    "email_configuration_incomplete",
-                    "A complete SMTP configuration and saved credential are required.",
-                )
             preference.email_enabled = email_enabled
             preference.email_action_required = email_action_required
             preference.email_warning = email_warning
@@ -180,7 +191,12 @@ class NotificationService:
             preference.smtp_security = smtp_security
             preference.credential_reference = credential_reference
             preference.updated_at = self._now()
-            database.commit()
+            try:
+                database.commit()
+            except Exception:
+                if smtp_password:
+                    self._restore_credential(previous_secret, previous_username)
+                raise
             return self._preference_payload(preference)
 
     def create(
@@ -411,3 +427,20 @@ class NotificationService:
             return False
         local, domain = value.rsplit("@", 1)
         return bool(local and "." in domain and not domain.startswith("."))
+
+    def _restore_credential(
+        self,
+        previous_secret: str | None,
+        previous_username: str | None,
+    ) -> None:
+        try:
+            if previous_secret is None:
+                self._credential_store.delete(SMTP_CREDENTIAL_REFERENCE)
+            else:
+                self._credential_store.put(
+                    SMTP_CREDENTIAL_REFERENCE,
+                    previous_secret,
+                    previous_username,
+                )
+        except CredentialStoreError:
+            pass

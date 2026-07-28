@@ -21,9 +21,8 @@ const completionFile = path.join(
   `completion-${Date.now()}.json`,
 );
 const trackedChildren = new Set();
-const childPorts = new Map();
 
-function start(command, args, environment = {}, listenPort) {
+function start(command, args, environment = {}) {
   const child = spawn(command, args, {
     cwd: repositoryRoot,
     detached: !isWindows,
@@ -32,9 +31,6 @@ function start(command, args, environment = {}, listenPort) {
     shell: false,
   });
   trackedChildren.add(child);
-  if (listenPort !== undefined) {
-    childPorts.set(child, listenPort);
-  }
   return child;
 }
 
@@ -74,37 +70,6 @@ async function waitForUrl(url, child, timeoutMs = 120_000) {
   throw new Error(`Timed out waiting for ${url}`);
 }
 
-function windowsListenerPids(port) {
-  const result = spawnSync("netstat.exe", ["-ano", "-p", "tcp"], {
-    encoding: "utf8",
-    timeout: 5_000,
-    windowsHide: true,
-  });
-  if (result.status !== 0 || typeof result.stdout !== "string") {
-    return [];
-  }
-  const processIds = new Set();
-  for (const line of result.stdout.split(/\r?\n/)) {
-    const columns = line.trim().split(/\s+/);
-    if (
-      columns.length < 5 ||
-      columns[0] !== "TCP" ||
-      columns[3] !== "LISTENING"
-    ) {
-      continue;
-    }
-    const separator = columns[1].lastIndexOf(":");
-    if (separator === -1 || Number(columns[1].slice(separator + 1)) !== port) {
-      continue;
-    }
-    const processId = Number(columns[4]);
-    if (Number.isInteger(processId) && processId > 0) {
-      processIds.add(processId);
-    }
-  }
-  return [...processIds];
-}
-
 function terminateWindowsProcessTree(processId) {
   const result = spawnSync("taskkill", ["/PID", String(processId), "/T", "/F"], {
     stdio: "ignore",
@@ -125,21 +90,14 @@ function terminateWindowsProcessTree(processId) {
 function stop(child) {
   if (child.pid === undefined) {
     trackedChildren.delete(child);
-    childPorts.delete(child);
     return;
   }
   if (isWindows) {
-    const listenerPids =
-      childPorts.has(child) ? windowsListenerPids(childPorts.get(child)) : [];
-    for (const processId of listenerPids) {
-      terminateWindowsProcessTree(processId);
-    }
     const parentStopped = terminateWindowsProcessTree(child.pid);
     if (!parentStopped && child.exitCode === null) {
       child.kill("SIGKILL");
     }
     trackedChildren.delete(child);
-    childPorts.delete(child);
     child.unref();
     return;
   }
@@ -147,7 +105,6 @@ function stop(child) {
     process.kill(-child.pid, "SIGTERM");
   }
   trackedChildren.delete(child);
-  childPorts.delete(child);
 }
 
 function stopAll() {
@@ -211,17 +168,30 @@ async function waitForCompletionFile(child, timeoutMs = 120_000) {
 }
 
 const apiPort = await reservePort();
-const webPort = await reservePort();
+let webPort = await reservePort();
+while (webPort === apiPort) {
+  webPort = await reservePort();
+}
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`;
 const webBaseUrl = `http://127.0.0.1:${webPort}`;
+const apiPython = path.join(
+  repositoryRoot,
+  "apps",
+  "api",
+  ".venv",
+  isWindows ? "Scripts" : "bin",
+  isWindows ? "python.exe" : "python",
+);
+if (!existsSync(apiPython)) {
+  throw new Error(
+    `Missing ${apiPython}; run the project bootstrap or locked dependency install first`,
+  );
+}
 
 const api = start(
-  "uv",
+  apiPython,
   [
-    "run",
-    "--project",
-    "apps/api",
-    "--locked",
+    "-m",
     "uvicorn",
     "cloud_study_api.main:app",
     "--app-dir",
@@ -233,9 +203,7 @@ const api = start(
   ],
   {
     CLOUD_STUDY_DATABASE_PATH: runDatabase,
-    UV_CACHE_DIR: path.join(repositoryRoot, ".uv-cache"),
   },
-  apiPort,
 );
 const web = start(
   process.execPath,
@@ -261,7 +229,6 @@ const web = start(
     NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
     NEXT_TELEMETRY_DISABLED: "1",
   },
-  webPort,
 );
 
 let exitCode = 1;

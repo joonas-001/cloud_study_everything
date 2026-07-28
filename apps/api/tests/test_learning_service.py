@@ -10,7 +10,8 @@ from cloud_study_api.database import create_session_factory, upgrade_database
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.governance import validate_repository
 from cloud_study_api.learning import LearningError, LearningService, SourceObservation
-from cloud_study_api.notifications import NotificationService
+from cloud_study_api.models import SourceCheckResult, SourceCheckRun
+from cloud_study_api.notifications import NotificationError, NotificationService
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 FAKE_SMTP_SECRET = "-".join(("smtp", "secret"))
@@ -20,14 +21,15 @@ class FakeSourceFetcher:
     def __init__(self) -> None:
         self.revision = "a"
         self.failed_source_id: str | None = None
+        self.include_validators = True
 
     def fetch(self, source: dict[str, Any]) -> SourceObservation:
         if source["id"] == self.failed_source_id:
             raise RuntimeError("simulated remote failure")
         return SourceObservation(
             http_status=200,
-            etag=f"{source['id']}-{self.revision}",
-            last_modified="Mon, 27 Jul 2026 00:00:00 GMT",
+            etag=(f"{source['id']}-{self.revision}" if self.include_validators else None),
+            last_modified=("Mon, 27 Jul 2026 00:00:00 GMT" if self.include_validators else None),
             final_url=source["url"],
         )
 
@@ -215,6 +217,115 @@ def test_source_failure_notifies_without_blocking_and_change_requires_review(
     assert validate_repository(REPOSITORY_ROOT)[0].state == "draft"
 
 
+def test_source_without_comparison_validators_requires_manual_review(
+    tmp_path: Path,
+) -> None:
+    _, learning, notifications, fetcher = _services(tmp_path)
+    fetcher.include_validators = False
+
+    baseline = learning.check_sources(
+        skill_id="algorithm",
+        skill_version="0.1.0",
+        manual=True,
+    )
+    assert all(result["status"] == "baseline_created" for result in baseline["results"])
+
+    indeterminate = learning.check_sources(
+        skill_id="algorithm",
+        skill_version="0.1.0",
+        manual=True,
+    )
+    assert all(result["status"] == "indeterminate" for result in indeterminate["results"])
+    assert not any(result["status"] == "unchanged" for result in indeterminate["results"])
+    assert any(
+        item["severity"] == "warning" and "不会将其记录为“未变化”" in item["message"]
+        for item in notifications.list_notifications()
+    )
+
+
+def test_source_history_is_isolated_by_skill_package_version(tmp_path: Path) -> None:
+    _, learning, _, _ = _services(tmp_path)
+    session_factory = create_session_factory(tmp_path / "learning.db")
+    checked_at = datetime(2026, 7, 26, 8, 0, tzinfo=UTC)
+    with session_factory() as database:
+        database.add(
+            SourceCheckRun(
+                id="other-version-run",
+                skill_id="algorithm",
+                skill_version="9.9.9",
+                local_date="2026-07-26",
+                trigger="manual",
+                status="completed",
+                checked_count=1,
+                changed_count=0,
+                failed_count=0,
+                started_at=checked_at,
+                completed_at=checked_at,
+            )
+        )
+        database.add(
+            SourceCheckResult(
+                id="other-version-result",
+                run_id="other-version-run",
+                source_id="python-tutorial",
+                source_title="The Python Tutorial",
+                status="baseline_created",
+                http_status=200,
+                etag="python-tutorial-a",
+                last_modified="Mon, 27 Jul 2026 00:00:00 GMT",
+                final_url="https://docs.python.org/3/tutorial/",
+                checked_at=checked_at,
+                last_success_at=checked_at,
+            )
+        )
+        database.commit()
+
+    current = learning.check_sources(
+        skill_id="algorithm",
+        skill_version="0.1.0",
+        manual=True,
+    )
+    python_result = next(
+        result for result in current["results"] if result["source_id"] == "python-tutorial"
+    )
+    assert python_result["status"] == "baseline_created"
+
+
+def test_rejected_proposal_can_be_replaced(tmp_path: Path) -> None:
+    diagnostics, learning, _, _ = _services(tmp_path)
+    package = validate_repository(REPOSITORY_ROOT)[0]
+    diagnostic = diagnostics.create_session(
+        skill_id=package.package_id,
+        skill_version=package.version,
+        preview=True,
+        provider_id="local-deterministic",
+        model_id="diagnostic-v1",
+        credential_reference=None,
+        external_ai_consent=False,
+    )
+    diagnostics.end_session(diagnostic["id"])
+    rejected = learning.create_planning_proposal(
+        diagnostic_session_id=diagnostic["id"],
+        preview=True,
+        provider_id="local-deterministic",
+        model_id="planner-sim-v1",
+    )
+    learning.set_proposal_status(rejected["id"], "rejected")
+
+    with pytest.raises(LearningError) as error:
+        learning.get_latest_proposal(package.package_id, package.version)
+    assert error.value.code == "planning_proposal_not_found"
+
+    replacement = learning.create_planning_proposal(
+        diagnostic_session_id=diagnostic["id"],
+        preview=True,
+        provider_id="local-deterministic",
+        model_id="planner-sim-v1",
+    )
+    assert replacement["id"] != rejected["id"]
+    assert replacement["status"] == "draft"
+
+
 def test_email_preferences_read_and_archive_cancel_optional_mail(
     tmp_path: Path,
 ) -> None:
@@ -244,6 +355,24 @@ def test_email_preferences_read_and_archive_cancel_optional_mail(
     )
     assert preferences["credential_reference"] == "cloud-study/email/smtp"
     assert FAKE_SMTP_SECRET not in str(preferences)
+
+    replacement_secret = "-".join(("replacement", "smtp", "secret"))
+    with pytest.raises(NotificationError) as error:
+        service.update_preferences(
+            email_enabled=True,
+            email_action_required=True,
+            email_warning=True,
+            email_delay_minutes=10,
+            recipient_email=None,
+            sender_email="cloud-study@example.com",
+            smtp_host="smtp.example.com",
+            smtp_port=465,
+            smtp_username="cloud-study@example.com",
+            smtp_security="ssl",
+            smtp_password=replacement_secret,
+        )
+    assert error.value.code == "email_configuration_incomplete"
+    assert credential_store.get("cloud-study/email/smtp") == FAKE_SMTP_SECRET
 
     warning_id = service.create(
         category="source_check",
