@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 from cloud_study_api.governance import (
     RepositoryValidationError,
+    SkillPackage,
     load_skill_packages,
     validate_dependency_graph,
     validate_repository,
@@ -102,10 +103,14 @@ def check_structure(root: Path) -> None:
         "apps/api/pyproject.toml",
         "apps/api/alembic.ini",
         "apps/api/migrations/versions/0001_initialize_schema.py",
+        "apps/api/migrations/versions/0003_add_learning_planning.py",
+        "apps/api/migrations/versions/0004_add_indeterminate_source_status.py",
         "apps/api/src/cloud_study_api/main.py",
         "apps/web/package.json",
         "apps/web/src/app/page.tsx",
         "contracts/api/openapi.json",
+        "contracts/skill-pack/planning-template.schema.json",
+        "contracts/skill-pack/source-catalog.schema.json",
         "contracts/runner/invocation.schema.json",
         "contracts/skill-pack/manifest.schema.json",
         "contracts/skill-pack/registry.schema.json",
@@ -169,6 +174,8 @@ def check_structure(root: Path) -> None:
         "registry-consistency",
         "manifest-schema",
         "dependency-resolution",
+        "source-policy",
+        "planning-contract",
         "api-tests",
         "web-tests",
         "contract-drift",
@@ -196,6 +203,62 @@ def check_manifest(root: Path) -> None:
 
 def check_dependencies(root: Path) -> None:
     validate_dependency_graph(load_skill_packages(root))
+
+
+def _content_documents(
+    root: Path, kind: str
+) -> list[tuple[SkillPackage, dict[str, Any], Path]]:
+    documents: list[tuple[SkillPackage, dict[str, Any], Path]] = []
+    for package in validate_repository(root):
+        for content in package.manifest["content_files"]:
+            if content["kind"] != kind:
+                continue
+            path = package.path / content["path"]
+            documents.append(
+                (package, yaml.safe_load(path.read_text(encoding="utf-8")), path)
+            )
+    return documents
+
+
+def check_sources(root: Path) -> None:
+    catalogs = _content_documents(root, "source_catalog")
+    if not catalogs:
+        raise CheckFailure(
+            "no source catalog is governed by a registered skill package"
+        )
+    for package, catalog, path in catalogs:
+        sources = catalog["sources"]
+        if not any(source["authority_tier"] <= 3 for source in sources):
+            raise CheckFailure(f"{path}: no authoritative source with tier 1-3")
+        for source in sources:
+            if not source["url"].startswith("https://"):
+                raise CheckFailure(f"{path}: source {source['id']} must use HTTPS")
+            if source["check_mode"] == "http_metadata" and not source.get(
+                "retrieved_at"
+            ):
+                raise CheckFailure(
+                    f"{path}: monitored source {source['id']} lacks retrieval date"
+                )
+        if not catalog["experts"]:
+            raise CheckFailure(
+                f"{package.package_id}@{package.version}: no expert evidence"
+            )
+
+
+def check_planning(root: Path) -> None:
+    templates = _content_documents(root, "planning_template")
+    if not templates:
+        raise CheckFailure(
+            "no planning template is governed by a registered skill package"
+        )
+    for _package, template, path in templates:
+        for unit in template["units"]:
+            if len(unit["completion_criteria"]) < 2:
+                raise CheckFailure(
+                    f"{path}: unit {unit['id']} needs at least two observable criteria"
+                )
+            if not unit["source_ids"]:
+                raise CheckFailure(f"{path}: unit {unit['id']} has no traceable source")
 
 
 def check_contracts(root: Path) -> None:
@@ -265,6 +328,8 @@ CHECKS = {
     "registry": check_registry,
     "manifest": check_manifest,
     "dependencies": check_dependencies,
+    "sources": check_sources,
+    "planning": check_planning,
     "contracts": check_contracts,
     "secrets": check_secrets,
 }

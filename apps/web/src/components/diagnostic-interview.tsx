@@ -334,6 +334,9 @@ export function DiagnosticInterview() {
                     : "由你主动结束"}
                   。草稿预览不会生成正式计划。
                 </p>
+                <a className="primary-button" href="/learning">
+                  进入学习面板
+                </a>
               </div>
             ) : null}
 

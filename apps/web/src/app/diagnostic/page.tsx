@@ -9,7 +9,13 @@ export default function DiagnosticPage() {
         <Link className="wordmark" href="/">
           云奕学
         </Link>
-        <span>本地验证环境</span>
+        <div className="nav-links">
+          <Link aria-current="page" href="/diagnostic">
+            诊断
+          </Link>
+          <Link href="/learning">学习面板</Link>
+          <Link href="/settings">设置</Link>
+        </div>
       </nav>
       <header className="page-intro">
         <div className="eyebrow">Diagnostic preview</div>
