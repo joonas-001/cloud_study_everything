@@ -1,0 +1,46 @@
+schema_version: 1.0.0
+id: algorithm
+version: 0.2.0
+title: 算法共同主干入口草稿
+state: draft
+availability: available
+intake: open
+engine_contract:
+  version: ">=0.2.0 <0.3.0"
+runner_protocol:
+  version: "1.0.0"
+runtime_profiles: []
+skill_dependencies: []
+content_files:
+  - kind: curriculum
+    path: curriculum/README.md
+    sha256: fff85874b04d6af9d85679d9113541b7e930e7fa4635e401f2eb5e744871ef61
+  - kind: diagnostic_definition
+    path: assessments/diagnostic.yaml
+    sha256: c98d242e305e136537075fdbfc5a39d4ee70d647125ecf496c5e7755cde0617d
+  - kind: source_catalog
+    path: sources/catalog.yaml
+    sha256: bd6816c8c1c2c87093e1542fe9f68601e30aa49f58590b7a922417c30c8fb9d1
+  - kind: planning_template
+    path: curriculum/planning-preview.yaml
+    sha256: ea1e2c02a1d0e66edad687a7f55e7deb778038fb9db730dacefd1da7af01dcaf
+  - kind: learning_definition
+    path: curriculum/learning.yaml
+    sha256: 0611e08b5519b92660e0920159e4968db31dffa9157b09af46b35cdc5490def9
+  - kind: assessment_definition
+    path: assessments/assessment.yaml
+    sha256: 7d8d56b055e30b890a35546eacb8760497828c17cd5cb9f985dba35d50cdff31
+  - kind: rubric_definition
+    path: assessments/rubric.yaml
+    sha256: 112b893bafd9a531c4ebd9713272790261f55dd3d381ebf41d068faead72be24
+  - kind: review_policy
+    path: review/policy.yaml
+    sha256: e1274a343da217a2576737260704b2216c32544e6e69c4beddbecba2cbeeab81
+  - kind: mastery_scope
+    path: assessments/mastery-scope.yaml
+    sha256: af92e160ae9dc64c0b896dffe2a3b4e65debf570301a10f2b1b60081b930c483
+sources:
+  - id: review-policy-research
+    title: 第四里程碑复习策略研究记录
+    url: https://local.cloud-study/docs/research/review-policy
+    retrieved_at: "2026-07-28"

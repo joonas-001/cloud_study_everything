@@ -53,7 +53,27 @@
             "minLength": 1
           },
           "response_type": {
-            "enum": ["free_text", "code_text"]
+            "enum": ["free_text", "code_text", "single_choice"]
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value", "label"],
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
           },
           "transitions": {
             "type": "object",
@@ -71,7 +91,26 @@
               }
             }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "response_type": {
+                  "const": "single_choice"
+                }
+              }
+            },
+            "then": {
+              "required": ["options"]
+            },
+            "else": {
+              "not": {
+                "required": ["options"]
+              }
+            }
+          }
+        ]
       }
     }
   }

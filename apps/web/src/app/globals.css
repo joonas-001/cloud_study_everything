@@ -1089,6 +1089,331 @@ textarea::placeholder {
   font-size: 0.9rem;
 }
 
+.execution-panel {
+  display: grid;
+  gap: 24px;
+  margin: 28px 0;
+  padding: 30px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 18px 50px rgb(24 63 64 / 7%);
+}
+
+.execution-header,
+.execution-start,
+.run-summary,
+.today-control,
+.mastery-grid > header,
+.self-review-list article {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.execution-header h2,
+.execution-start h3,
+.mastery-grid h3,
+.self-review-list h3,
+.review-timeline h3 {
+  margin: 6px 0 8px;
+}
+
+.execution-header p,
+.execution-start p,
+.today-control p,
+.mastery-grid p,
+.self-review-list p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.execution-guardrails {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.execution-guardrails span,
+.run-summary span,
+.code-warning {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  background: var(--mist);
+  color: var(--deep);
+  font-size: 0.76rem;
+}
+
+.execution-start {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.execution-start form,
+.today-control label,
+.submission-fields label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.execution-start form {
+  min-width: min(100%, 350px);
+}
+
+.plan-option-list {
+  display: grid;
+  gap: 8px;
+}
+
+.plan-option-list label {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink) !important;
+  font-weight: 500 !important;
+}
+
+.plan-option-list label > span {
+  display: grid;
+  gap: 3px;
+}
+
+.plan-option-list small {
+  color: var(--muted);
+}
+
+.plan-option-list em {
+  color: var(--warm);
+  font-size: 0.74rem;
+  font-style: normal;
+}
+
+.execution-start select,
+.today-control input,
+.submission-fields select,
+.submission-fields textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: white;
+  color: var(--ink);
+}
+
+.execution-start select,
+.submission-fields select {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.today-control input {
+  min-height: 42px;
+  padding: 0 10px;
+}
+
+.execution-confirmations {
+  display: grid;
+  gap: 8px;
+}
+
+.execution-confirmations label,
+.confirmation-row {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--ink) !important;
+  font-weight: 500 !important;
+  line-height: 1.5;
+}
+
+.run-summary {
+  padding: 18px;
+  background: var(--deep);
+  color: white;
+}
+
+.run-summary p {
+  margin: 5px 0 0;
+  color: rgb(255 255 255 / 72%);
+}
+
+.run-summary > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.run-summary span {
+  border-color: rgb(255 255 255 / 20%);
+  background: transparent;
+  color: white;
+}
+
+.today-control {
+  align-items: end;
+  padding: 18px;
+  border: 1px solid var(--line);
+}
+
+.today-control label {
+  max-width: 180px;
+}
+
+.activity-workspace {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+  border: 1px solid var(--line);
+}
+
+.activity-workspace nav {
+  display: grid;
+  align-content: start;
+  border-right: 1px solid var(--line);
+  background: #eef3f0;
+}
+
+.activity-workspace nav button {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.activity-workspace nav button.is-current {
+  background: white;
+  box-shadow: inset 4px 0 var(--warm);
+}
+
+.activity-workspace nav span,
+.activity-workspace nav small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.activity-card {
+  padding: 26px;
+}
+
+.activity-card h3 {
+  margin: 7px 0 12px;
+}
+
+.activity-card > p,
+.activity-card aside {
+  line-height: 1.7;
+}
+
+.activity-card aside {
+  margin: 18px 0;
+  padding: 14px;
+  border-left: 3px solid var(--warm);
+  background: #f5eee9;
+}
+
+.activity-card aside strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.code-warning {
+  margin: 14px 0;
+}
+
+.submission-fields {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.submission-fields textarea {
+  min-height: 130px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.submission-fields .code-input {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.mastery-grid,
+.self-review-list,
+.review-timeline {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.mastery-grid > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.mastery-grid article {
+  display: grid;
+  gap: 7px;
+  min-height: 150px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: white;
+}
+
+.mastery-grid article span,
+.mastery-grid article small {
+  color: var(--muted);
+}
+
+.mastery-grid article ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  color: var(--warm);
+  font-size: 0.76rem;
+}
+
+.self-review-list article {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.review-timeline ol {
+  display: grid;
+  gap: 9px;
+  padding-left: 22px;
+}
+
+.review-timeline li {
+  padding-left: 8px;
+}
+
+.review-timeline li span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.end-link {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 @keyframes breathe {
   from {
     opacity: 0.35;
@@ -1112,6 +1437,24 @@ textarea::placeholder {
 
   .learning-layout {
     grid-template-columns: 1fr;
+  }
+
+  .execution-header,
+  .execution-start,
+  .run-summary,
+  .today-control,
+  .self-review-list article {
+    display: grid;
+  }
+
+  .activity-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-workspace nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .learning-sidebar {
@@ -1215,6 +1558,24 @@ textarea::placeholder {
   }
 
   .plan-actions .primary-button {
+    width: 100%;
+  }
+
+  .execution-panel {
+    padding: 22px;
+  }
+
+  .execution-start form {
+    min-width: 0;
+  }
+
+  .mastery-grid > div,
+  .activity-workspace nav {
+    grid-template-columns: 1fr;
+  }
+
+  .today-control .primary-button,
+  .execution-start .primary-button {
     width: 100%;
   }
 

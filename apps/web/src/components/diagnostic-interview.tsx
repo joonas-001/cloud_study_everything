@@ -20,7 +20,7 @@ import {
 } from "@/lib/api";
 
 const SKILL_ID = "algorithm";
-const SKILL_VERSION = "0.1.0";
+const SKILL_VERSION = "0.2.0";
 
 type ResponseKind = "answered" | "skipped" | "uncertain";
 
@@ -31,7 +31,10 @@ function responseLabel(answer: DiagnosticAnswerResponse): string {
   if (answer.response_kind === "uncertain") {
     return "不确定";
   }
-  return answer.content ?? "已回答";
+  const option = (
+    answer.options as Array<{ value: string; label: string }>
+  ).find((item) => item.value === answer.content);
+  return option?.label ?? answer.content ?? "已回答";
 }
 
 export function DiagnosticInterview() {
@@ -175,10 +178,10 @@ export function DiagnosticInterview() {
   return (
     <div className="diagnostic-layout">
       <aside className="control-rail" aria-label="诊断配置">
-        <div className="eyebrow">算法 · 0.1.0</div>
+        <div className="eyebrow">算法 · 0.2.0</div>
         <h2>诊断预览</h2>
         <p className="muted">
-          当前技能包仍为草稿。本次结果仅用于验证访谈流程，不会生成正式学习计划或掌握结论。
+          当前技能包仍为草稿。结构化信号只用于安排补救活动，不会直接生成掌握结论。
         </p>
 
         <dl className="facts">
@@ -270,13 +273,34 @@ export function DiagnosticInterview() {
                 <label className="answer-label" htmlFor="diagnostic-answer">
                   你的回答
                 </label>
-                <textarea
-                  id="diagnostic-answer"
-                  value={answer}
-                  disabled={busy}
-                  placeholder="按你的实际情况回答即可；不知道时可以选择“不确定”。"
-                  onChange={(event) => setAnswer(event.target.value)}
-                />
+                {session.current_question.response_type === "single_choice" ? (
+                  <select
+                    id="diagnostic-answer"
+                    value={answer}
+                    disabled={busy}
+                    onChange={(event) => setAnswer(event.target.value)}
+                  >
+                    <option value="">请选择最接近实际情况的一项</option>
+                    {(
+                      session.current_question.options as Array<{
+                        value: string;
+                        label: string;
+                      }>
+                    ).map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <textarea
+                    id="diagnostic-answer"
+                    value={answer}
+                    disabled={busy}
+                    placeholder="按你的实际情况回答即可；不知道时可以选择“不确定”。"
+                    onChange={(event) => setAnswer(event.target.value)}
+                  />
+                )}
                 <div className="answer-actions">
                   <button
                     className="primary-button"
@@ -392,7 +416,31 @@ export function DiagnosticInterview() {
                     <option value="skipped">跳过</option>
                   </select>
                 </label>
-                {correctionKind === "answered" ? (
+                {correctionKind === "answered" &&
+                correction.response_type === "single_choice" ? (
+                  <label>
+                    新回答
+                    <select
+                      value={correctionText}
+                      disabled={busy}
+                      onChange={(event) =>
+                        setCorrectionText(event.target.value)
+                      }
+                    >
+                      <option value="">请选择</option>
+                      {(
+                        correction.options as Array<{
+                          value: string;
+                          label: string;
+                        }>
+                      ).map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : correctionKind === "answered" ? (
                   <label>
                     新回答
                     <textarea

@@ -1,0 +1,25 @@
+schema_version: 1.0.0
+id: algorithm-entry-mastery-scope
+skill_id: algorithm
+skill_version: 0.2.0
+scope_statement: 仅评价编程双语言表达、基础复杂度语言、数组与链式结构的共同主干入口证据。
+dimensions:
+  - understanding
+  - operation
+  - transfer
+  - artifact
+  - retention
+  - correction
+allowed_evidence_levels:
+  - limited
+  - supported
+  - retained_limited
+prohibited_claims:
+  - scope_criteria_met
+  - verified
+  - retained
+  - mastered
+limitations:
+  - 代码不执行，操作和作品只能形成有限或待复核证据。
+  - 自评不等于独立人工、AI 或 Runner 审核。
+  - 完成流程不解锁算法分支，也不代表掌握整门算法。

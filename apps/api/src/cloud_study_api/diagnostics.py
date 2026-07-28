@@ -12,7 +12,8 @@ from sqlalchemy import Select, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
-from cloud_study_api.governance import SkillPackage
+from cloud_study_api.content_locking import ensure_package_content_lock
+from cloud_study_api.governance import RepositoryValidationError, SkillPackage
 from cloud_study_api.models import (
     AppSettings,
     DiagnosticAnswer,
@@ -114,6 +115,14 @@ class DiagnosticService:
                 external_ai_consent=external_ai_consent,
                 external_ai_enabled=settings.external_ai_enabled,
             )
+            try:
+                ensure_package_content_lock(database, package, now)
+            except RepositoryValidationError as error:
+                raise DiagnosticError(
+                    409,
+                    "skill_package_content_changed",
+                    str(error),
+                ) from error
             existing = self._active_session(database, skill_id, skill_version)
             if existing is not None and not self._expire_if_needed(
                 database, existing, settings, now
@@ -388,6 +397,9 @@ class DiagnosticService:
                 prompt=item["prompt"],
                 reason=item["reason"],
                 response_type=item["response_type"],
+                options=tuple(
+                    (option["value"], option["label"]) for option in item.get("options", [])
+                ),
                 transitions=item["transitions"],
             )
             for item in raw["questions"]
@@ -414,6 +426,12 @@ class DiagnosticService:
     ) -> None:
         if package.availability != "available":
             raise DiagnosticError(409, "skill_package_suspended", "The package is suspended.")
+        if package.intake != "open":
+            raise DiagnosticError(
+                409,
+                "skill_package_intake_closed",
+                "This package version is read-only and cannot start new diagnostics.",
+            )
         if package.state == "draft":
             if not preview:
                 raise DiagnosticError(
@@ -558,6 +576,15 @@ class DiagnosticService:
                 "answer_content_forbidden",
                 "Skipped and uncertain answers cannot include content.",
             )
+        question = definition.questions[question_id]
+        if question.response_type == "single_choice" and response_kind == "answered":
+            allowed = {value for value, _label in question.options}
+            if (content or "").strip() not in allowed:
+                raise DiagnosticError(
+                    422,
+                    "invalid_choice",
+                    "The selected diagnostic option is not allowed.",
+                )
 
     def _normalized_content(self, response_kind: str, content: str | None) -> str | None:
         return content.strip() if response_kind == "answered" and content else None
@@ -650,6 +677,10 @@ class DiagnosticService:
                     "prompt": current_question.prompt,
                     "reason": current_question.reason,
                     "response_type": current_question.response_type,
+                    "options": [
+                        {"value": value, "label": label}
+                        for value, label in current_question.options
+                    ],
                 }
                 if current_question is not None
                 else None
@@ -660,6 +691,11 @@ class DiagnosticService:
                     "question_id": answer.question_id,
                     "response_kind": answer.response_kind,
                     "content": answer.content,
+                    "response_type": definition.questions[answer.question_id].response_type,
+                    "options": [
+                        {"value": value, "label": label}
+                        for value, label in definition.questions[answer.question_id].options
+                    ],
                     "revision": answer.revision,
                     "on_current_path": answer.question_id in path_set,
                     "created_at": answer.created_at,

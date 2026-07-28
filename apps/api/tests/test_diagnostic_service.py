@@ -30,7 +30,14 @@ def test_external_provider_requires_both_permission_layers_and_credential(
 ) -> None:
     database_path = tmp_path / "external-gate.db"
     upgrade_database(database_path, REPOSITORY_ROOT)
-    package = replace(validate_repository(REPOSITORY_ROOT)[0], state="active")
+    package = replace(
+        next(
+            package
+            for package in validate_repository(REPOSITORY_ROOT)
+            if package.version == "0.2.0"
+        ),
+        state="active",
+    )
     service = DiagnosticService(
         repository_root=REPOSITORY_ROOT,
         packages=[package],
@@ -89,7 +96,9 @@ def test_external_provider_requires_both_permission_layers_and_credential(
 def test_inactivity_timeout_ends_session_without_silent_resume(tmp_path: Path) -> None:
     database_path = tmp_path / "timeout.db"
     upgrade_database(database_path, REPOSITORY_ROOT)
-    package = validate_repository(REPOSITORY_ROOT)[0]
+    package = next(
+        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.0"
+    )
     clock = [datetime(2026, 7, 27, 8, 0, tzinfo=UTC)]
     service = DiagnosticService(
         repository_root=REPOSITORY_ROOT,

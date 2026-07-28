@@ -19,7 +19,7 @@ def test_health_initializes_sqlite_and_reports_repository_state(
     assert response.json() == {
         "status": "ok",
         "service": "cloud-study-api",
-        "database_schema_version": "0004",
-        "registered_skill_packages": 1,
+        "database_schema_version": "0005",
+        "registered_skill_packages": 2,
     }
     assert database_path.is_file()

@@ -20,6 +20,7 @@
           "path",
           "state",
           "availability",
+          "intake",
           "manifest_sha256"
         ],
         "properties": {
@@ -40,6 +41,9 @@
           },
           "availability": {
             "enum": ["available", "suspended"]
+          },
+          "intake": {
+            "enum": ["open", "closed"]
           },
           "manifest_sha256": {
             "type": "string",

@@ -21,23 +21,21 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   });
   await expect(
     page.getByRole("heading", {
-      name: /请描述你目前使用 Python、C 或 C\+\+/,
+      name: /你目前能否不依赖逐行示例/,
     }),
   ).toBeVisible();
-  await page
-    .getByLabel("你的回答")
-    .fill("我使用 Python 写过一个读取文本并统计单词的小程序。");
+  await page.getByLabel("你的回答").selectOption("independent-small-program");
   await page.getByRole("button", { name: "保存并继续" }).click();
 
   await expect(
-    page.getByRole("heading", { name: /请用自己的话比较数组和链表/ }),
+    page.getByRole("heading", { name: /对函数增长、对数、逻辑命题和简单求和/ }),
   ).toBeVisible();
   await page.getByRole("button", { name: "修正" }).click();
   await page.getByLabel("回答状态").selectOption("uncertain");
   await page.getByRole("button", { name: "保存修正" }).click();
 
   await expect(
-    page.getByRole("heading", { name: /你对变量、条件判断、循环、函数和数组/ }),
+    page.getByRole("heading", { name: /对函数增长、对数、逻辑命题和简单求和/ }),
   ).toBeVisible();
   await page.getByRole("button", { name: "提前结束本次对话" }).click();
   await expect(page.getByRole("heading", { name: "记录已锁定" })).toBeVisible();
@@ -70,4 +68,32 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(planningTitle).toBeVisible();
   await page.getByRole("button", { name: "保存这份预览" }).click();
   await expect(page.getByText("预览已保存")).toBeVisible();
+
+  await expect(
+    page.getByRole("heading", { name: "选择一份已保存规划" }),
+  ).toBeVisible();
+  const createRunButton = page.getByRole("button", { name: "创建学习执行锁" });
+  await expect(createRunButton).toBeEnabled();
+  await createRunButton.click();
+  await expect(page.getByText("代码执行：关闭")).toBeVisible();
+  await expect(page.getByText("外部 AI：关闭")).toBeVisible();
+  await page.getByRole("button", { name: "生成今日任务" }).click();
+  await expect(page.getByRole("heading", { name: "编程表达补救" })).toBeVisible();
+  await page.getByLabel("我已完成来源支持的复习").check();
+  await page.getByRole("button", { name: "提交并继续" }).click();
+
+  await expect(page.getByRole("heading", { name: "双语言数组遍历" })).toBeVisible();
+  await page.getByLabel("我已完成阅读").check();
+  await page.getByRole("button", { name: "提交并继续" }).click();
+
+  await expect(page.getByRole("heading", { name: "边界处理检查" })).toBeVisible();
+  await page.getByLabel("选择处理方式").selectOption("always-read-first");
+  await page.getByRole("button", { name: "提交并继续" }).click();
+  await expect(page.getByRole("button", { name: "提交追加修正" })).toBeVisible();
+  await page.getByLabel("选择处理方式").selectOption("check-empty-first");
+  await page.getByRole("button", { name: "提交追加修正" }).click();
+  await expect(page.getByRole("heading", { name: "输入规模与增长率" })).toBeVisible();
+  await expect(page.getByText("六维证据，不是掌握百分比")).toBeVisible();
+  await page.getByRole("button", { name: "明确结束本次学习执行" }).click();
+  await expect(page.getByText(/本次执行已明确结束且不可恢复/)).toBeVisible();
 });
