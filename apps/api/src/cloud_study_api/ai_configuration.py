@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import suppress
 from typing import Any
 from uuid import uuid4
 
@@ -157,7 +158,13 @@ class AiConfigurationService:
                 updated_at=now,
             )
             database.add(profile)
-            database.commit()
+            try:
+                database.commit()
+            except Exception:
+                if credential_reference:
+                    with suppress(CredentialStoreError):
+                        self._credential_store.delete(credential_reference)
+                raise
             return self._profile_payload(profile)
 
     def _profile_payload(self, profile: AiProviderProfile) -> dict[str, Any]:

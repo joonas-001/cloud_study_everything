@@ -104,6 +104,7 @@ def check_structure(root: Path) -> None:
         "apps/api/alembic.ini",
         "apps/api/migrations/versions/0001_initialize_schema.py",
         "apps/api/migrations/versions/0003_add_learning_planning.py",
+        "apps/api/migrations/versions/0004_add_indeterminate_source_status.py",
         "apps/api/src/cloud_study_api/main.py",
         "apps/web/package.json",
         "apps/web/src/app/page.tsx",

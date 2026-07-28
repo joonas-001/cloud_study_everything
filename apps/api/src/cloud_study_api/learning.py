@@ -239,6 +239,7 @@ class LearningService:
                 .where(
                     PlanningProposal.skill_id == skill_id,
                     PlanningProposal.skill_version == skill_version,
+                    PlanningProposal.status != "rejected",
                 )
                 .order_by(PlanningProposal.created_at.desc())
             )
@@ -372,19 +373,34 @@ class LearningService:
             database.commit()
 
         failed: list[tuple[dict[str, Any], SourceCheckResult]] = []
+        indeterminate: list[tuple[dict[str, Any], SourceCheckResult]] = []
         changed: list[SourceChangeCandidate] = []
         recovered: list[str] = []
         with self._session_factory() as database:
             run = cast(SourceCheckRun, database.get(SourceCheckRun, run.id))
             for source in catalog["sources"]:
-                previous = self._latest_result(database, source["id"], successful_only=True)
-                latest_any = self._latest_result(database, source["id"], successful_only=False)
+                previous = self._latest_result(
+                    database,
+                    source["id"],
+                    skill_id=skill_id,
+                    skill_version=skill_version,
+                    successful_only=True,
+                )
+                latest_any = self._latest_result(
+                    database,
+                    source["id"],
+                    skill_id=skill_id,
+                    skill_version=skill_version,
+                    successful_only=False,
+                )
                 result = self._check_one_source(run.id, source, previous, now)
                 database.add(result)
                 run.checked_count += 1
                 if result.status == "failed":
                     run.failed_count += 1
                     failed.append((source, result))
+                elif result.status == "indeterminate":
+                    indeterminate.append((source, result))
                 elif result.status == "changed":
                     run.changed_count += 1
                     candidate = self._change_candidate(
@@ -425,7 +441,21 @@ class LearningService:
                 ),
                 related_type="source_check_run",
                 related_id=run.id,
-                deduplication_key=f"source-failure:{skill_id}:{local_date}",
+                deduplication_key=(f"source-failure:{skill_id}:{skill_version}:{local_date}"),
+            )
+        if indeterminate:
+            titles = "、".join(source["title"] for source, _result in indeterminate)
+            self._notifications.create(
+                category="source_check",
+                severity="warning",
+                title="部分来源无法自动判断是否变化",
+                message=(
+                    f"{titles} 没有提供可比较的 ETag 或 Last-Modified，"
+                    "系统不会将其记录为“未变化”，请人工复核。"
+                ),
+                related_type="source_check_run",
+                related_id=run.id,
+                deduplication_key=(f"source-indeterminate:{skill_id}:{skill_version}:{local_date}"),
             )
         if changed:
             titles = "、".join(candidate.source_title for candidate in changed)
@@ -438,7 +468,7 @@ class LearningService:
                 ),
                 related_type="source_check_run",
                 related_id=run.id,
-                deduplication_key=f"source-change:{skill_id}:{local_date}",
+                deduplication_key=(f"source-change:{skill_id}:{skill_version}:{local_date}"),
             )
         if recovered:
             self._notifications.create(
@@ -448,7 +478,7 @@ class LearningService:
                 message=f"以下来源已恢复：{'、'.join(recovered)}。",
                 related_type="source_check_run",
                 related_id=run.id,
-                deduplication_key=f"source-recovered:{skill_id}:{local_date}",
+                deduplication_key=(f"source-recovered:{skill_id}:{skill_version}:{local_date}"),
             )
         self._notifications.process_outbox()
         return payload
@@ -651,11 +681,18 @@ class LearningService:
         database: Session,
         source_id: str,
         *,
+        skill_id: str,
+        skill_version: str,
         successful_only: bool,
     ) -> SourceCheckResult | None:
         statement = (
             select(SourceCheckResult)
-            .where(SourceCheckResult.source_id == source_id)
+            .join(SourceCheckRun, SourceCheckResult.run_id == SourceCheckRun.id)
+            .where(
+                SourceCheckResult.source_id == source_id,
+                SourceCheckRun.skill_id == skill_id,
+                SourceCheckRun.skill_version == skill_version,
+            )
             .order_by(SourceCheckResult.checked_at.desc())
         )
         if successful_only:
@@ -703,7 +740,18 @@ class LearningService:
                 observation.last_modified,
                 observation.final_url,
             )
-            status = "unchanged" if before == after else "changed"
+            has_validator = any(
+                (
+                    previous.etag,
+                    previous.last_modified,
+                    observation.etag,
+                    observation.last_modified,
+                )
+            )
+            if previous.final_url != observation.final_url or has_validator:
+                status = "unchanged" if before == after else "changed"
+            else:
+                status = "indeterminate"
         return SourceCheckResult(
             id=str(uuid4()),
             run_id=run_id,
@@ -714,6 +762,11 @@ class LearningService:
             etag=observation.etag,
             last_modified=observation.last_modified,
             final_url=observation.final_url,
+            error_message=(
+                "来源可访问，但未提供可比较的 ETag 或 Last-Modified，需要人工复核。"
+                if status == "indeterminate"
+                else None
+            ),
             checked_at=checked_at,
             last_success_at=checked_at,
         )

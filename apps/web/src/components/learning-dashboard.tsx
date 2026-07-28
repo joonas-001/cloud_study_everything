@@ -26,9 +26,7 @@ import {
   updatePlanningStatus,
   updatePlanningUnit,
 } from "@/lib/api";
-
-const SKILL_ID = "algorithm";
-const SKILL_VERSION = "0.1.0";
+import { isCurrentDiagnosticProposal } from "@/lib/planning";
 
 type EditableUnit = {
   unit: PlanningUnitResponse;
@@ -39,7 +37,15 @@ type EditableUnit = {
   criteria: string;
 };
 
-export function LearningDashboard() {
+type LearningDashboardProps = {
+  skillId: string;
+  skillVersion: string;
+};
+
+export function LearningDashboard({
+  skillId,
+  skillVersion,
+}: LearningDashboardProps) {
   const [diagnostic, setDiagnostic] =
     useState<DiagnosticSessionResponse | null>(null);
   const [proposal, setProposal] = useState<PlanningProposalResponse | null>(
@@ -61,10 +67,10 @@ export function LearningDashboard() {
   useEffect(() => {
     let active = true;
     Promise.all([
-      getLatestDiagnosticSession(SKILL_ID, SKILL_VERSION),
-      getLatestPlanningProposal(SKILL_ID, SKILL_VERSION),
+      getLatestDiagnosticSession(skillId, skillVersion),
+      getLatestPlanningProposal(skillId, skillVersion),
       getNotifications(),
-      getSourceChangeCandidates(SKILL_ID, SKILL_VERSION),
+      getSourceChangeCandidates(skillId, skillVersion),
       processEmailOutbox().catch(() => null),
     ])
       .then(([nextDiagnostic, nextProposal, nextNotifications, nextCandidates]) => {
@@ -72,7 +78,11 @@ export function LearningDashboard() {
           return;
         }
         setDiagnostic(nextDiagnostic);
-        setProposal(nextProposal);
+        setProposal(
+          isCurrentDiagnosticProposal(nextProposal, nextDiagnostic?.id)
+            ? nextProposal
+            : null,
+        );
         setNotifications(nextNotifications);
         setCandidates(nextCandidates);
       })
@@ -89,7 +99,7 @@ export function LearningDashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [skillId, skillVersion]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -124,14 +134,14 @@ export function LearningDashboard() {
     void run(async () => {
       setSourceRun(
         await createSourceCheck({
-          skill_id: SKILL_ID,
-          skill_version: SKILL_VERSION,
+          skill_id: skillId,
+          skill_version: skillVersion,
           manual,
         }),
       );
       const [nextNotifications, nextCandidates] = await Promise.all([
         getNotifications(),
-        getSourceChangeCandidates(SKILL_ID, SKILL_VERSION),
+        getSourceChangeCandidates(skillId, skillVersion),
       ]);
       setNotifications(nextNotifications);
       setCandidates(nextCandidates);
@@ -177,7 +187,8 @@ export function LearningDashboard() {
       return;
     }
     void run(async () => {
-      setProposal(await updatePlanningStatus(proposal.id, { status }));
+      const updated = await updatePlanningStatus(proposal.id, { status });
+      setProposal(updated.status === "rejected" ? null : updated);
     });
   }
 
@@ -263,11 +274,24 @@ export function LearningDashboard() {
               </strong>
               <span>
                 检查 {sourceRun.checked_count} 项 · 变化 {sourceRun.changed_count} 项 ·
-                失败 {sourceRun.failed_count} 项
+                待复核{" "}
+                {
+                  sourceRun.results.filter(
+                    (item) =>
+                      item.status === "manual" ||
+                      item.status === "indeterminate",
+                  ).length
+                }{" "}
+                项 · 失败 {sourceRun.failed_count} 项
               </span>
             </div>
             {sourceRun.results
-              .filter((item) => item.status === "failed")
+              .filter(
+                (item) =>
+                  item.status === "failed" ||
+                  item.status === "manual" ||
+                  item.status === "indeterminate",
+              )
               .map((item) => (
                 <p key={item.source_id}>
                   {item.source_title}：{item.error_message}。最近成功：

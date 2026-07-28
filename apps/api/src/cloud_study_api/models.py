@@ -194,7 +194,8 @@ class SourceCheckResult(Base):
     __tablename__ = "source_check_results"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('baseline_created', 'unchanged', 'changed', 'failed', 'manual')",
+            "status IN "
+            "('baseline_created', 'unchanged', 'changed', 'failed', 'manual', 'indeterminate')",
             name="ck_source_check_results_status",
         ),
         UniqueConstraint("run_id", "source_id", name="uq_source_check_result_source"),

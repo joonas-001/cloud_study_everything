@@ -13,6 +13,8 @@ class CredentialStore(Protocol):
 
     def get(self, reference: str) -> str: ...
 
+    def delete(self, reference: str) -> None: ...
+
 
 class MemoryCredentialStore:
     """Test-only in-memory implementation."""
@@ -30,6 +32,9 @@ class MemoryCredentialStore:
         except KeyError as error:
             raise CredentialStoreError("credential reference was not found") from error
 
+    def delete(self, reference: str) -> None:
+        self._values.pop(reference, None)
+
 
 class UnavailableCredentialStore:
     def put(self, reference: str, secret: str, username: str | None = None) -> None:
@@ -39,6 +44,12 @@ class UnavailableCredentialStore:
     def get(self, reference: str) -> str:
         del reference
         raise CredentialStoreError("Windows Credential Manager is required for reading credentials")
+
+    def delete(self, reference: str) -> None:
+        del reference
+        raise CredentialStoreError(
+            "Windows Credential Manager is required for deleting credentials"
+        )
 
 
 class WindowsCredentialStore:
@@ -79,6 +90,12 @@ class WindowsCredentialStore:
             ctypes.POINTER(ctypes.POINTER(Credential)),
         ]
         advapi32.CredReadW.restype = wintypes.BOOL
+        advapi32.CredDeleteW.argtypes = [
+            wintypes.LPCWSTR,
+            wintypes.DWORD,
+            wintypes.DWORD,
+        ]
+        advapi32.CredDeleteW.restype = wintypes.BOOL
         advapi32.CredFree.argtypes = [ctypes.c_void_p]
         return ctypes, advapi32, Credential
 
@@ -122,6 +139,14 @@ class WindowsCredentialStore:
             return raw.decode("utf-16-le")
         finally:
             advapi32.CredFree(pointer)
+
+    def delete(self, reference: str) -> None:
+        ctypes, advapi32, _credential_type = self._bindings()
+        if advapi32.CredDeleteW(reference, self._CRED_TYPE_GENERIC, 0):
+            return
+        error_code = ctypes.get_last_error()
+        if error_code != 1168:
+            raise CredentialStoreError(f"credential reference could not be deleted ({error_code})")
 
 
 def create_credential_store() -> CredentialStore:
