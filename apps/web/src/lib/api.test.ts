@@ -20,7 +20,7 @@ describe("diagnostic API helpers", () => {
     );
 
     await expect(
-      getActiveDiagnosticSession("algorithm", "0.1.0"),
+      getActiveDiagnosticSession("algorithm", "0.2.0"),
     ).resolves.toBeNull();
     vi.unstubAllGlobals();
   });

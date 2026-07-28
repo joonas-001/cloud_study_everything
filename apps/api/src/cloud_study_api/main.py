@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from cloud_study_api.ai_configuration import AiConfigurationService
 from cloud_study_api.config import Settings
+from cloud_study_api.content_locking import validate_or_backfill_persisted_content_locks
 from cloud_study_api.credentials import create_credential_store
 from cloud_study_api.database import (
     create_session_factory,
@@ -16,6 +17,7 @@ from cloud_study_api.database import (
     upgrade_database,
 )
 from cloud_study_api.diagnostics import DiagnosticService
+from cloud_study_api.execution import LearningExecutionService
 from cloud_study_api.governance import validate_repository
 from cloud_study_api.learning import LearningService
 from cloud_study_api.notifications import NotificationService
@@ -36,6 +38,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     packages = validate_repository(settings.repository_root)
     upgrade_database(settings.database_path, settings.repository_root)
     session_factory = create_session_factory(settings.database_path)
+    validate_or_backfill_persisted_content_locks(session_factory, packages)
     credential_store = create_credential_store()
     notification_service = NotificationService(
         session_factory=session_factory,
@@ -55,6 +58,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         packages=packages,
         session_factory=session_factory,
         notification_service=notification_service,
+    )
+    app.state.learning_execution_service = LearningExecutionService(
+        repository_root=settings.repository_root,
+        packages=packages,
+        session_factory=session_factory,
     )
     app.state.ai_configuration_service = AiConfigurationService(
         session_factory=session_factory,

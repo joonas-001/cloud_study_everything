@@ -4,6 +4,7 @@ version: 0.1.0
 title: 算法技能包草稿
 state: draft
 availability: available
+intake: closed
 engine_contract:
   version: ">=0.1.0 <0.2.0"
 runner_protocol:

@@ -53,7 +53,14 @@
             "format": "uri"
           },
           "source_type": {
-            "enum": ["official_documentation", "university_course", "textbook", "standard"]
+            "enum": [
+              "official_documentation",
+              "university_course",
+              "textbook",
+              "standard",
+              "peer_reviewed_research",
+              "government_guidance"
+            ]
           },
           "authority_tier": {
             "type": "integer",

@@ -24,6 +24,7 @@ class DiagnosticQuestion:
     prompt: str
     reason: str
     response_type: str
+    options: tuple[tuple[str, str], ...]
     transitions: dict[str, str | None]
 
 

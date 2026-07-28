@@ -11,6 +11,7 @@
     "title",
     "state",
     "availability",
+    "intake",
     "engine_contract",
     "runner_protocol",
     "runtime_profiles",
@@ -39,6 +40,9 @@
     },
     "availability": {
       "enum": ["available", "suspended"]
+    },
+    "intake": {
+      "enum": ["open", "closed"]
     },
     "engine_contract": {
       "$ref": "#/$defs/versionRequirement"
@@ -71,7 +75,12 @@
               "curriculum",
               "diagnostic_definition",
               "source_catalog",
-              "planning_template"
+              "planning_template",
+              "learning_definition",
+              "assessment_definition",
+              "rubric_definition",
+              "review_policy",
+              "mastery_scope"
             ]
           },
           "path": {
