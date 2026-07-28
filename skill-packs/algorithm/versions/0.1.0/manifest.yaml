@@ -17,4 +17,10 @@ content_files:
   - kind: diagnostic_definition
     path: assessments/diagnostic.yaml
     sha256: 0277ba4c429926c6c356504d077d491c6edf44daef6450fa1c092f11aa520708
+  - kind: source_catalog
+    path: sources/catalog.yaml
+    sha256: de2f1df2d5d91f0ef9f520cfe5ba2c54b7352c737dbd2f05024cbd41993dfb45
+  - kind: planning_template
+    path: curriculum/planning-preview.yaml
+    sha256: b90cd4022024960029c861ba9e2f37083de189f668d6939fc16e57ab40227984
 sources: []

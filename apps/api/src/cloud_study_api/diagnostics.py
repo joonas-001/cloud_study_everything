@@ -201,6 +201,25 @@ class DiagnosticService:
             provider = self._provider(session.provider_id, session.model_id)
             return self._session_payload(database, session, definition, provider, settings)
 
+    def get_latest_session(self, skill_id: str, skill_version: str) -> dict[str, Any]:
+        with self._session_factory() as database:
+            settings = self._settings(database)
+            session = database.scalar(
+                select(DiagnosticSession)
+                .where(
+                    DiagnosticSession.skill_id == skill_id,
+                    DiagnosticSession.skill_version == skill_version,
+                )
+                .order_by(DiagnosticSession.created_at.desc())
+            )
+            if session is None:
+                raise DiagnosticError(404, "session_not_found", "Session not found.")
+            if self._expire_if_needed(database, session, settings, self._now()):
+                database.commit()
+            definition = self._definition(self._package(skill_id, skill_version))
+            provider = self._provider(session.provider_id, session.model_id)
+            return self._session_payload(database, session, definition, provider, settings)
+
     def submit_answer(
         self,
         session_id: str,

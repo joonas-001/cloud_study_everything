@@ -27,6 +27,7 @@ body {
 }
 
 button,
+input,
 textarea,
 select {
   font: inherit;
@@ -39,6 +40,7 @@ a {
 
 button:focus-visible,
 a:focus-visible,
+input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
   outline: 3px solid rgb(24 63 64 / 24%);
@@ -69,6 +71,26 @@ select:focus-visible {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current="page"] {
+  color: var(--deep);
+}
+
+.nav-links a[aria-current="page"] {
+  font-weight: 700;
 }
 
 .hero {
@@ -444,6 +466,7 @@ button:disabled {
   font-weight: 650;
 }
 
+input,
 textarea,
 select {
   width: 100%;
@@ -451,6 +474,11 @@ select {
   border-radius: 2px;
   background: #fff;
   color: var(--ink);
+}
+
+input {
+  height: 44px;
+  padding: 0 12px;
 }
 
 textarea {
@@ -583,6 +611,484 @@ textarea::placeholder {
   font-size: 0.85rem;
 }
 
+.success-banner {
+  padding: 13px 15px;
+  border-left: 3px solid var(--deep);
+  background: #e5efeb;
+  color: var(--deep);
+  font-size: 0.85rem;
+}
+
+.learning-page,
+.settings-page {
+  width: min(1280px, calc(100% - 40px));
+}
+
+.learning-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(290px, 0.7fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.learning-main,
+.learning-sidebar,
+.settings-layout {
+  display: grid;
+  gap: 24px;
+}
+
+.learning-sidebar {
+  position: sticky;
+  top: 24px;
+}
+
+.learning-control {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 28px;
+}
+
+.learning-control h2,
+.plan-header h2,
+.notification-center h2,
+.candidate-list h2,
+.settings-section h2,
+.plan-editor h2 {
+  margin: 10px 0;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+  font-weight: 600;
+}
+
+.learning-control p,
+.plan-header p,
+.settings-section > header p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.learning-control-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.source-run {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--deep);
+  background: rgb(249 251 250 / 84%);
+}
+
+.source-run.has-warning {
+  border-left-color: var(--warm);
+  background: #f8f2ed;
+}
+
+.source-run > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.source-run span,
+.source-run p {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.source-run p {
+  margin: 11px 0 0;
+  line-height: 1.6;
+}
+
+.learning-empty {
+  max-width: none;
+  min-height: 280px;
+  padding: 42px;
+}
+
+.plan-preview {
+  border: 1px solid var(--line);
+  background: rgb(249 251 250 / 94%);
+  box-shadow: 0 18px 50px rgb(24 47 45 / 5%);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 34px;
+  border-bottom: 1px solid var(--line);
+}
+
+.plan-limitations {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 20px;
+  padding: 22px 34px;
+  border-bottom: 1px solid var(--line);
+  background: #f7f1ec;
+  color: #74533e;
+  font-size: 0.82rem;
+}
+
+.plan-limitations ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.65;
+}
+
+.plan-units {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-unit {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  border-bottom: 1px solid var(--line);
+}
+
+.plan-sequence {
+  padding: 32px 22px;
+  border-right: 1px solid var(--line);
+  color: var(--warm);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.plan-unit-content {
+  padding: 30px 34px;
+}
+
+.plan-unit-content > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.plan-unit-content header span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.plan-unit h3 {
+  margin: 8px 0 0;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+  font-size: 1.35rem;
+}
+
+.plan-unit-content > p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.plan-unit dl {
+  display: grid;
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.plan-unit dl > div {
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 18px;
+}
+
+.plan-unit dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.plan-unit dd {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.plan-unit dd ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.source-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e7e4;
+}
+
+.source-links strong {
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.source-links a {
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  color: var(--deep);
+  font-size: 0.76rem;
+  text-decoration: none;
+}
+
+.source-links a:hover {
+  border-color: var(--deep);
+}
+
+.plan-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 28px 34px;
+}
+
+.plan-actions .end-link {
+  margin: 0;
+}
+
+.plan-editor,
+.settings-section {
+  padding: clamp(24px, 4vw, 40px);
+}
+
+.plan-editor,
+.settings-form {
+  display: grid;
+  gap: 20px;
+}
+
+.plan-editor label,
+.settings-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.plan-editor textarea {
+  min-height: 100px;
+}
+
+.notification-center,
+.candidate-list {
+  padding: 24px;
+}
+
+.notification-center > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.notification-center > header a {
+  color: var(--deep);
+  font-size: 0.76rem;
+}
+
+.notification-center ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notification-center li {
+  padding: 18px 0;
+  border-bottom: 1px solid #e2e7e4;
+}
+
+.notification-center li.is-read {
+  opacity: 0.6;
+}
+
+.notification-center li > strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.88rem;
+}
+
+.notification-center li p {
+  margin: 7px 0;
+  color: var(--muted);
+  font-size: 0.79rem;
+  line-height: 1.6;
+}
+
+.notification-center li small {
+  color: var(--muted);
+}
+
+.notification-center li .text-button {
+  min-height: auto;
+  padding: 8px 0 0;
+  font-size: 0.75rem;
+}
+
+.severity {
+  display: inline-block;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.severity.required,
+.severity.action {
+  border-color: #d5b59e;
+  color: #8c5433;
+}
+
+.severity.warning {
+  border-color: #d3a49d;
+  color: var(--danger);
+}
+
+.candidate-list > article {
+  padding: 17px 0;
+  border-top: 1px solid var(--line);
+}
+
+.candidate-list article p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.candidate-list .answer-actions {
+  margin-top: 6px;
+}
+
+.candidate-list .text-button {
+  min-height: auto;
+  padding: 5px 0;
+  font-size: 0.75rem;
+}
+
+.settings-layout {
+  max-width: 980px;
+}
+
+.settings-section > header {
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-form {
+  padding-top: 26px;
+}
+
+.checkbox-row {
+  display: flex !important;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px !important;
+}
+
+.checkbox-row input {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+}
+
+.checkbox-row span {
+  display: grid;
+  gap: 5px;
+  color: var(--ink);
+}
+
+.checkbox-row small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.preference-options {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #f2f6f4;
+}
+
+.provider-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.provider-cards article,
+.saved-profiles article {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #f7faf8;
+}
+
+.provider-cards article > div,
+.saved-profiles article > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.provider-cards span,
+.saved-profiles span {
+  color: var(--warm);
+  font-size: 0.72rem;
+}
+
+.provider-cards p,
+.saved-profiles p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.provider-cards small,
+.saved-profiles small {
+  color: var(--muted);
+}
+
+.provider-form {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.provider-form .primary-button {
+  justify-self: start;
+}
+
+.saved-profiles {
+  display: grid;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.saved-profiles h3 {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+}
+
 @keyframes breathe {
   from {
     opacity: 0.35;
@@ -604,6 +1110,18 @@ textarea::placeholder {
     position: static;
   }
 
+  .learning-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-sidebar {
+    position: static;
+  }
+
+  .learning-control {
+    align-items: flex-start;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
@@ -611,9 +1129,21 @@ textarea::placeholder {
 
 @media (max-width: 560px) {
   .page,
-  .diagnostic-page {
+  .diagnostic-page,
+  .learning-page,
+  .settings-page {
     width: min(100% - 24px, 1240px);
     padding-top: 18px;
+  }
+
+  .top-nav {
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px 14px;
   }
 
   .hero {
@@ -640,6 +1170,57 @@ textarea::placeholder {
 
   .answer-actions .primary-button {
     width: 100%;
+  }
+
+  .learning-control,
+  .learning-control-actions,
+  .source-run > div,
+  .plan-header {
+    display: grid;
+  }
+
+  .learning-control-actions .primary-button {
+    width: 100%;
+  }
+
+  .plan-limitations,
+  .plan-unit,
+  .plan-unit dl > div {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-sequence {
+    padding: 16px 22px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .plan-header,
+  .plan-unit-content,
+  .plan-actions {
+    padding: 24px 22px;
+  }
+
+  .plan-limitations {
+    padding: 20px 22px;
+  }
+
+  .plan-unit-content > header {
+    display: grid;
+  }
+
+  .plan-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .plan-actions .primary-button {
+    width: 100%;
+  }
+
+  .form-grid,
+  .provider-cards {
+    grid-template-columns: 1fr;
   }
 }
 

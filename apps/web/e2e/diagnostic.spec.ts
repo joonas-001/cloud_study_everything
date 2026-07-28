@@ -42,4 +42,26 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await page.getByRole("button", { name: "提前结束本次对话" }).click();
   await expect(page.getByRole("heading", { name: "记录已锁定" })).toBeVisible();
   await expect(page.getByText(/草稿预览不会生成正式计划/)).toBeVisible();
+
+  await page.getByRole("link", { name: "进入学习面板" }).click();
+  await expect(
+    page.getByRole("heading", { name: "计划可以调整，依据必须留下。" }),
+  ).toBeVisible();
+  const generateButton = page.getByRole("button", {
+    name: "生成本地规划预览",
+  });
+  const planningTitle = page.getByRole("heading", {
+    name: "算法共同主干入口规划预览",
+  });
+  await expect(generateButton.or(planningTitle)).toBeVisible();
+  if (await generateButton.isVisible()) {
+    await generateButton.click();
+  }
+  await expect(planningTitle).toBeVisible();
+  await expect(page.getByText("当前限制")).toBeVisible();
+  await expect(page.getByRole("link", { name: /MIT OpenCourseWare/ }).first()).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("learning-plan-preview.png"),
+    fullPage: true,
+  });
 });

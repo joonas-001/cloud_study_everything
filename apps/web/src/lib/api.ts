@@ -1,9 +1,24 @@
 import type {
+  AiProviderProfileResponse,
+  AiProviderResponse,
   CorrectAnswerRequest,
+  CreateAiProviderProfileRequest,
   CreateDiagnosticSessionRequest,
+  CreatePlanningProposalRequest,
+  CreateSourceCheckRequest,
   DiagnosticSessionResponse,
+  EmailOutboxProcessResponse,
+  NotificationPreferenceResponse,
+  NotificationResponse,
+  PlanningProposalResponse,
   PrivacySettingsResponse,
+  ResolveSourceChangeRequest,
+  SourceChangeCandidateResponse,
+  SourceCheckRunResponse,
   SubmitAnswerRequest,
+  UpdateNotificationPreferenceRequest,
+  UpdatePlanningStatusRequest,
+  UpdatePlanningUnitRequest,
   UpdatePrivacySettingsRequest,
 } from "@/generated/api-schema";
 
@@ -116,6 +131,152 @@ export function endDiagnosticSession(
 ): Promise<DiagnosticSessionResponse> {
   return request(`/diagnostic-sessions/${sessionId}/end`, {
     method: "POST",
+  });
+}
+
+export function getLatestDiagnosticSession(
+  skillId: string,
+  skillVersion: string,
+): Promise<DiagnosticSessionResponse | null> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+  });
+  return request<DiagnosticSessionResponse>(
+    `/diagnostic-sessions/latest?${query.toString()}`,
+  ).catch((error: unknown) => {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  });
+}
+
+export function createPlanningProposal(
+  payload: CreatePlanningProposalRequest,
+): Promise<PlanningProposalResponse> {
+  return request("/planning-proposals", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getLatestPlanningProposal(
+  skillId: string,
+  skillVersion: string,
+): Promise<PlanningProposalResponse | null> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+  });
+  return request<PlanningProposalResponse>(
+    `/planning-proposals/latest?${query.toString()}`,
+  ).catch((error: unknown) => {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  });
+}
+
+export function updatePlanningUnit(
+  proposalId: string,
+  unitId: string,
+  payload: UpdatePlanningUnitRequest,
+): Promise<PlanningProposalResponse> {
+  return request(`/planning-proposals/${proposalId}/units/${unitId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updatePlanningStatus(
+  proposalId: string,
+  payload: UpdatePlanningStatusRequest,
+): Promise<PlanningProposalResponse> {
+  return request(`/planning-proposals/${proposalId}/status`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createSourceCheck(
+  payload: CreateSourceCheckRequest,
+): Promise<SourceCheckRunResponse> {
+  return request("/source-check-runs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getSourceChangeCandidates(
+  skillId: string,
+  skillVersion: string,
+): Promise<Array<SourceChangeCandidateResponse>> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+  });
+  return request(`/source-change-candidates?${query.toString()}`);
+}
+
+export function resolveSourceChangeCandidate(
+  candidateId: string,
+  payload: ResolveSourceChangeRequest,
+): Promise<SourceChangeCandidateResponse> {
+  return request(`/source-change-candidates/${candidateId}/decision`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getNotifications(): Promise<Array<NotificationResponse>> {
+  return request("/notifications");
+}
+
+export function markNotificationRead(
+  notificationId: string,
+): Promise<NotificationResponse> {
+  return request(`/notifications/${notificationId}/read`, { method: "POST" });
+}
+
+export function processEmailOutbox(): Promise<EmailOutboxProcessResponse> {
+  return request("/notifications/email-outbox/process", { method: "POST" });
+}
+
+export function getNotificationPreferences(): Promise<NotificationPreferenceResponse> {
+  return request("/settings/notifications");
+}
+
+export function updateNotificationPreferences(
+  payload: UpdateNotificationPreferenceRequest,
+): Promise<NotificationPreferenceResponse> {
+  return request("/settings/notifications", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function sendTestEmail(): Promise<NotificationResponse> {
+  return request("/settings/notifications/test-email", { method: "POST" });
+}
+
+export function getAiProviders(): Promise<Array<AiProviderResponse>> {
+  return request("/ai/providers");
+}
+
+export function getAiProviderProfiles(): Promise<
+  Array<AiProviderProfileResponse>
+> {
+  return request("/ai/provider-profiles");
+}
+
+export function createAiProviderProfile(
+  payload: CreateAiProviderProfileRequest,
+): Promise<AiProviderProfileResponse> {
+  return request("/ai/provider-profiles", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
 

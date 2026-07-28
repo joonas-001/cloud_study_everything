@@ -84,6 +84,57 @@ def _validate_diagnostic_definition(
                 )
 
 
+def _validate_source_catalog(
+    catalog: dict[str, Any],
+    schema_path: Path,
+    label: str,
+    package_id: str,
+    package_version: str,
+) -> None:
+    _validate_with_schema(catalog, schema_path, label)
+    if catalog["skill_id"] != package_id or catalog["skill_version"] != package_version:
+        raise RepositoryValidationError(
+            f"{label}: skill_id and skill_version must match the package manifest"
+        )
+    source_ids = [source["id"] for source in catalog["sources"]]
+    if len(source_ids) != len(set(source_ids)):
+        raise RepositoryValidationError(f"{label}: duplicate source id")
+    known_source_ids = set(source_ids)
+    expert_ids = [expert["id"] for expert in catalog["experts"]]
+    if len(expert_ids) != len(set(expert_ids)):
+        raise RepositoryValidationError(f"{label}: duplicate expert id")
+    for expert in catalog["experts"]:
+        unknown = set(expert["source_ids"]) - known_source_ids
+        if unknown:
+            raise RepositoryValidationError(
+                f"{label}: expert {expert['id']} references unknown sources {sorted(unknown)}"
+            )
+
+
+def _validate_planning_template(
+    template: dict[str, Any],
+    schema_path: Path,
+    label: str,
+    package_id: str,
+    package_version: str,
+    known_source_ids: set[str],
+) -> None:
+    _validate_with_schema(template, schema_path, label)
+    if template["skill_id"] != package_id or template["skill_version"] != package_version:
+        raise RepositoryValidationError(
+            f"{label}: skill_id and skill_version must match the package manifest"
+        )
+    unit_ids = [unit["id"] for unit in template["units"]]
+    if len(unit_ids) != len(set(unit_ids)):
+        raise RepositoryValidationError(f"{label}: duplicate planning unit id")
+    for unit in template["units"]:
+        unknown = set(unit["source_ids"]) - known_source_ids
+        if unknown:
+            raise RepositoryValidationError(
+                f"{label}: unit {unit['id']} references unknown sources {sorted(unknown)}"
+            )
+
+
 def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
     """Load and validate the built-in registry and every registered manifest."""
     skill_root = (repository_root / "skill-packs").resolve()
@@ -138,6 +189,8 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                     f"{manifest_path}: {field} differs from registry entry"
                 )
 
+        source_catalogs: list[dict[str, Any]] = []
+        planning_templates: list[tuple[dict[str, Any], Path]] = []
         for content in manifest["content_files"]:
             content_path = (package_path / content["path"]).resolve()
             if not content_path.is_relative_to(package_path) or not content_path.is_file():
@@ -162,6 +215,35 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                     entry["id"],
                     entry["version"],
                 )
+            elif content["kind"] == "source_catalog":
+                catalog = _load_yaml(content_path)
+                _validate_source_catalog(
+                    catalog,
+                    repository_root / "contracts" / "skill-pack" / "source-catalog.schema.json",
+                    str(content_path),
+                    entry["id"],
+                    entry["version"],
+                )
+                source_catalogs.append(catalog)
+            elif content["kind"] == "planning_template":
+                planning_templates.append((_load_yaml(content_path), content_path))
+
+        if planning_templates and len(source_catalogs) != 1:
+            raise RepositoryValidationError(
+                f"{manifest_path}: planning templates require exactly one source catalog"
+            )
+        known_source_ids = (
+            {source["id"] for source in source_catalogs[0]["sources"]} if source_catalogs else set()
+        )
+        for template, template_path in planning_templates:
+            _validate_planning_template(
+                template,
+                repository_root / "contracts" / "skill-pack" / "planning-template.schema.json",
+                str(template_path),
+                entry["id"],
+                entry["version"],
+                known_source_ids,
+            )
 
         packages.append(
             SkillPackage(
