@@ -66,7 +66,10 @@ class WindowsCredentialStore:
                 ("UserName", wintypes.LPWSTR),
             ]
 
-        advapi32 = ctypes.WinDLL("Advapi32.dll", use_last_error=True)
+        win_dll = getattr(ctypes, "WinDLL", None)
+        if win_dll is None:
+            raise CredentialStoreError("Windows Credential Manager is unavailable")
+        advapi32 = win_dll("Advapi32.dll", use_last_error=True)
         advapi32.CredWriteW.argtypes = [ctypes.POINTER(Credential), wintypes.DWORD]
         advapi32.CredWriteW.restype = wintypes.BOOL
         advapi32.CredReadW.argtypes = [
