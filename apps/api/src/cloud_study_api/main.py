@@ -7,7 +7,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from cloud_study_api.ai_configuration import AiConfigurationService
 from cloud_study_api.config import Settings
+from cloud_study_api.credentials import create_credential_store
 from cloud_study_api.database import (
     create_session_factory,
     read_schema_version,
@@ -15,6 +17,8 @@ from cloud_study_api.database import (
 )
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.governance import validate_repository
+from cloud_study_api.learning import LearningService
+from cloud_study_api.notifications import NotificationService
 from cloud_study_api.providers import ProviderRegistry
 from cloud_study_api.routes import router
 
@@ -32,6 +36,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     packages = validate_repository(settings.repository_root)
     upgrade_database(settings.database_path, settings.repository_root)
     session_factory = create_session_factory(settings.database_path)
+    credential_store = create_credential_store()
+    notification_service = NotificationService(
+        session_factory=session_factory,
+        credential_store=credential_store,
+    )
     app.state.settings = settings
     app.state.registered_skill_packages = len(packages)
     app.state.diagnostic_service = DiagnosticService(
@@ -39,6 +48,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         packages=packages,
         session_factory=session_factory,
         provider_registry=ProviderRegistry(),
+    )
+    app.state.notification_service = notification_service
+    app.state.learning_service = LearningService(
+        repository_root=settings.repository_root,
+        packages=packages,
+        session_factory=session_factory,
+        notification_service=notification_service,
+    )
+    app.state.ai_configuration_service = AiConfigurationService(
+        session_factory=session_factory,
+        credential_store=credential_store,
     )
     try:
         yield
@@ -55,6 +75,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origin_regex=r"http://(?:localhost|127\.0\.0\.1)(?::\d+)?$",
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["Content-Type"],

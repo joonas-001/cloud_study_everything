@@ -1,0 +1,58 @@
+schema_version: 1.0.0
+id: algorithm-foundation-planning-preview
+skill_id: algorithm
+skill_version: 0.1.0
+title: 算法共同主干入口规划预览
+rationale: 先补牢编程表达、复杂度语言和基础数据结构，再进入后续算法主干。
+limitations:
+  - 本地确定性规划器无法判断诊断自由文本回答是否正确。
+  - 这份预览只覆盖共同主干入口，不代表完整算法技能包。
+  - 完成任务不等于掌握，后续仍需理解、操作、迁移、作品、保持和纠错证据。
+units:
+  - id: programming-foundation-audit
+    title: 编程基础自检与修正
+    objective: 用 Python 和 C++ 分别完成变量、分支、循环、函数与数组的基础表达检查。
+    reason: 算法练习依赖稳定的编程表达能力，先暴露语法和边界处理缺口可减少后续干扰。
+    estimated_minutes: 120
+    completion_criteria:
+      - 能独立解释循环变量、条件分支和函数参数的作用。
+      - 能分别用 Python 和 C++ 写出遍历整数数组并寻找最大值的代码草稿。
+      - 能指出两种实现中标准库和边界处理的至少一项差异。
+    source_ids:
+      - python-tutorial
+      - iso-cpp-standard
+  - id: complexity-language
+    title: 建立复杂度分析语言
+    objective: 理解输入规模、增长率以及 O(n)、O(n log n) 和 O(n²) 的相对关系。
+    reason: 复杂度是比较算法和数据结构的共同语言，需要在学习具体算法前建立可解释的直觉。
+    estimated_minutes: 105
+    completion_criteria:
+      - 能用自己的话解释输入规模变化如何影响运行工作量。
+      - 能按增长速度排列常见复杂度并说明理由。
+      - 能分析一次数组遍历的时间和额外空间复杂度。
+    source_ids:
+      - mit-ocw-6006
+  - id: array-linked-structure
+    title: 数组与链式结构
+    objective: 比较连续存储与链式存储在访问、插入、删除和空间开销上的差异。
+    reason: 这是理解数据结构取舍和后续栈、队列、哈希结构的共同基础。
+    estimated_minutes: 120
+    completion_criteria:
+      - 能解释数组随机访问和链表顺序访问的差异。
+      - 能为至少两个操作给出复杂度并说明假设。
+      - 能完成一个小规模手工跟踪任务并纠正一次错误。
+    source_ids:
+      - open-data-structures
+      - mit-ocw-6006
+  - id: evidence-checkpoint
+    title: 入口阶段证据检查
+    objective: 用解释、实现、陌生变体和纠错记录检查是否具备继续学习共同主干的条件。
+    reason: 单纯完成阅读不能证明掌握，需要在进入下一阶段前收集多种可观察证据。
+    estimated_minutes: 120
+    completion_criteria:
+      - 提交一份概念解释和一份双语言代码草稿。
+      - 完成一个未见过的数组或链表小任务。
+      - 记录至少一个错误、原因和修正过程。
+    source_ids:
+      - mit-ocw-6006
+      - open-data-structures
