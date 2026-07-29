@@ -4,13 +4,17 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from cloud_study_api.ai_configuration import (
     AiConfigurationError,
     AiConfigurationService,
 )
 from cloud_study_api.diagnostics import DiagnosticError, DiagnosticService
+from cloud_study_api.execution import (
+    LearningExecutionError,
+    LearningExecutionService,
+)
 from cloud_study_api.learning import LearningError, LearningService
 from cloud_study_api.notifications import NotificationError, NotificationService
 
@@ -50,7 +54,8 @@ class DiagnosticQuestionResponse(BaseModel):
     id: str
     prompt: str
     reason: str
-    response_type: Literal["free_text", "code_text"]
+    response_type: Literal["free_text", "code_text", "single_choice"]
+    options: list[dict[str, str]]
 
 
 class DiagnosticAnswerResponse(BaseModel):
@@ -58,6 +63,8 @@ class DiagnosticAnswerResponse(BaseModel):
     question_id: str
     response_kind: Literal["answered", "skipped", "uncertain"]
     content: str | None
+    response_type: Literal["free_text", "code_text", "single_choice"]
+    options: list[dict[str, str]]
     revision: int
     on_current_path: bool
     created_at: datetime
@@ -121,7 +128,7 @@ class PlanningProposalResponse(BaseModel):
     provider_id: str
     model_id: str
     is_preview: bool
-    status: Literal["draft", "saved_preview", "rejected"]
+    status: Literal["draft", "saved_preview", "rejected", "frozen_preview"]
     title: str
     rationale: str
     limitations: list[str]
@@ -280,6 +287,225 @@ class AiProviderProfileResponse(BaseModel):
     updated_at: datetime
 
 
+class PlanningOptionResponse(BaseModel):
+    id: str
+    title: str
+    diagnostic_session_id: str
+    diagnostic_created_at: datetime | None
+    saved_at: datetime
+    is_historical: bool
+    has_newer_diagnostic: bool
+    has_newer_plan: bool
+    source_review_pending: bool
+
+
+class CreateLearningRunRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    planning_proposal_id: str = Field(min_length=1, max_length=36)
+    preview: bool = True
+    code_execution: bool = False
+    external_ai: bool = False
+    confirm_historical_plan: bool = False
+    reuse_from_run_id: str | None = Field(default=None, max_length=36)
+    confirm_reuse: bool = False
+
+
+class SubmissionFieldResponse(BaseModel):
+    id: str
+    kind: Literal["text", "code", "choice", "confirmation"]
+    label: str
+    required: bool
+    min_length: int
+    max_length: int
+    options: list[str] | None = None
+
+
+class ActivityEvaluationResponse(BaseModel):
+    id: str
+    method: Literal["deterministic", "self_review", "review_pending", "not_executable"]
+    result: Literal[
+        "passed",
+        "failed",
+        "submitted",
+        "uncertain",
+        "review_pending",
+        "not_executable",
+    ]
+    rubric_id: str | None
+    detail: dict[str, object]
+    created_at: datetime
+
+
+class ActivityAttemptResponse(BaseModel):
+    id: str
+    revision: int
+    submission: dict[str, str]
+    corrects_attempt_id: str | None
+    evaluations: list[ActivityEvaluationResponse]
+    created_at: datetime
+
+
+class LearningActivityResponse(BaseModel):
+    id: str
+    template_activity_id: str
+    type: Literal[
+        "study",
+        "explanation",
+        "structured_check",
+        "code_text",
+        "transfer",
+        "correction",
+        "project_evidence",
+        "review",
+    ]
+    sequence: int
+    title: str
+    prompt: str
+    reason: str
+    estimated_minutes: int
+    required: bool
+    status: Literal["pending", "available", "completed", "correction_required"]
+    completion_rule: Literal["confirmation", "valid_submission", "deterministic_pass"]
+    submission_fields: list[SubmissionFieldResponse]
+    source_ids: list[str]
+    available_at: datetime | None
+    overdue: bool
+    attempts: list[ActivityAttemptResponse]
+    completed_at: datetime | None
+
+
+class MasteryDimensionResponse(BaseModel):
+    dimension: Literal[
+        "understanding",
+        "operation",
+        "transfer",
+        "artifact",
+        "retention",
+        "correction",
+    ]
+    evidence_level: Literal["none", "limited", "supported"]
+    review_flags: list[
+        Literal[
+            "manual_review_pending",
+            "retention_due",
+            "source_review_pending",
+        ]
+    ]
+    evidence_count: int
+    updated_at: datetime
+
+
+class ReviewTaskResponse(BaseModel):
+    id: str
+    activity_id: str | None
+    checkpoint_index: int
+    attempt_number: int
+    interval_days: int
+    due_at: datetime
+    status: Literal["scheduled", "available", "passed", "failed"]
+    overdue: bool
+    policy_id: str
+    policy_version: str
+    completed_at: datetime | None
+
+
+class LearningRunResponse(BaseModel):
+    id: str
+    planning_proposal_id: str
+    diagnostic_session_id: str
+    skill_id: str
+    skill_version: str
+    status: Literal["active", "retention_pending", "completed", "ended"]
+    is_preview: bool
+    code_execution: Literal["disabled"]
+    external_ai: Literal["disabled"]
+    selected_historical_plan: bool
+    reused_from_run_id: str | None
+    lock_sha256: str
+    engine_protocol_version: str
+    runner_protocol_version: str
+    evidence_limitations: list[str]
+    activities: list[LearningActivityResponse]
+    dimensions: list[MasteryDimensionResponse]
+    reviews: list[ReviewTaskResponse]
+    next_actions: list[str]
+    created_at: datetime
+    updated_at: datetime
+    retention_started_at: datetime | None
+    completed_at: datetime | None
+    ended_at: datetime | None
+    end_reason: str | None
+
+
+class TodayLearningRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    available_minutes: int = Field(default=120, ge=15, le=480)
+
+
+class TodayLearningResponse(BaseModel):
+    run_id: str
+    generated_at: datetime
+    available_minutes: int
+    estimated_minutes: int
+    tasks: list[LearningActivityResponse]
+    reason: str
+
+
+class SubmitActivityAttemptRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    submission: dict[str, str]
+    corrects_attempt_id: str | None = Field(default=None, max_length=36)
+    mark_uncertain: bool = False
+
+
+class ActivityAttemptSubmissionResponse(BaseModel):
+    attempt: ActivityAttemptResponse
+    activity: LearningActivityResponse
+    run: LearningRunResponse
+
+
+class SelfReviewAttemptRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    rubric_id: str = Field(min_length=1, max_length=100)
+    result: Literal["not_yet", "uncertain", "meets"]
+
+
+class SelfReviewAttemptResponse(BaseModel):
+    attempt: ActivityAttemptResponse
+    activity: LearningActivityResponse
+    run: LearningRunResponse
+
+
+class MasteryEvidenceItemResponse(BaseModel):
+    id: str
+    activity_id: str
+    attempt_id: str
+    criterion_id: str
+    dimension: str
+    method: str
+    result: str
+    strength: Literal["limited", "supported", "retained_limited"]
+    review_flags: list[str]
+    created_at: datetime
+    superseded_at: datetime | None
+
+
+class LearningEvidenceResponse(BaseModel):
+    run_id: str
+    limitations: list[str]
+    dimensions: list[MasteryDimensionResponse]
+    evidence: list[MasteryEvidenceItemResponse]
+
+
+class StartReviewResponse(BaseModel):
+    review: ReviewTaskResponse
+    activity: LearningActivityResponse
+
+
 router = APIRouter()
 
 
@@ -302,6 +528,17 @@ def get_learning_service(request: Request) -> LearningService:
 LearningServiceDependency = Annotated[
     LearningService,
     Depends(get_learning_service),
+]
+
+
+def get_learning_execution_service(request: Request) -> LearningExecutionService:
+    service: LearningExecutionService = request.app.state.learning_execution_service
+    return service
+
+
+LearningExecutionServiceDependency = Annotated[
+    LearningExecutionService,
+    Depends(get_learning_execution_service),
 ]
 
 
@@ -339,9 +576,9 @@ def _raise_http(error: DiagnosticError) -> None:
 
 
 def _raise_service_http(
-    error: LearningError | NotificationError | AiConfigurationError,
+    error: (LearningError | LearningExecutionError | NotificationError | AiConfigurationError),
 ) -> None:
-    context = error.context if isinstance(error, LearningError) else {}
+    context = error.context if isinstance(error, (LearningError, LearningExecutionError)) else {}
     raise HTTPException(
         status_code=error.status_code,
         detail={
@@ -775,3 +1012,227 @@ def create_ai_provider_profile(
     except AiConfigurationError as error:
         _raise_service_http(error)
     return AiProviderProfileResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-plan-options",
+    response_model=list[PlanningOptionResponse],
+    tags=["learning-execution"],
+)
+def list_learning_planning_options(
+    service: LearningExecutionServiceDependency,
+    skill_id: str = Query(min_length=1, max_length=100),
+    skill_version: str = Query(min_length=1, max_length=50),
+) -> list[PlanningOptionResponse]:
+    try:
+        result = service.list_planning_options(skill_id, skill_version)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return [PlanningOptionResponse.model_validate(item) for item in result]
+
+
+@router.post(
+    "/learning-runs",
+    response_model=LearningRunResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["learning-execution"],
+)
+def create_learning_run(
+    payload: CreateLearningRunRequest,
+    service: LearningExecutionServiceDependency,
+) -> LearningRunResponse:
+    try:
+        result = service.create_run(**payload.model_dump())
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/active",
+    response_model=LearningRunResponse,
+    tags=["learning-execution"],
+)
+def get_active_learning_run(
+    service: LearningExecutionServiceDependency,
+    skill_id: str = Query(min_length=1, max_length=100),
+    skill_version: str = Query(min_length=1, max_length=50),
+) -> LearningRunResponse:
+    try:
+        result = service.get_active_run(skill_id, skill_version)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-run-latest",
+    response_model=LearningRunResponse,
+    tags=["learning-execution"],
+)
+def get_latest_learning_run(
+    service: LearningExecutionServiceDependency,
+    skill_id: str = Query(min_length=1, max_length=100),
+    skill_version: str = Query(min_length=1, max_length=50),
+) -> LearningRunResponse:
+    try:
+        result = service.get_latest_run(skill_id, skill_version)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/{run_id}",
+    response_model=LearningRunResponse,
+    tags=["learning-execution"],
+)
+def get_learning_run(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> LearningRunResponse:
+    try:
+        result = service.get_run(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-runs/{run_id}/today",
+    response_model=TodayLearningResponse,
+    tags=["learning-execution"],
+)
+def generate_today_learning(
+    run_id: str,
+    payload: TodayLearningRequest,
+    service: LearningExecutionServiceDependency,
+) -> TodayLearningResponse:
+    try:
+        result = service.today(run_id, payload.available_minutes)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return TodayLearningResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-activities/{activity_id}/attempts",
+    response_model=ActivityAttemptSubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["learning-execution"],
+)
+def submit_learning_activity_attempt(
+    activity_id: str,
+    payload: SubmitActivityAttemptRequest,
+    service: LearningExecutionServiceDependency,
+) -> ActivityAttemptSubmissionResponse:
+    try:
+        result = service.submit_attempt(activity_id, **payload.model_dump())
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return ActivityAttemptSubmissionResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-activities/{activity_id}/attempts/{attempt_id}/corrections",
+    response_model=ActivityAttemptSubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["learning-execution"],
+)
+def correct_learning_activity_attempt(
+    activity_id: str,
+    attempt_id: str,
+    payload: SubmitActivityAttemptRequest,
+    service: LearningExecutionServiceDependency,
+) -> ActivityAttemptSubmissionResponse:
+    try:
+        result = service.submit_attempt(
+            activity_id,
+            submission=payload.submission,
+            corrects_attempt_id=attempt_id,
+            mark_uncertain=payload.mark_uncertain,
+        )
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return ActivityAttemptSubmissionResponse.model_validate(result)
+
+
+@router.post(
+    "/activity-attempts/{attempt_id}/self-review",
+    response_model=SelfReviewAttemptResponse,
+    tags=["learning-execution"],
+)
+def self_review_activity_attempt(
+    attempt_id: str,
+    payload: SelfReviewAttemptRequest,
+    service: LearningExecutionServiceDependency,
+) -> SelfReviewAttemptResponse:
+    try:
+        result = service.self_review_attempt(attempt_id, **payload.model_dump())
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return SelfReviewAttemptResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/{run_id}/evidence",
+    response_model=LearningEvidenceResponse,
+    tags=["learning-execution"],
+)
+def get_learning_evidence(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> LearningEvidenceResponse:
+    try:
+        result = service.get_evidence(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningEvidenceResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/{run_id}/reviews",
+    response_model=list[ReviewTaskResponse],
+    tags=["learning-execution"],
+)
+def get_learning_reviews(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> list[ReviewTaskResponse]:
+    try:
+        result = service.get_reviews(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return [ReviewTaskResponse.model_validate(item) for item in result]
+
+
+@router.post(
+    "/review-tasks/{review_id}/start",
+    response_model=StartReviewResponse,
+    tags=["learning-execution"],
+)
+def start_learning_review(
+    review_id: str,
+    service: LearningExecutionServiceDependency,
+) -> StartReviewResponse:
+    try:
+        result = service.start_review(review_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return StartReviewResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-runs/{run_id}/end",
+    response_model=LearningRunResponse,
+    tags=["learning-execution"],
+)
+def end_learning_run(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> LearningRunResponse:
+    try:
+        result = service.end_run(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)

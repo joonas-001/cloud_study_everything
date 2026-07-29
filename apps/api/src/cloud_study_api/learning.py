@@ -13,11 +13,13 @@ from typing import Any, Protocol, cast
 from uuid import uuid4
 
 import yaml
-from sqlalchemy import select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from cloud_study_api.governance import SkillPackage
+from cloud_study_api.content_locking import ensure_package_content_lock
+from cloud_study_api.governance import RepositoryValidationError, SkillPackage
 from cloud_study_api.models import (
+    DiagnosticAnswer,
     DiagnosticSession,
     PlanningChangeEvent,
     PlanningProposal,
@@ -147,6 +149,21 @@ class LearningService:
                     "skill_package_not_previewable",
                     "The skill package cannot create a local planning preview.",
                 )
+            if package.intake != "open":
+                raise LearningError(
+                    409,
+                    "skill_package_intake_closed",
+                    "This package version cannot create new planning previews.",
+                )
+            now = self._now()
+            try:
+                ensure_package_content_lock(database, package, now)
+            except RepositoryValidationError as error:
+                raise LearningError(
+                    409,
+                    "skill_package_content_changed",
+                    str(error),
+                ) from error
             existing = database.scalar(
                 select(PlanningProposal)
                 .where(
@@ -159,8 +176,8 @@ class LearningService:
                 return self._proposal_payload(database, existing)
 
             template = self._template(package)
+            remediation_reasons = self._remediation_reasons(database, diagnostic, package)
             proposal_id = str(uuid4())
-            now = self._now()
             proposal = PlanningProposal(
                 id=proposal_id,
                 diagnostic_session_id=diagnostic.id,
@@ -189,7 +206,7 @@ class LearningService:
                     sequence=sequence,
                     title=item["title"],
                     objective=item["objective"],
-                    reason=item["reason"],
+                    reason=" ".join([item["reason"], *remediation_reasons.get(item["id"], [])]),
                     estimated_minutes=item["estimated_minutes"],
                     completion_criteria_json=json.dumps(
                         item["completion_criteria"],
@@ -533,8 +550,8 @@ class LearningService:
                     severity="action_required",
                     title="来源变化已接受，等待版本化处理",
                     message=(
-                        "接受候选不会自动修改技能包。下一步需要生成影响报告、"
-                        "候选版本并再次获得明确批准。"
+                        "4A 只保留确定性元数据差异并标记 source_review_pending；"
+                        "不会生成实质影响报告、补充单元或迁移。"
                     ),
                     related_type="source_change_candidate",
                     related_id=candidate.id,
@@ -580,6 +597,70 @@ class LearningService:
         if identity not in self._templates:
             self._templates[identity] = self._content(package, "planning_template")
         return self._templates[identity]
+
+    def _latest_diagnostic_answers(
+        self,
+        database: Session,
+        diagnostic_session_id: str,
+    ) -> dict[str, DiagnosticAnswer]:
+        latest_revisions: Select[tuple[str, int]] = (
+            select(
+                DiagnosticAnswer.question_id,
+                func.max(DiagnosticAnswer.revision).label("revision"),
+            )
+            .where(DiagnosticAnswer.session_id == diagnostic_session_id)
+            .group_by(DiagnosticAnswer.question_id)
+        )
+        latest = latest_revisions.subquery()
+        answers = database.scalars(
+            select(DiagnosticAnswer)
+            .join(
+                latest,
+                (DiagnosticAnswer.question_id == latest.c.question_id)
+                & (DiagnosticAnswer.revision == latest.c.revision),
+            )
+            .where(DiagnosticAnswer.session_id == diagnostic_session_id)
+        ).all()
+        return {answer.question_id: answer for answer in answers}
+
+    def _remediation_reasons(
+        self,
+        database: Session,
+        diagnostic: DiagnosticSession,
+        package: SkillPackage,
+    ) -> dict[str, list[str]]:
+        entries = [
+            item
+            for item in package.manifest["content_files"]
+            if item["kind"] == "learning_definition"
+        ]
+        if not entries:
+            return {}
+        learning = yaml.safe_load((package.path / entries[0]["path"]).read_text(encoding="utf-8"))
+        if not isinstance(learning, dict):
+            raise RuntimeError("learning_definition must be a YAML object")
+        activity_to_unit = {
+            activity["id"]: activity["unit_id"] for activity in learning["activities"]
+        }
+        answers = self._latest_diagnostic_answers(database, diagnostic.id)
+        reasons: dict[str, list[str]] = {}
+        for rule in learning["diagnostic_remediation_rules"]:
+            answer = answers.get(rule["question_id"])
+            signal = (
+                answer.content
+                if answer is not None and answer.response_kind == "answered"
+                else answer.response_kind
+                if answer is not None
+                else None
+            )
+            if signal not in rule["response_values"]:
+                continue
+            for activity_id in rule["activity_ids"]:
+                unit_id = activity_to_unit[activity_id]
+                reason = f"诊断补救：{rule['reason']}"
+                if reason not in reasons.setdefault(unit_id, []):
+                    reasons[unit_id].append(reason)
+        return reasons
 
     def _proposal(self, database: Session, proposal_id: str) -> PlanningProposal:
         proposal = database.get(PlanningProposal, proposal_id)

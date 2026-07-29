@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,7 @@ class SkillPackage:
     path: Path
     state: str
     availability: str
+    intake: str
     manifest_sha256: str
     manifest: dict[str, Any]
 
@@ -77,6 +79,11 @@ def _validate_diagnostic_definition(
     if definition["start_question_id"] not in known_ids:
         raise RepositoryValidationError(f"{label}: start_question_id does not exist")
     for question in questions:
+        option_values = [option["value"] for option in question.get("options", [])]
+        if len(option_values) != len(set(option_values)):
+            raise RepositoryValidationError(
+                f"{label}: question {question['id']} has duplicate option values"
+            )
         for next_question_id in question["transitions"].values():
             if next_question_id is not None and next_question_id not in known_ids:
                 raise RepositoryValidationError(
@@ -135,6 +142,209 @@ def _validate_planning_template(
             )
 
 
+def _validate_learning_content(
+    documents: dict[str, dict[str, Any]],
+    schema_root: Path,
+    labels: dict[str, str],
+    package_id: str,
+    package_version: str,
+    known_source_ids: set[str],
+    diagnostic: dict[str, Any] | None,
+) -> None:
+    required_kinds = {
+        "learning_definition": "learning-definition.schema.json",
+        "assessment_definition": "assessment-definition.schema.json",
+        "rubric_definition": "rubric-definition.schema.json",
+        "review_policy": "review-policy.schema.json",
+        "mastery_scope": "mastery-scope.schema.json",
+    }
+    present = required_kinds.keys() & documents.keys()
+    if not present:
+        return
+    if set(present) != set(required_kinds):
+        missing = sorted(set(required_kinds) - set(present))
+        raise RepositoryValidationError(
+            f"{package_id}@{package_version}: learning content is incomplete; missing {missing}"
+        )
+    for kind, schema_name in required_kinds.items():
+        document = documents[kind]
+        _validate_with_schema(document, schema_root / schema_name, labels[kind])
+        if document["skill_id"] != package_id or document["skill_version"] != package_version:
+            raise RepositoryValidationError(
+                f"{labels[kind]}: skill_id and skill_version must match the package manifest"
+            )
+
+    learning = documents["learning_definition"]
+    unit_ids = [unit["id"] for unit in learning["units"]]
+    if len(unit_ids) != len(set(unit_ids)):
+        raise RepositoryValidationError(f"{labels['learning_definition']}: duplicate unit id")
+    known_unit_ids = set(unit_ids)
+    unit_graph: dict[str, list[str]] = {}
+    for unit in learning["units"]:
+        unknown_units = set(unit["prerequisite_unit_ids"]) - known_unit_ids
+        unknown_sources = set(unit["source_ids"]) - known_source_ids
+        if unknown_units:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: unit {unit['id']} has unknown prerequisites "
+                f"{sorted(unknown_units)}"
+            )
+        if unknown_sources:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: unit {unit['id']} references unknown sources "
+                f"{sorted(unknown_sources)}"
+            )
+        unit_graph[unit["id"]] = unit["prerequisite_unit_ids"]
+
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit_unit(unit_id: str) -> None:
+        if unit_id in visiting:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: cyclic unit dependency at {unit_id}"
+            )
+        if unit_id in visited:
+            return
+        visiting.add(unit_id)
+        for prerequisite in unit_graph[unit_id]:
+            visit_unit(prerequisite)
+        visiting.remove(unit_id)
+        visited.add(unit_id)
+
+    for unit_id in unit_graph:
+        visit_unit(unit_id)
+
+    activity_ids = [activity["id"] for activity in learning["activities"]]
+    if len(activity_ids) != len(set(activity_ids)):
+        raise RepositoryValidationError(f"{labels['learning_definition']}: duplicate activity id")
+    known_activity_ids = set(activity_ids)
+    for activity in learning["activities"]:
+        if activity["unit_id"] not in known_unit_ids:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: activity {activity['id']} has unknown unit"
+            )
+        unknown_sources = set(activity["source_ids"]) - known_source_ids
+        if unknown_sources:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: activity {activity['id']} references unknown "
+                f"sources {sorted(unknown_sources)}"
+            )
+        field_ids = [field["id"] for field in activity["submission_fields"]]
+        if len(field_ids) != len(set(field_ids)):
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: activity {activity['id']} has duplicate fields"
+            )
+        deterministic = activity.get("deterministic_check")
+        if activity["completion_rule"] == "deterministic_pass":
+            if deterministic is None:
+                raise RepositoryValidationError(
+                    f"{labels['learning_definition']}: deterministic activity "
+                    f"{activity['id']} lacks a check"
+                )
+            if deterministic["field_id"] not in set(field_ids):
+                raise RepositoryValidationError(
+                    f"{labels['learning_definition']}: activity {activity['id']} check field "
+                    "does not exist"
+                )
+        elif deterministic is not None:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: non-deterministic activity "
+                f"{activity['id']} declares a check"
+            )
+
+    known_question_ids = (
+        {question["id"] for question in diagnostic["questions"]} if diagnostic else set()
+    )
+    for rule in learning["diagnostic_remediation_rules"]:
+        if rule["question_id"] not in known_question_ids:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: remediation {rule['id']} references unknown "
+                "diagnostic question"
+            )
+        unknown_activities = set(rule["activity_ids"]) - known_activity_ids
+        if unknown_activities:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: remediation {rule['id']} references unknown "
+                f"activities {sorted(unknown_activities)}"
+            )
+
+    assessment = documents["assessment_definition"]
+    criterion_ids = [criterion["id"] for criterion in assessment["criteria"]]
+    if len(criterion_ids) != len(set(criterion_ids)):
+        raise RepositoryValidationError(
+            f"{labels['assessment_definition']}: duplicate criterion id"
+        )
+    for criterion in assessment["criteria"]:
+        if criterion["activity_id"] not in known_activity_ids:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: criterion {criterion['id']} references "
+                "unknown activity"
+            )
+
+    rubric = documents["rubric_definition"]
+    rubric_ids = [criterion["id"] for criterion in rubric["criteria"]]
+    if len(rubric_ids) != len(set(rubric_ids)):
+        raise RepositoryValidationError(f"{labels['rubric_definition']}: duplicate rubric id")
+    for criterion in rubric["criteria"]:
+        values = [level["value"] for level in criterion["levels"]]
+        if len(values) != len(set(values)):
+            raise RepositoryValidationError(
+                f"{labels['rubric_definition']}: rubric {criterion['id']} has duplicate levels"
+            )
+    known_rubric_ids = set(rubric_ids)
+    for criterion in assessment["criteria"]:
+        self_review_rubric_id = criterion.get("self_review_rubric_id")
+        if criterion["evaluation_method"] == "self_review" and not self_review_rubric_id:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: self-review criterion "
+                f"{criterion['id']} lacks a self_review_rubric_id"
+            )
+        if self_review_rubric_id and self_review_rubric_id not in known_rubric_ids:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: criterion {criterion['id']} references "
+                f"unknown rubric {self_review_rubric_id}"
+            )
+
+    review = documents["review_policy"]
+    intervals = review["interval_days"]
+    if intervals != sorted(intervals) or any(
+        current <= previous for previous, current in pairwise(intervals)
+    ):
+        raise RepositoryValidationError(
+            f"{labels['review_policy']}: interval_days must be strictly increasing"
+        )
+    if review["completion_checkpoint"] != len(intervals):
+        raise RepositoryValidationError(
+            f"{labels['review_policy']}: completion_checkpoint must equal interval count"
+        )
+    unknown_review_sources = set(review["source_ids"]) - known_source_ids
+    if unknown_review_sources:
+        raise RepositoryValidationError(
+            f"{labels['review_policy']}: references unknown sources "
+            f"{sorted(unknown_review_sources)}"
+        )
+
+    mastery = documents["mastery_scope"]
+    required_dimensions = {
+        "understanding",
+        "operation",
+        "transfer",
+        "artifact",
+        "retention",
+        "correction",
+    }
+    if set(mastery["dimensions"]) != required_dimensions:
+        raise RepositoryValidationError(
+            f"{labels['mastery_scope']}: all six mastery dimensions are required"
+        )
+    if {"verified", "retained", "mastered", "scope_criteria_met"} - set(
+        mastery["prohibited_claims"]
+    ):
+        raise RepositoryValidationError(
+            f"{labels['mastery_scope']}: 4A prohibited claims are incomplete"
+        )
+
+
 def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
     """Load and validate the built-in registry and every registered manifest."""
     skill_root = (repository_root / "skill-packs").resolve()
@@ -191,6 +401,9 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
 
         source_catalogs: list[dict[str, Any]] = []
         planning_templates: list[tuple[dict[str, Any], Path]] = []
+        diagnostic_definition: dict[str, Any] | None = None
+        learning_documents: dict[str, dict[str, Any]] = {}
+        learning_labels: dict[str, str] = {}
         for content in manifest["content_files"]:
             content_path = (package_path / content["path"]).resolve()
             if not content_path.is_relative_to(package_path) or not content_path.is_file():
@@ -215,6 +428,7 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                     entry["id"],
                     entry["version"],
                 )
+                diagnostic_definition = definition
             elif content["kind"] == "source_catalog":
                 catalog = _load_yaml(content_path)
                 _validate_source_catalog(
@@ -227,6 +441,15 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 source_catalogs.append(catalog)
             elif content["kind"] == "planning_template":
                 planning_templates.append((_load_yaml(content_path), content_path))
+            elif content["kind"] in {
+                "learning_definition",
+                "assessment_definition",
+                "rubric_definition",
+                "review_policy",
+                "mastery_scope",
+            }:
+                learning_documents[content["kind"]] = _load_yaml(content_path)
+                learning_labels[content["kind"]] = str(content_path)
 
         if planning_templates and len(source_catalogs) != 1:
             raise RepositoryValidationError(
@@ -244,6 +467,15 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 entry["version"],
                 known_source_ids,
             )
+        _validate_learning_content(
+            learning_documents,
+            repository_root / "contracts" / "skill-pack",
+            learning_labels,
+            entry["id"],
+            entry["version"],
+            known_source_ids,
+            diagnostic_definition,
+        )
 
         packages.append(
             SkillPackage(
@@ -252,6 +484,9 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 path=package_path,
                 state=entry["state"],
                 availability=entry["availability"],
+                # Intake controls creation of new records and can change without
+                # rewriting an immutable, historically referenced manifest.
+                intake=entry["intake"],
                 manifest_sha256=entry["manifest_sha256"],
                 manifest=manifest,
             )

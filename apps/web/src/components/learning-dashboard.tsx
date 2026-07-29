@@ -27,6 +27,7 @@ import {
   updatePlanningUnit,
 } from "@/lib/api";
 import { isCurrentDiagnosticProposal } from "@/lib/planning";
+import { LearningExecutionPanel } from "@/components/learning-execution-panel";
 
 type EditableUnit = {
   unit: PlanningUnitResponse;
@@ -300,6 +301,12 @@ export function LearningDashboard({
               ))}
           </section>
         ) : null}
+
+        <LearningExecutionPanel
+          key={`${proposal?.id ?? "no-plan"}:${proposal?.updated_at ?? "none"}`}
+          skillId={skillId}
+          skillVersion={skillVersion}
+        />
 
         {!diagnostic ? (
           <section className="panel empty-state learning-empty">

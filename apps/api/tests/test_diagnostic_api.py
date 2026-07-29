@@ -14,7 +14,7 @@ def _create_preview(client: TestClient) -> dict[str, object]:
         "/diagnostic-sessions",
         json={
             "skill_id": "algorithm",
-            "skill_version": "0.1.0",
+            "skill_version": "0.2.0",
             "preview": True,
             "provider_id": "local-deterministic",
             "model_id": "diagnostic-v1",
@@ -41,7 +41,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
 
         missing = client.get(
             "/diagnostic-sessions/active",
-            params={"skill_id": "algorithm", "skill_version": "0.1.0"},
+            params={"skill_id": "algorithm", "skill_version": "0.2.0"},
         )
         assert missing.status_code == 404
 
@@ -50,13 +50,13 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         assert created["is_preview"] is True
         assert created["external_ai_consent"] is False
         assert created["can_generate_plan"] is False
-        assert created["current_question"]["id"] == "programming-background"  # type: ignore[index]
+        assert created["current_question"]["id"] == "programming-foundation"  # type: ignore[index]
 
         duplicate = client.post(
             "/diagnostic-sessions",
             json={
                 "skill_id": "algorithm",
-                "skill_version": "0.1.0",
+                "skill_version": "0.2.0",
                 "preview": True,
                 "provider_id": "local-deterministic",
                 "model_id": "diagnostic-v1",
@@ -71,30 +71,30 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         uncertain = client.post(
             f"/diagnostic-sessions/{session_id}/answers",
             json={
-                "question_id": "programming-background",
+                "question_id": "programming-foundation",
                 "response_kind": "uncertain",
                 "content": None,
             },
         )
         assert uncertain.status_code == 200
-        assert uncertain.json()["current_question"]["id"] == "programming-foundation-check"
+        assert uncertain.json()["current_question"]["id"] == "math-foundation"
 
         corrected = client.post(
-            f"/diagnostic-sessions/{session_id}/answers/programming-background/corrections",
+            f"/diagnostic-sessions/{session_id}/answers/programming-foundation/corrections",
             json={
                 "response_kind": "answered",
-                "content": "我使用 Python 写过一个读取文本并统计单词的小程序。",
+                "content": "independent-small-program",
             },
         )
         assert corrected.status_code == 200
         corrected_body = corrected.json()
-        assert corrected_body["current_question"]["id"] == "data-structure-understanding"
+        assert corrected_body["current_question"]["id"] == "math-foundation"
         assert corrected_body["answers"][0]["revision"] == 2
         assert corrected_body["answers"][0]["response_kind"] == "answered"
 
         resumed = client.get(
             "/diagnostic-sessions/active",
-            params={"skill_id": "algorithm", "skill_version": "0.1.0"},
+            params={"skill_id": "algorithm", "skill_version": "0.2.0"},
         )
         assert resumed.status_code == 200
         assert resumed.json()["id"] == session_id
@@ -105,7 +105,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         assert ended.json()["end_reason"] == "user_ended"
         latest = client.get(
             "/diagnostic-sessions/latest",
-            params={"skill_id": "algorithm", "skill_version": "0.1.0"},
+            params={"skill_id": "algorithm", "skill_version": "0.2.0"},
         )
         assert latest.status_code == 200
         assert latest.json()["id"] == session_id
@@ -113,7 +113,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         write_after_end = client.post(
             f"/diagnostic-sessions/{session_id}/answers",
             json={
-                "question_id": "data-structure-understanding",
+                "question_id": "math-foundation",
                 "response_kind": "skipped",
                 "content": None,
             },
@@ -148,7 +148,7 @@ def test_privacy_setting_can_change_without_enabling_preview_external_access(
             "/diagnostic-sessions",
             json={
                 "skill_id": "algorithm",
-                "skill_version": "0.1.0",
+                "skill_version": "0.2.0",
                 "preview": True,
                 "provider_id": "local-deterministic",
                 "model_id": "diagnostic-v1",
@@ -158,3 +158,28 @@ def test_privacy_setting_can_change_without_enabling_preview_external_access(
         )
         assert forbidden_preview.status_code == 409
         assert forbidden_preview.json()["detail"]["code"] == "preview_forbids_external_ai"
+
+
+def test_closed_version_rejects_new_diagnostic_intake(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    database_path = tmp_path / "closed-intake.db"
+    monkeypatch.setenv("CLOUD_STUDY_DATABASE_PATH", str(database_path))
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/diagnostic-sessions",
+            json={
+                "skill_id": "algorithm",
+                "skill_version": "0.1.0",
+                "preview": True,
+                "provider_id": "local-deterministic",
+                "model_id": "diagnostic-v1",
+                "credential_reference": None,
+                "external_ai_consent": False,
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "skill_package_intake_closed"

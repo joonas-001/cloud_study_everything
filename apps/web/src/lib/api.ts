@@ -4,18 +4,29 @@ import type {
   CorrectAnswerRequest,
   CreateAiProviderProfileRequest,
   CreateDiagnosticSessionRequest,
+  CreateLearningRunRequest,
   CreatePlanningProposalRequest,
   CreateSourceCheckRequest,
   DiagnosticSessionResponse,
+  ActivityAttemptSubmissionResponse,
   EmailOutboxProcessResponse,
   NotificationPreferenceResponse,
   NotificationResponse,
   PlanningProposalResponse,
+  PlanningOptionResponse,
+  LearningEvidenceResponse,
+  LearningRunResponse,
   PrivacySettingsResponse,
   ResolveSourceChangeRequest,
   SourceChangeCandidateResponse,
   SourceCheckRunResponse,
   SubmitAnswerRequest,
+  SubmitActivityAttemptRequest,
+  SelfReviewAttemptRequest,
+  SelfReviewAttemptResponse,
+  StartReviewResponse,
+  TodayLearningRequest,
+  TodayLearningResponse,
   UpdateNotificationPreferenceRequest,
   UpdatePlanningStatusRequest,
   UpdatePlanningUnitRequest,
@@ -198,6 +209,126 @@ export function updatePlanningStatus(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getLearningPlanOptions(
+  skillId: string,
+  skillVersion: string,
+): Promise<Array<PlanningOptionResponse>> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+  });
+  return request(`/learning-plan-options?${query.toString()}`);
+}
+
+export function createLearningRun(
+  payload: CreateLearningRunRequest,
+): Promise<LearningRunResponse> {
+  return request("/learning-runs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getActiveLearningRun(
+  skillId: string,
+  skillVersion: string,
+): Promise<LearningRunResponse | null> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+  });
+  return request<LearningRunResponse>(
+    `/learning-runs/active?${query.toString()}`,
+  ).catch((error: unknown) => {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  });
+}
+
+export function getLatestLearningRun(
+  skillId: string,
+  skillVersion: string,
+): Promise<LearningRunResponse | null> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+  });
+  return request<LearningRunResponse>(
+    `/learning-run-latest?${query.toString()}`,
+  ).catch((error: unknown) => {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  });
+}
+
+export function getLearningRun(runId: string): Promise<LearningRunResponse> {
+  return request(`/learning-runs/${runId}`);
+}
+
+export function generateTodayLearning(
+  runId: string,
+  payload: TodayLearningRequest,
+): Promise<TodayLearningResponse> {
+  return request(`/learning-runs/${runId}/today`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function submitLearningActivityAttempt(
+  activityId: string,
+  payload: SubmitActivityAttemptRequest,
+): Promise<ActivityAttemptSubmissionResponse> {
+  return request(`/learning-activities/${activityId}/attempts`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function correctLearningActivityAttempt(
+  activityId: string,
+  attemptId: string,
+  payload: SubmitActivityAttemptRequest,
+): Promise<ActivityAttemptSubmissionResponse> {
+  return request(
+    `/learning-activities/${activityId}/attempts/${attemptId}/corrections`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function selfReviewActivityAttempt(
+  attemptId: string,
+  payload: SelfReviewAttemptRequest,
+): Promise<SelfReviewAttemptResponse> {
+  return request(`/activity-attempts/${attemptId}/self-review`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getLearningEvidence(
+  runId: string,
+): Promise<LearningEvidenceResponse> {
+  return request(`/learning-runs/${runId}/evidence`);
+}
+
+export function startLearningReview(
+  reviewId: string,
+): Promise<StartReviewResponse> {
+  return request(`/review-tasks/${reviewId}/start`, { method: "POST" });
+}
+
+export function endLearningRun(runId: string): Promise<LearningRunResponse> {
+  return request(`/learning-runs/${runId}/end`, { method: "POST" });
 }
 
 export function createSourceCheck(

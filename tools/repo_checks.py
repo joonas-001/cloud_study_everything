@@ -100,16 +100,23 @@ def check_structure(root: Path) -> None:
         ".python-version",
         "AGENTS.md",
         "README.md",
+        "TODO.md",
         "apps/api/pyproject.toml",
         "apps/api/alembic.ini",
         "apps/api/migrations/versions/0001_initialize_schema.py",
         "apps/api/migrations/versions/0003_add_learning_planning.py",
         "apps/api/migrations/versions/0004_add_indeterminate_source_status.py",
+        "apps/api/migrations/versions/0005_add_learning_execution.py",
         "apps/api/src/cloud_study_api/main.py",
         "apps/web/package.json",
         "apps/web/src/app/page.tsx",
         "contracts/api/openapi.json",
         "contracts/skill-pack/planning-template.schema.json",
+        "contracts/skill-pack/learning-definition.schema.json",
+        "contracts/skill-pack/assessment-definition.schema.json",
+        "contracts/skill-pack/rubric-definition.schema.json",
+        "contracts/skill-pack/review-policy.schema.json",
+        "contracts/skill-pack/mastery-scope.schema.json",
         "contracts/skill-pack/source-catalog.schema.json",
         "contracts/runner/invocation.schema.json",
         "contracts/skill-pack/manifest.schema.json",
@@ -176,6 +183,10 @@ def check_structure(root: Path) -> None:
         "dependency-resolution",
         "source-policy",
         "planning-contract",
+        "curriculum-graph",
+        "assessment-contract",
+        "review-policy",
+        "mastery-policy",
         "api-tests",
         "web-tests",
         "contract-drift",
@@ -261,6 +272,164 @@ def check_planning(root: Path) -> None:
                 raise CheckFailure(f"{path}: unit {unit['id']} has no traceable source")
 
 
+def check_learning_content(root: Path) -> None:
+    definitions = _content_documents(root, "learning_definition")
+    if not definitions:
+        raise CheckFailure(
+            "no learning definition is governed by a registered skill package"
+        )
+    required_checkpoint_types = {
+        "explanation",
+        "code_text",
+        "transfer",
+        "correction",
+        "project_evidence",
+        "review",
+    }
+    for package, definition, path in definitions:
+        activities = definition["activities"]
+        activity_types = {activity["type"] for activity in activities}
+        missing_types = required_checkpoint_types - activity_types
+        if missing_types:
+            raise CheckFailure(
+                f"{path}: missing representative activity types {sorted(missing_types)}"
+            )
+        units = definition["units"]
+        entry_units = [
+            unit for unit in units if unit["id"] != "entry-evidence-checkpoint"
+        ][:3]
+        if len(entry_units) != 3:
+            raise CheckFailure(
+                f"{package.package_id}@{package.version}: expected three entry units"
+            )
+        for unit in entry_units:
+            unit_types = {
+                activity["type"]
+                for activity in activities
+                if activity["unit_id"] == unit["id"] and activity["required"]
+            }
+            if not {"study", "structured_check"} <= unit_types:
+                raise CheckFailure(
+                    f"{path}: unit {unit['id']} needs required study and structured check"
+                )
+        serialized = json.dumps(definition, ensure_ascii=False).lower()
+        forbidden_execution_keys = [
+            '"command"',
+            '"runtime_profile"',
+            '"file_upload"',
+            '"local_path"',
+        ]
+        found = [key for key in forbidden_execution_keys if key in serialized]
+        if found:
+            raise CheckFailure(
+                f"{path}: executable or filesystem fields found: {found}"
+            )
+
+
+def check_assessment(root: Path) -> None:
+    assessments = _content_documents(root, "assessment_definition")
+    rubrics = _content_documents(root, "rubric_definition")
+    if not assessments or not rubrics:
+        raise CheckFailure("assessment and rubric definitions must both be governed")
+    required_dimensions = {
+        "understanding",
+        "operation",
+        "transfer",
+        "artifact",
+        "retention",
+        "correction",
+    }
+    permitted_methods = {
+        "deterministic",
+        "self_review",
+        "review_pending",
+        "not_executable",
+    }
+    for _package, assessment, path in assessments:
+        criteria = assessment["criteria"]
+        dimensions = {criterion["dimension"] for criterion in criteria}
+        if dimensions != required_dimensions:
+            raise CheckFailure(
+                f"{path}: assessment dimensions differ: {sorted(dimensions)}"
+            )
+        for criterion in criteria:
+            method = criterion["evaluation_method"]
+            strength = criterion["evidence_strength"]
+            if method not in permitted_methods:
+                raise CheckFailure(f"{path}: unsupported evaluation method {method}")
+            if strength == "supported" and method != "deterministic":
+                raise CheckFailure(f"{path}: supported evidence must be deterministic")
+            if strength == "retained_limited" and criterion["dimension"] != "retention":
+                raise CheckFailure(
+                    f"{path}: retained_limited is restricted to retention"
+                )
+    for _package, rubric, path in rubrics:
+        for criterion in rubric["criteria"]:
+            values = {level["value"] for level in criterion["levels"]}
+            if values != {"not_yet", "uncertain", "meets"}:
+                raise CheckFailure(
+                    f"{path}: rubric {criterion['id']} must use the bounded self-review scale"
+                )
+
+
+def check_review_policy(root: Path) -> None:
+    policies = _content_documents(root, "review_policy")
+    if not policies:
+        raise CheckFailure("no review policy is governed by a registered skill package")
+    for _package, policy, path in policies:
+        if policy["strategy"] != "fixed_expanding":
+            raise CheckFailure(f"{path}: 4A review strategy must be fixed_expanding")
+        if policy["interval_days"] != [1, 2, 4, 7, 15]:
+            raise CheckFailure(f"{path}: 4A review intervals must be 1,2,4,7,15")
+        if policy["failure_retry_days"] != 1:
+            raise CheckFailure(f"{path}: failed review retry must be one day")
+        if policy["missed_task_behavior"] != "overdue_not_failure":
+            raise CheckFailure(f"{path}: overdue review must not count as failure")
+        if policy["completion_checkpoint"] != len(policy["interval_days"]):
+            raise CheckFailure(
+                f"{path}: completion checkpoint must be the final interval"
+            )
+        if len(policy["source_ids"]) < 2:
+            raise CheckFailure(f"{path}: review policy needs cross-checked sources")
+
+
+def check_mastery_policy(root: Path) -> None:
+    scopes = _content_documents(root, "mastery_scope")
+    if not scopes:
+        raise CheckFailure("no mastery scope is governed by a registered skill package")
+    required_dimensions = {
+        "understanding",
+        "operation",
+        "transfer",
+        "artifact",
+        "retention",
+        "correction",
+    }
+    required_prohibitions = {
+        "scope_criteria_met",
+        "verified",
+        "retained",
+        "mastered",
+    }
+    for _package, scope, path in scopes:
+        if set(scope["dimensions"]) != required_dimensions:
+            raise CheckFailure(
+                f"{path}: mastery dimensions must remain the six dimensions"
+            )
+        if not required_prohibitions <= set(scope["prohibited_claims"]):
+            raise CheckFailure(
+                f"{path}: required prohibited mastery claims are missing"
+            )
+        if set(scope["allowed_evidence_levels"]) - {
+            "limited",
+            "supported",
+            "retained_limited",
+        }:
+            raise CheckFailure(
+                f"{path}: unrestricted evidence level is not allowed in 4A"
+            )
+
+
 def check_contracts(root: Path) -> None:
     schema_paths = sorted((root / "contracts").rglob("*.schema.json"))
     if not schema_paths:
@@ -330,6 +499,10 @@ CHECKS = {
     "dependencies": check_dependencies,
     "sources": check_sources,
     "planning": check_planning,
+    "learning-content": check_learning_content,
+    "assessment": check_assessment,
+    "review-policy": check_review_policy,
+    "mastery-policy": check_mastery_policy,
     "contracts": check_contracts,
     "secrets": check_secrets,
 }
