@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/readiness-policy.schema.json",
+  "title": "Readiness policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "mode",
+    "applicable_goal_kinds",
+    "required_dimensions",
+    "blocking_review_flags",
+    "real_user_max_status",
+    "paths",
+    "reason_codes",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "mode": { "const": "local_deterministic_5a" },
+    "applicable_goal_kinds": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["employment", "freelancing", "productization"]
+      }
+    },
+    "required_dimensions": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "understanding",
+          "operation",
+          "transfer",
+          "artifact",
+          "retention",
+          "correction"
+        ]
+      }
+    },
+    "blocking_review_flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "manual_review_pending",
+          "retention_due",
+          "source_review_pending"
+        ]
+      }
+    },
+    "real_user_max_status": { "const": "comparison_ready" },
+    "paths": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["employment", "freelancing", "productization"]
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 5,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  }
+}

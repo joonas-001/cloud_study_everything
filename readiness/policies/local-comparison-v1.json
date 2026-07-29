@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "id": "local-comparison-policy",
+  "version": "1.0.0",
+  "mode": "local_deterministic_5a",
+  "applicable_goal_kinds": [
+    "employment",
+    "freelancing",
+    "productization"
+  ],
+  "required_dimensions": [
+    "understanding",
+    "operation",
+    "transfer",
+    "artifact",
+    "retention",
+    "correction"
+  ],
+  "blocking_review_flags": [
+    "manual_review_pending",
+    "retention_due",
+    "source_review_pending"
+  ],
+  "real_user_max_status": "comparison_ready",
+  "paths": [
+    "employment",
+    "freelancing",
+    "productization"
+  ],
+  "reason_codes": [
+    "goal_not_monetization",
+    "learning_run_missing",
+    "evidence_dimension_missing",
+    "review_flag_blocking",
+    "market_snapshot_stale",
+    "market_snapshot_conflicted",
+    "market_snapshot_indeterminate",
+    "comparison_allowed",
+    "experiment_threshold_unconfirmed"
+  ],
+  "limitations": [
+    "5A 只允许本地确定性比较，不代表真实市场需求。",
+    "真实用户不会在未确认证据阈值时得到 experiment_ready。",
+    "4A 的文本、自评和结构校验不能证明真实代码交付能力。"
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/user-goal.schema.json",
+  "title": "User goal selection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "skill_id",
+    "skill_version",
+    "capability_scope_id",
+    "goal_kind",
+    "custom_label",
+    "market_comparison_applicable",
+    "created_at",
+    "superseded_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 36 },
+    "skill_id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "skill_version": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "capability_scope_id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "goal_kind": {
+      "enum": [
+        "learning",
+        "exam",
+        "employment",
+        "freelancing",
+        "productization",
+        "other"
+      ]
+    },
+    "custom_label": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "market_comparison_applicable": { "type": "boolean" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "superseded_at": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "goal_kind": {
+            "enum": ["employment", "freelancing", "productization"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "market_comparison_applicable": { "const": true }
+        }
+      },
+      "else": {
+        "properties": {
+          "market_comparison_applicable": { "const": false }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "goal_kind": { "const": "other" } }
+      },
+      "then": {
+        "properties": { "custom_label": { "type": "string", "minLength": 1 } }
+      },
+      "else": {
+        "properties": { "custom_label": { "type": "null" } }
+      }
+    }
+  ]
+}

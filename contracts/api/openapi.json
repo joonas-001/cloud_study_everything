@@ -269,6 +269,64 @@
         "title": "AiProviderResponse",
         "type": "object"
       },
+      "CapabilityScopeResponse": {
+        "properties": {
+          "capability_scope_id": {
+            "title": "Capability Scope Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dimensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "learning_run_id": {
+            "title": "Learning Run Id",
+            "type": "string"
+          },
+          "learning_run_status": {
+            "enum": [
+              "active",
+              "retention_pending",
+              "completed",
+              "ended"
+            ],
+            "title": "Learning Run Status",
+            "type": "string"
+          },
+          "scope_statement": {
+            "title": "Scope Statement",
+            "type": "string"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "learning_run_id",
+          "learning_run_status",
+          "skill_id",
+          "skill_version",
+          "capability_scope_id",
+          "scope_statement",
+          "dimensions",
+          "created_at"
+        ],
+        "title": "CapabilityScopeResponse",
+        "type": "object"
+      },
       "CorrectAnswerRequest": {
         "properties": {
           "content": {
@@ -462,6 +520,22 @@
         "title": "CreateLearningRunRequest",
         "type": "object"
       },
+      "CreatePathComparisonRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "evaluation_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Evaluation Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evaluation_id"
+        ],
+        "title": "CreatePathComparisonRequest",
+        "type": "object"
+      },
       "CreatePlanningProposalRequest": {
         "properties": {
           "diagnostic_session_id": {
@@ -496,6 +570,46 @@
         "title": "CreatePlanningProposalRequest",
         "type": "object"
       },
+      "CreateReadinessEvaluationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "goal_selection_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Goal Selection Id",
+            "type": "string"
+          },
+          "learning_run_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Run Id"
+          },
+          "market_snapshot_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Snapshot Id"
+          }
+        },
+        "required": [
+          "goal_selection_id"
+        ],
+        "title": "CreateReadinessEvaluationRequest",
+        "type": "object"
+      },
       "CreateSourceCheckRequest": {
         "properties": {
           "manual": {
@@ -521,6 +635,37 @@
           "skill_version"
         ],
         "title": "CreateSourceCheckRequest",
+        "type": "object"
+      },
+      "DecidePathComparisonRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted",
+              "rejected",
+              "deferred"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "DecidePathComparisonRequest",
         "type": "object"
       },
       "DiagnosticAnswerResponse": {
@@ -1217,6 +1362,76 @@
         "title": "LearningRunResponse",
         "type": "object"
       },
+      "MarketSnapshotResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fixture_id": {
+            "title": "Fixture Id",
+            "type": "string"
+          },
+          "fixture_version": {
+            "title": "Fixture Version",
+            "type": "string"
+          },
+          "freshness_status": {
+            "enum": [
+              "current",
+              "stale",
+              "conflicted",
+              "indeterminate"
+            ],
+            "title": "Freshness Status",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "source_count": {
+            "title": "Source Count",
+            "type": "integer"
+          },
+          "synthetic": {
+            "const": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "fixture_id",
+          "fixture_version",
+          "label",
+          "synthetic",
+          "freshness_status",
+          "as_of",
+          "limitations",
+          "source_count",
+          "created_at"
+        ],
+        "title": "MarketSnapshotResponse",
+        "type": "object"
+      },
       "MasteryDimensionResponse": {
         "properties": {
           "dimension": {
@@ -1580,6 +1795,128 @@
         "title": "NotificationResponse",
         "type": "object"
       },
+      "PathComparisonDecisionResponse": {
+        "properties": {
+          "comparison_id": {
+            "title": "Comparison Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "accepted",
+              "rejected",
+              "deferred"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "comparison_id",
+          "revision",
+          "decision",
+          "reason",
+          "created_at"
+        ],
+        "title": "PathComparisonDecisionResponse",
+        "type": "object"
+      },
+      "PathComparisonResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/PathComparisonDecisionResponse"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "evaluation_id": {
+            "title": "Evaluation Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "market_snapshot_id": {
+            "title": "Market Snapshot Id",
+            "type": "string"
+          },
+          "paths": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Paths",
+            "type": "array"
+          },
+          "payload_sha256": {
+            "title": "Payload Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "synthetic": {
+            "const": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "evaluation_id",
+          "market_snapshot_id",
+          "synthetic",
+          "paths",
+          "limitations",
+          "created_at",
+          "payload_sha256",
+          "decisions"
+        ],
+        "title": "PathComparisonResponse",
+        "type": "object"
+      },
       "PlanningOptionResponse": {
         "properties": {
           "diagnostic_created_at": {
@@ -1860,6 +2197,146 @@
         "title": "PrivacySettingsResponse",
         "type": "object"
       },
+      "ReadinessEvaluationResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_snapshot": {
+            "additionalProperties": true,
+            "title": "Evidence Snapshot",
+            "type": "object"
+          },
+          "goal_selection_id": {
+            "title": "Goal Selection Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input_sha256": {
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "learning_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Run Id"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "market_snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Snapshot Id"
+          },
+          "policy_id": {
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_applicable",
+              "not_ready",
+              "review_required",
+              "comparison_ready",
+              "experiment_ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "goal_selection_id",
+          "learning_run_id",
+          "policy_id",
+          "policy_version",
+          "market_snapshot_id",
+          "status",
+          "reason_codes",
+          "evidence_snapshot",
+          "limitations",
+          "input_sha256",
+          "created_at"
+        ],
+        "title": "ReadinessEvaluationResponse",
+        "type": "object"
+      },
+      "ReadinessHistoryResponse": {
+        "properties": {
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/PathComparisonResponse"
+            },
+            "title": "Comparisons",
+            "type": "array"
+          },
+          "evaluations": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessEvaluationResponse"
+            },
+            "title": "Evaluations",
+            "type": "array"
+          },
+          "events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/UserGoalResponse"
+          }
+        },
+        "required": [
+          "goal",
+          "evaluations",
+          "comparisons",
+          "events"
+        ],
+        "title": "ReadinessHistoryResponse",
+        "type": "object"
+      },
       "ResolveSourceChangeRequest": {
         "properties": {
           "decision": {
@@ -1960,6 +2437,62 @@
           "completed_at"
         ],
         "title": "ReviewTaskResponse",
+        "type": "object"
+      },
+      "SelectUserGoalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "capability_scope_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Capability Scope Id",
+            "type": "string"
+          },
+          "custom_label": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Label"
+          },
+          "goal_kind": {
+            "enum": [
+              "learning",
+              "exam",
+              "employment",
+              "freelancing",
+              "productization",
+              "other"
+            ],
+            "title": "Goal Kind",
+            "type": "string"
+          },
+          "skill_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Skill Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill_id",
+          "skill_version",
+          "capability_scope_id",
+          "goal_kind"
+        ],
+        "title": "SelectUserGoalRequest",
         "type": "object"
       },
       "SelfReviewAttemptRequest": {
@@ -2642,6 +3175,89 @@
           "external_ai_enabled"
         ],
         "title": "UpdatePrivacySettingsRequest",
+        "type": "object"
+      },
+      "UserGoalResponse": {
+        "properties": {
+          "capability_scope_id": {
+            "title": "Capability Scope Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "custom_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Label"
+          },
+          "goal_kind": {
+            "enum": [
+              "learning",
+              "exam",
+              "employment",
+              "freelancing",
+              "productization",
+              "other"
+            ],
+            "title": "Goal Kind",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "market_comparison_applicable": {
+            "title": "Market Comparison Applicable",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "superseded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded At"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "skill_id",
+          "skill_version",
+          "capability_scope_id",
+          "goal_kind",
+          "custom_label",
+          "market_comparison_applicable",
+          "created_at",
+          "superseded_at"
+        ],
+        "title": "UserGoalResponse",
         "type": "object"
       },
       "ValidationError": {
@@ -4150,6 +4766,347 @@
         "summary": "Update Planning Unit",
         "tags": [
           "planning"
+        ]
+      }
+    },
+    "/readiness/comparisons": {
+      "post": {
+        "operationId": "create_path_comparison_readiness_comparisons_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePathComparisonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathComparisonResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Path Comparison",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/comparisons/{comparison_id}/decisions": {
+      "post": {
+        "operationId": "decide_path_comparison_readiness_comparisons__comparison_id__decisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "comparison_id",
+            "required": true,
+            "schema": {
+              "title": "Comparison Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecidePathComparisonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathComparisonDecisionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Path Comparison",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/evaluations": {
+      "post": {
+        "operationId": "create_readiness_evaluation_readiness_evaluations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReadinessEvaluationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessEvaluationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Readiness Evaluation",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/goals": {
+      "post": {
+        "operationId": "select_readiness_goal_readiness_goals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectUserGoalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGoalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select Readiness Goal",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/goals/current": {
+      "get": {
+        "operationId": "get_current_readiness_goal_readiness_goals_current_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capability_scope_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Capability Scope Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/UserGoalResponse"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Current Readiness Goal Readiness Goals Current Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Current Readiness Goal",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/goals/{goal_selection_id}/history": {
+      "get": {
+        "operationId": "get_readiness_history_readiness_goals__goal_selection_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "goal_selection_id",
+            "required": true,
+            "schema": {
+              "title": "Goal Selection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessHistoryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Readiness History",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/market-snapshots": {
+      "get": {
+        "operationId": "list_readiness_market_snapshots_readiness_market_snapshots_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MarketSnapshotResponse"
+                  },
+                  "title": "Response List Readiness Market Snapshots Readiness Market Snapshots Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Readiness Market Snapshots",
+        "tags": [
+          "readiness-5a"
+        ]
+      }
+    },
+    "/readiness/scopes": {
+      "get": {
+        "operationId": "list_readiness_scopes_readiness_scopes_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapabilityScopeResponse"
+                  },
+                  "title": "Response List Readiness Scopes Readiness Scopes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Readiness Scopes",
+        "tags": [
+          "readiness-5a"
         ]
       }
     },

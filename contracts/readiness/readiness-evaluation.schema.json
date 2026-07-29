@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/readiness-evaluation.schema.json",
+  "title": "Readiness evaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "goal_selection_id",
+    "learning_run_id",
+    "policy_id",
+    "policy_version",
+    "market_snapshot_id",
+    "status",
+    "reason_codes",
+    "evidence_snapshot",
+    "limitations",
+    "input_sha256",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 36 },
+    "goal_selection_id": { "type": "string", "minLength": 1, "maxLength": 36 },
+    "learning_run_id": { "type": ["string", "null"], "maxLength": 36 },
+    "policy_id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "market_snapshot_id": { "type": ["string", "null"], "maxLength": 36 },
+    "status": {
+      "enum": [
+        "not_applicable",
+        "not_ready",
+        "review_required",
+        "comparison_ready",
+        "experiment_ready"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "evidence_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learning_run_id",
+        "skill_id",
+        "skill_version",
+        "capability_scope_id",
+        "dimensions"
+      ],
+      "properties": {
+        "learning_run_id": { "type": ["string", "null"], "maxLength": 36 },
+        "learning_run_status": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "skill_id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "skill_version": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "capability_scope_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dimension",
+              "evidence_level",
+              "review_flags",
+              "evidence_count",
+              "updated_at"
+            ],
+            "properties": {
+              "dimension": {
+                "enum": [
+                  "understanding",
+                  "operation",
+                  "transfer",
+                  "artifact",
+                  "retention",
+                  "correction"
+                ]
+              },
+              "evidence_level": {
+                "enum": ["none", "limited", "supported", "retained_limited"]
+              },
+              "review_flags": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+              },
+              "evidence_count": { "type": "integer", "minimum": 0 },
+              "updated_at": { "type": ["string", "null"], "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    },
+    "input_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}
