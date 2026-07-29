@@ -12,6 +12,7 @@ export default function SettingsPage() {
         <div className="nav-links">
           <Link href="/diagnostic">诊断</Link>
           <Link href="/learning">学习面板</Link>
+          <Link href="/readiness">目标与准备度</Link>
           <Link aria-current="page" href="/settings">
             设置
           </Link>

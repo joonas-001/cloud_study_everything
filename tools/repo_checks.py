@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from collections.abc import Iterable
@@ -21,6 +22,7 @@ from jsonschema import Draft202012Validator
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PARTS = {
     ".git",
+    ".codex-m4-review",
     ".mypy_cache",
     ".next",
     ".pytest_cache",
@@ -40,11 +42,13 @@ class CheckFailure(RuntimeError):
 
 
 def iter_repository_files(root: Path) -> Iterable[Path]:
-    for path in root.rglob("*"):
-        if path.is_file() and not EXCLUDED_PARTS.intersection(
-            path.relative_to(root).parts
-        ):
-            yield path
+    for current_root, directory_names, file_names in os.walk(root):
+        directory_names[:] = [
+            name for name in directory_names if name not in EXCLUDED_PARTS
+        ]
+        current_path = Path(current_root)
+        for file_name in file_names:
+            yield current_path / file_name
 
 
 def check_markdown(root: Path) -> None:
@@ -107,10 +111,18 @@ def check_structure(root: Path) -> None:
         "apps/api/migrations/versions/0003_add_learning_planning.py",
         "apps/api/migrations/versions/0004_add_indeterminate_source_status.py",
         "apps/api/migrations/versions/0005_add_learning_execution.py",
+        "apps/api/migrations/versions/0006_add_readiness_5a.py",
         "apps/api/src/cloud_study_api/main.py",
+        "apps/api/src/cloud_study_api/readiness.py",
         "apps/web/package.json",
         "apps/web/src/app/page.tsx",
+        "apps/web/src/app/readiness/page.tsx",
         "contracts/api/openapi.json",
+        "contracts/readiness/user-goal.schema.json",
+        "contracts/readiness/readiness-policy.schema.json",
+        "contracts/readiness/market-evidence-snapshot.schema.json",
+        "contracts/readiness/readiness-evaluation.schema.json",
+        "contracts/readiness/path-comparison.schema.json",
         "contracts/skill-pack/planning-template.schema.json",
         "contracts/skill-pack/learning-definition.schema.json",
         "docs/architecture/monetization-and-continuous-update.md",
@@ -128,6 +140,11 @@ def check_structure(root: Path) -> None:
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "skill-packs/registry.yaml",
+        "readiness/policies/local-comparison-v1.json",
+        "readiness/fixtures/market-current-v1.json",
+        "readiness/fixtures/market-stale-v1.json",
+        "readiness/fixtures/market-conflicted-v1.json",
+        "readiness/fixtures/market-indeterminate-v1.json",
         "apps/api/uv.lock",
     ]
     missing = [path for path in required_paths if not (root / path).is_file()]
@@ -188,6 +205,9 @@ def check_structure(root: Path) -> None:
         "assessment-contract",
         "review-policy",
         "mastery-policy",
+        "market-sources",
+        "monetization-policy",
+        "external-call-boundary",
         "api-tests",
         "web-tests",
         "contract-drift",
@@ -431,6 +451,117 @@ def check_mastery_policy(root: Path) -> None:
             )
 
 
+def _validate_json_instance(
+    instance_path: Path,
+    schema_path: Path,
+) -> dict[str, Any]:
+    instance = _read_json(instance_path)
+    schema = _read_json(schema_path)
+    validator = Draft202012Validator(schema)
+    errors = sorted(validator.iter_errors(instance), key=lambda error: list(error.path))
+    if errors:
+        detail = "; ".join(
+            f"{'.'.join(str(part) for part in error.path) or '<root>'}: {error.message}"
+            for error in errors
+        )
+        raise CheckFailure(f"{instance_path.relative_to(REPOSITORY_ROOT)}: {detail}")
+    return instance
+
+
+def check_market_sources(root: Path) -> None:
+    schema_path = (
+        root / "contracts" / "readiness" / "market-evidence-snapshot.schema.json"
+    )
+    fixture_paths = sorted((root / "readiness" / "fixtures").glob("*.json"))
+    if len(fixture_paths) < 4:
+        raise CheckFailure(
+            "5A requires current, stale, conflicted, and indeterminate fixtures"
+        )
+    statuses: set[str] = set()
+    for path in fixture_paths:
+        fixture = _validate_json_instance(path, schema_path)
+        if not fixture["synthetic"] or fixture["mode"] != "synthetic_fixture":
+            raise CheckFailure(f"{path}: 5A market fixture must remain synthetic")
+        statuses.add(fixture["freshness_status"])
+        source_ids = {source["id"] for source in fixture["sources"]}
+        if len(source_ids) < 2:
+            raise CheckFailure(
+                f"{path}: synthetic conclusion needs two fixture sources"
+            )
+        for source in fixture["sources"]:
+            if not source["locator"].startswith("synthetic://"):
+                raise CheckFailure(f"{path}: remote locator is forbidden in 5A")
+        if {item["path"] for item in fixture["paths"]} != {
+            "employment",
+            "freelancing",
+            "productization",
+        }:
+            raise CheckFailure(f"{path}: all three comparison paths are required")
+        for item in fixture["paths"]:
+            if not set(item["source_ids"]) <= source_ids:
+                raise CheckFailure(f"{path}: path references an unknown fixture source")
+    required = {"current", "stale", "conflicted", "indeterminate"}
+    if statuses != required:
+        raise CheckFailure(f"5A fixture freshness coverage differs: {sorted(statuses)}")
+
+
+def check_monetization_policy(root: Path) -> None:
+    policy = _validate_json_instance(
+        root / "readiness" / "policies" / "local-comparison-v1.json",
+        root / "contracts" / "readiness" / "readiness-policy.schema.json",
+    )
+    if set(policy["required_dimensions"]) != {
+        "understanding",
+        "operation",
+        "transfer",
+        "artifact",
+        "retention",
+        "correction",
+    }:
+        raise CheckFailure("5A readiness policy must preserve all six dimensions")
+    if policy["real_user_max_status"] != "comparison_ready":
+        raise CheckFailure("5A real users must never reach experiment_ready")
+    if "experiment_threshold_unconfirmed" not in policy["reason_codes"]:
+        raise CheckFailure("5A policy must expose the unconfirmed experiment threshold")
+    if "goal_not_monetization" not in policy["reason_codes"]:
+        raise CheckFailure("5A policy must support non-monetization goals")
+
+
+def check_external_call_boundary(root: Path) -> None:
+    service_path = root / "apps" / "api" / "src" / "cloud_study_api" / "readiness.py"
+    text = service_path.read_text(encoding="utf-8").lower()
+    forbidden = {
+        "import httpx",
+        "import requests",
+        "import urllib",
+        "import socket",
+        "import subprocess",
+        "http://",
+        "https://",
+        "smtp",
+        "credential_reference",
+        "code_execution",
+        "file_upload",
+        "local_path",
+    }
+    found = sorted(token for token in forbidden if token in text)
+    if found:
+        raise CheckFailure(
+            f"5A external-call boundary contains forbidden tokens: {found}"
+        )
+    route_text = (
+        root / "apps" / "api" / "src" / "cloud_study_api" / "routes.py"
+    ).read_text(encoding="utf-8")
+    forbidden_routes = {
+        '"/readiness/experiments"',
+        '"/readiness/external-research"',
+        '"/readiness/market-refresh"',
+    }
+    found_routes = sorted(route for route in forbidden_routes if route in route_text)
+    if found_routes:
+        raise CheckFailure(f"5A exposes forbidden routes: {found_routes}")
+
+
 def check_contracts(root: Path) -> None:
     schema_paths = sorted((root / "contracts").rglob("*.schema.json"))
     if not schema_paths:
@@ -504,6 +635,9 @@ CHECKS = {
     "assessment": check_assessment,
     "review-policy": check_review_policy,
     "mastery-policy": check_mastery_policy,
+    "market-sources": check_market_sources,
+    "monetization-policy": check_monetization_policy,
+    "external-call-boundary": check_external_call_boundary,
     "contracts": check_contracts,
     "secrets": check_secrets,
 }

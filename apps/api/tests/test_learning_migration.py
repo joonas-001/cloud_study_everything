@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from cloud_study_api.database import (
     create_database_engine,
@@ -67,7 +69,7 @@ def test_existing_milestone_three_database_upgrades_to_indeterminate_status(
 
     command.upgrade(config, "head")
 
-    assert read_schema_version(database_path) == "0005"
+    assert read_schema_version(database_path) == "0006"
     engine = create_database_engine(database_path)
     try:
         with engine.begin() as connection:
@@ -201,3 +203,82 @@ def test_upgrade_freezes_open_0_1_intake_with_audit_history(tmp_path: Path) -> N
             )
     finally:
         engine.dispose()
+
+
+def test_readiness_5a_migration_enforces_immutable_versions_and_status_ceiling(
+    tmp_path: Path,
+) -> None:
+    database_path = tmp_path / "readiness-constraints.db"
+    config = _migration_config(database_path)
+    command.upgrade(config, "head")
+    engine = create_database_engine(database_path)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO readiness_policy_snapshots (
+                        id, policy_id, policy_version, payload_sha256,
+                        payload_json, created_at
+                    ) VALUES (
+                        'policy-1', 'local-comparison-policy', '1.0.0',
+                        :digest, '{}', '2026-07-29 08:00:00'
+                    )
+                    """
+                ),
+                {"digest": "a" * 64},
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO user_goal_selections (
+                        id, skill_id, skill_version, capability_scope_id,
+                        goal_kind, custom_label, created_at, superseded_at
+                    ) VALUES (
+                        'goal-1', 'algorithm', '0.2.0',
+                        'algorithm-entry-mastery-scope', 'learning', NULL,
+                        '2026-07-29 08:00:00', NULL
+                    )
+                    """
+                )
+            )
+
+        with pytest.raises(IntegrityError), engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO readiness_policy_snapshots (
+                        id, policy_id, policy_version, payload_sha256,
+                        payload_json, created_at
+                    ) VALUES (
+                        'policy-2', 'local-comparison-policy', '1.0.0',
+                        :digest, :payload, '2026-07-29 08:01:00'
+                    )
+                    """
+                ),
+                {"digest": "b" * 64, "payload": '{"changed":true}'},
+            )
+
+        with pytest.raises(IntegrityError), engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO readiness_evaluations (
+                        id, goal_selection_id, learning_run_id,
+                        policy_snapshot_id, market_snapshot_id, status,
+                        reason_codes_json, evidence_snapshot_json,
+                        limitations_json, input_sha256, created_at
+                    ) VALUES (
+                        'evaluation-1', 'goal-1', NULL, 'policy-1', NULL,
+                        'experiment_ready', '["unexpected"]', '{}', '[]',
+                        :digest, '2026-07-29 08:02:00'
+                    )
+                    """
+                ),
+                {"digest": "c" * 64},
+            )
+    finally:
+        engine.dispose()
+
+    command.downgrade(config, "0005")
+    assert read_schema_version(database_path) == "0005"

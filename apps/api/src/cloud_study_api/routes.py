@@ -17,6 +17,7 @@ from cloud_study_api.execution import (
 )
 from cloud_study_api.learning import LearningError, LearningService
 from cloud_study_api.notifications import NotificationError, NotificationService
+from cloud_study_api.readiness import ReadinessError, ReadinessService
 
 
 class PrivacySettingsResponse(BaseModel):
@@ -506,6 +507,136 @@ class StartReviewResponse(BaseModel):
     activity: LearningActivityResponse
 
 
+GoalKind = Literal[
+    "learning",
+    "exam",
+    "employment",
+    "freelancing",
+    "productization",
+    "other",
+]
+ReadinessStatus = Literal[
+    "not_applicable",
+    "not_ready",
+    "review_required",
+    "comparison_ready",
+    "experiment_ready",
+]
+
+
+class CapabilityScopeResponse(BaseModel):
+    learning_run_id: str
+    learning_run_status: Literal["active", "retention_pending", "completed", "ended"]
+    skill_id: str
+    skill_version: str
+    capability_scope_id: str
+    scope_statement: str
+    dimensions: list[str]
+    created_at: datetime
+
+
+class SelectUserGoalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    skill_id: str = Field(min_length=1, max_length=100)
+    skill_version: str = Field(min_length=1, max_length=50)
+    capability_scope_id: str = Field(min_length=1, max_length=100)
+    goal_kind: GoalKind
+    custom_label: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class UserGoalResponse(BaseModel):
+    schema_version: Literal["1.0.0"]
+    id: str
+    skill_id: str
+    skill_version: str
+    capability_scope_id: str
+    goal_kind: GoalKind
+    custom_label: str | None
+    market_comparison_applicable: bool
+    created_at: datetime
+    superseded_at: datetime | None
+
+
+class MarketSnapshotResponse(BaseModel):
+    id: str
+    fixture_id: str
+    fixture_version: str
+    label: str
+    synthetic: Literal[True]
+    freshness_status: Literal["current", "stale", "conflicted", "indeterminate"]
+    as_of: datetime
+    limitations: list[str]
+    source_count: int
+    created_at: datetime
+
+
+class CreateReadinessEvaluationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    goal_selection_id: str = Field(min_length=1, max_length=36)
+    learning_run_id: str | None = Field(default=None, max_length=36)
+    market_snapshot_id: str | None = Field(default=None, max_length=36)
+
+
+class ReadinessEvaluationResponse(BaseModel):
+    schema_version: Literal["1.0.0"]
+    id: str
+    goal_selection_id: str
+    learning_run_id: str | None
+    policy_id: str
+    policy_version: str
+    market_snapshot_id: str | None
+    status: ReadinessStatus
+    reason_codes: list[str]
+    evidence_snapshot: dict[str, object]
+    limitations: list[str]
+    input_sha256: str
+    created_at: datetime
+
+
+class CreatePathComparisonRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    evaluation_id: str = Field(min_length=1, max_length=36)
+
+
+class PathComparisonDecisionResponse(BaseModel):
+    id: str
+    comparison_id: str
+    revision: int
+    decision: Literal["accepted", "rejected", "deferred"]
+    reason: str | None
+    created_at: datetime
+
+
+class PathComparisonResponse(BaseModel):
+    schema_version: Literal["1.0.0"]
+    id: str
+    evaluation_id: str
+    market_snapshot_id: str
+    synthetic: Literal[True]
+    paths: list[dict[str, object]]
+    limitations: list[str]
+    created_at: datetime
+    payload_sha256: str
+    decisions: list[PathComparisonDecisionResponse]
+
+
+class DecidePathComparisonRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["accepted", "rejected", "deferred"]
+    reason: str | None = Field(default=None, max_length=2000)
+
+
+class ReadinessHistoryResponse(BaseModel):
+    goal: UserGoalResponse
+    evaluations: list[ReadinessEvaluationResponse]
+    comparisons: list[PathComparisonResponse]
+    events: list[dict[str, object]]
+
+
 router = APIRouter()
 
 
@@ -539,6 +670,17 @@ def get_learning_execution_service(request: Request) -> LearningExecutionService
 LearningExecutionServiceDependency = Annotated[
     LearningExecutionService,
     Depends(get_learning_execution_service),
+]
+
+
+def get_readiness_service(request: Request) -> ReadinessService:
+    service: ReadinessService = request.app.state.readiness_service
+    return service
+
+
+ReadinessServiceDependency = Annotated[
+    ReadinessService,
+    Depends(get_readiness_service),
 ]
 
 
@@ -576,9 +718,19 @@ def _raise_http(error: DiagnosticError) -> None:
 
 
 def _raise_service_http(
-    error: (LearningError | LearningExecutionError | NotificationError | AiConfigurationError),
+    error: (
+        LearningError
+        | LearningExecutionError
+        | NotificationError
+        | AiConfigurationError
+        | ReadinessError
+    ),
 ) -> None:
-    context = error.context if isinstance(error, (LearningError, LearningExecutionError)) else {}
+    context = (
+        error.context
+        if isinstance(error, (LearningError, LearningExecutionError, ReadinessError))
+        else {}
+    )
     raise HTTPException(
         status_code=error.status_code,
         detail={
@@ -1236,3 +1388,129 @@ def end_learning_run(
     except LearningExecutionError as error:
         _raise_service_http(error)
     return LearningRunResponse.model_validate(result)
+
+
+@router.get(
+    "/readiness/scopes",
+    response_model=list[CapabilityScopeResponse],
+    tags=["readiness-5a"],
+)
+def list_readiness_scopes(
+    service: ReadinessServiceDependency,
+) -> list[CapabilityScopeResponse]:
+    return [CapabilityScopeResponse.model_validate(item) for item in service.list_scopes()]
+
+
+@router.post(
+    "/readiness/goals",
+    response_model=UserGoalResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["readiness-5a"],
+)
+def select_readiness_goal(
+    payload: SelectUserGoalRequest,
+    service: ReadinessServiceDependency,
+) -> UserGoalResponse:
+    try:
+        result = service.select_goal(**payload.model_dump())
+    except ReadinessError as error:
+        _raise_service_http(error)
+    return UserGoalResponse.model_validate(result)
+
+
+@router.get(
+    "/readiness/goals/current",
+    response_model=UserGoalResponse | None,
+    tags=["readiness-5a"],
+)
+def get_current_readiness_goal(
+    service: ReadinessServiceDependency,
+    skill_id: str = Query(min_length=1, max_length=100),
+    skill_version: str = Query(min_length=1, max_length=50),
+    capability_scope_id: str = Query(min_length=1, max_length=100),
+) -> UserGoalResponse | None:
+    result = service.get_current_goal(
+        skill_id,
+        skill_version,
+        capability_scope_id,
+    )
+    return None if result is None else UserGoalResponse.model_validate(result)
+
+
+@router.get(
+    "/readiness/market-snapshots",
+    response_model=list[MarketSnapshotResponse],
+    tags=["readiness-5a"],
+)
+def list_readiness_market_snapshots(
+    service: ReadinessServiceDependency,
+) -> list[MarketSnapshotResponse]:
+    return [MarketSnapshotResponse.model_validate(item) for item in service.list_market_snapshots()]
+
+
+@router.post(
+    "/readiness/evaluations",
+    response_model=ReadinessEvaluationResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["readiness-5a"],
+)
+def create_readiness_evaluation(
+    payload: CreateReadinessEvaluationRequest,
+    service: ReadinessServiceDependency,
+) -> ReadinessEvaluationResponse:
+    try:
+        result = service.evaluate(**payload.model_dump())
+    except ReadinessError as error:
+        _raise_service_http(error)
+    return ReadinessEvaluationResponse.model_validate(result)
+
+
+@router.post(
+    "/readiness/comparisons",
+    response_model=PathComparisonResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["readiness-5a"],
+)
+def create_path_comparison(
+    payload: CreatePathComparisonRequest,
+    service: ReadinessServiceDependency,
+) -> PathComparisonResponse:
+    try:
+        result = service.create_comparison(payload.evaluation_id)
+    except ReadinessError as error:
+        _raise_service_http(error)
+    return PathComparisonResponse.model_validate(result)
+
+
+@router.post(
+    "/readiness/comparisons/{comparison_id}/decisions",
+    response_model=PathComparisonDecisionResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["readiness-5a"],
+)
+def decide_path_comparison(
+    comparison_id: str,
+    payload: DecidePathComparisonRequest,
+    service: ReadinessServiceDependency,
+) -> PathComparisonDecisionResponse:
+    try:
+        result = service.decide_comparison(comparison_id, **payload.model_dump())
+    except ReadinessError as error:
+        _raise_service_http(error)
+    return PathComparisonDecisionResponse.model_validate(result)
+
+
+@router.get(
+    "/readiness/goals/{goal_selection_id}/history",
+    response_model=ReadinessHistoryResponse,
+    tags=["readiness-5a"],
+)
+def get_readiness_history(
+    goal_selection_id: str,
+    service: ReadinessServiceDependency,
+) -> ReadinessHistoryResponse:
+    try:
+        result = service.get_history(goal_selection_id)
+    except ReadinessError as error:
+        _raise_service_http(error)
+    return ReadinessHistoryResponse.model_validate(result)

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/path-comparison.schema.json",
+  "title": "Deterministic path comparison",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "evaluation_id",
+    "market_snapshot_id",
+    "synthetic",
+    "paths",
+    "limitations",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 36 },
+    "evaluation_id": { "type": "string", "minLength": 1, "maxLength": 36 },
+    "market_snapshot_id": { "type": "string", "minLength": 1, "maxLength": 36 },
+    "synthetic": { "const": true },
+    "paths": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "selected_goal",
+          "evidence_gaps",
+          "factors",
+          "source_ids",
+          "uncertainties"
+        ],
+        "properties": {
+          "path": {
+            "enum": ["employment", "freelancing", "productization"]
+          },
+          "selected_goal": { "type": "boolean" },
+          "evidence_gaps": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+          },
+          "factors": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "required": ["dimension", "signal", "rationale"]
+            }
+          },
+          "source_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+          },
+          "uncertainties": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

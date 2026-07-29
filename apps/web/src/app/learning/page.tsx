@@ -14,6 +14,7 @@ export default function LearningPage() {
           <Link aria-current="page" href="/learning">
             学习面板
           </Link>
+          <Link href="/readiness">目标与准备度</Link>
           <Link href="/settings">设置</Link>
         </div>
       </nav>

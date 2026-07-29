@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "synthetic-market-indeterminate",
+  "version": "1.0.0",
+  "mode": "synthetic_fixture",
+  "synthetic": true,
+  "label": "合成市场快照：无法判断",
+  "as_of": "2026-07-29T00:00:00Z",
+  "freshness_status": "indeterminate",
+  "limitations": [
+    "这是用于验证无法判断状态的合成数据。",
+    "关键结论缺失时不得自动补全。"
+  ],
+  "sources": [
+    { "id": "synthetic-unknown-a", "locator": "synthetic://unknown/a", "publisher": "云奕学 5A 合成测试夹具", "evidence_kind": "synthetic" },
+    { "id": "synthetic-unknown-b", "locator": "synthetic://unknown/b", "publisher": "云奕学 5A 合成测试夹具", "evidence_kind": "synthetic" }
+  ],
+  "paths": [
+    { "path": "employment", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "关键结论无法验证。" }, { "dimension": "entry_cost", "signal": "unknown", "rationale": "关键结论无法验证。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "无法判断。" }], "source_ids": ["synthetic-unknown-a"], "uncertainties": ["没有可验证结论。"] },
+    { "path": "freelancing", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "关键结论无法验证。" }, { "dimension": "delivery_risk", "signal": "unknown", "rationale": "关键结论无法验证。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "无法判断。" }], "source_ids": ["synthetic-unknown-b"], "uncertainties": ["没有可验证结论。"] },
+    { "path": "productization", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "关键结论无法验证。" }, { "dimension": "entry_cost", "signal": "unknown", "rationale": "关键结论无法验证。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "无法判断。" }], "source_ids": ["synthetic-unknown-a", "synthetic-unknown-b"], "uncertainties": ["没有可验证结论。"] }
+  ]
+}
