@@ -1,6 +1,139 @@
 {
   "components": {
     "schemas": {
+      "ActivityAttemptResponse": {
+        "properties": {
+          "corrects_attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrects Attempt Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evaluations": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityEvaluationResponse"
+            },
+            "title": "Evaluations",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "submission": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Submission",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "submission",
+          "corrects_attempt_id",
+          "evaluations",
+          "created_at"
+        ],
+        "title": "ActivityAttemptResponse",
+        "type": "object"
+      },
+      "ActivityAttemptSubmissionResponse": {
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/LearningActivityResponse"
+          },
+          "attempt": {
+            "$ref": "#/components/schemas/ActivityAttemptResponse"
+          },
+          "run": {
+            "$ref": "#/components/schemas/LearningRunResponse"
+          }
+        },
+        "required": [
+          "attempt",
+          "activity",
+          "run"
+        ],
+        "title": "ActivityAttemptSubmissionResponse",
+        "type": "object"
+      },
+      "ActivityEvaluationResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "deterministic",
+              "self_review",
+              "review_pending",
+              "not_executable"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "passed",
+              "failed",
+              "submitted",
+              "uncertain",
+              "review_pending",
+              "not_executable"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "rubric_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubric Id"
+          }
+        },
+        "required": [
+          "id",
+          "method",
+          "result",
+          "rubric_id",
+          "detail",
+          "created_at"
+        ],
+        "title": "ActivityEvaluationResponse",
+        "type": "object"
+      },
       "AiProviderProfileResponse": {
         "properties": {
           "base_url": {
@@ -276,6 +409,59 @@
         "title": "CreateDiagnosticSessionRequest",
         "type": "object"
       },
+      "CreateLearningRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "code_execution": {
+            "default": false,
+            "title": "Code Execution",
+            "type": "boolean"
+          },
+          "confirm_historical_plan": {
+            "default": false,
+            "title": "Confirm Historical Plan",
+            "type": "boolean"
+          },
+          "confirm_reuse": {
+            "default": false,
+            "title": "Confirm Reuse",
+            "type": "boolean"
+          },
+          "external_ai": {
+            "default": false,
+            "title": "External Ai",
+            "type": "boolean"
+          },
+          "planning_proposal_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Planning Proposal Id",
+            "type": "string"
+          },
+          "preview": {
+            "default": true,
+            "title": "Preview",
+            "type": "boolean"
+          },
+          "reuse_from_run_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reuse From Run Id"
+          }
+        },
+        "required": [
+          "planning_proposal_id"
+        ],
+        "title": "CreateLearningRunRequest",
+        "type": "object"
+      },
       "CreatePlanningProposalRequest": {
         "properties": {
           "diagnostic_session_id": {
@@ -363,6 +549,16 @@
             "title": "On Current Path",
             "type": "boolean"
           },
+          "options": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Options",
+            "type": "array"
+          },
           "question_id": {
             "title": "Question Id",
             "type": "string"
@@ -376,6 +572,15 @@
             "title": "Response Kind",
             "type": "string"
           },
+          "response_type": {
+            "enum": [
+              "free_text",
+              "code_text",
+              "single_choice"
+            ],
+            "title": "Response Type",
+            "type": "string"
+          },
           "revision": {
             "title": "Revision",
             "type": "integer"
@@ -386,6 +591,8 @@
           "question_id",
           "response_kind",
           "content",
+          "response_type",
+          "options",
           "revision",
           "on_current_path",
           "created_at"
@@ -399,6 +606,16 @@
             "title": "Id",
             "type": "string"
           },
+          "options": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Options",
+            "type": "array"
+          },
           "prompt": {
             "title": "Prompt",
             "type": "string"
@@ -410,7 +627,8 @@
           "response_type": {
             "enum": [
               "free_text",
-              "code_text"
+              "code_text",
+              "single_choice"
             ],
             "title": "Response Type",
             "type": "string"
@@ -420,7 +638,8 @@
           "id",
           "prompt",
           "reason",
-          "response_type"
+          "response_type",
+          "options"
         ],
         "title": "DiagnosticQuestionResponse",
         "type": "object"
@@ -624,6 +843,513 @@
           "registered_skill_packages"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "LearningActivityResponse": {
+        "properties": {
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityAttemptResponse"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
+          "available_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "completion_rule": {
+            "enum": [
+              "confirmation",
+              "valid_submission",
+              "deterministic_pass"
+            ],
+            "title": "Completion Rule",
+            "type": "string"
+          },
+          "estimated_minutes": {
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "boolean"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "available",
+              "completed",
+              "correction_required"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_fields": {
+            "items": {
+              "$ref": "#/components/schemas/SubmissionFieldResponse"
+            },
+            "title": "Submission Fields",
+            "type": "array"
+          },
+          "template_activity_id": {
+            "title": "Template Activity Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "study",
+              "explanation",
+              "structured_check",
+              "code_text",
+              "transfer",
+              "correction",
+              "project_evidence",
+              "review"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "template_activity_id",
+          "type",
+          "sequence",
+          "title",
+          "prompt",
+          "reason",
+          "estimated_minutes",
+          "required",
+          "status",
+          "completion_rule",
+          "submission_fields",
+          "source_ids",
+          "available_at",
+          "overdue",
+          "attempts",
+          "completed_at"
+        ],
+        "title": "LearningActivityResponse",
+        "type": "object"
+      },
+      "LearningEvidenceResponse": {
+        "properties": {
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryDimensionResponse"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryEvidenceItemResponse"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "limitations",
+          "dimensions",
+          "evidence"
+        ],
+        "title": "LearningEvidenceResponse",
+        "type": "object"
+      },
+      "LearningRunResponse": {
+        "properties": {
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/LearningActivityResponse"
+            },
+            "title": "Activities",
+            "type": "array"
+          },
+          "code_execution": {
+            "const": "disabled",
+            "title": "Code Execution",
+            "type": "string"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "diagnostic_session_id": {
+            "title": "Diagnostic Session Id",
+            "type": "string"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryDimensionResponse"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "end_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Reason"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "engine_protocol_version": {
+            "title": "Engine Protocol Version",
+            "type": "string"
+          },
+          "evidence_limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Limitations",
+            "type": "array"
+          },
+          "external_ai": {
+            "const": "disabled",
+            "title": "External Ai",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_preview": {
+            "title": "Is Preview",
+            "type": "boolean"
+          },
+          "lock_sha256": {
+            "title": "Lock Sha256",
+            "type": "string"
+          },
+          "next_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Next Actions",
+            "type": "array"
+          },
+          "planning_proposal_id": {
+            "title": "Planning Proposal Id",
+            "type": "string"
+          },
+          "retention_started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Started At"
+          },
+          "reused_from_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reused From Run Id"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewTaskResponse"
+            },
+            "title": "Reviews",
+            "type": "array"
+          },
+          "runner_protocol_version": {
+            "title": "Runner Protocol Version",
+            "type": "string"
+          },
+          "selected_historical_plan": {
+            "title": "Selected Historical Plan",
+            "type": "boolean"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "retention_pending",
+              "completed",
+              "ended"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "planning_proposal_id",
+          "diagnostic_session_id",
+          "skill_id",
+          "skill_version",
+          "status",
+          "is_preview",
+          "code_execution",
+          "external_ai",
+          "selected_historical_plan",
+          "reused_from_run_id",
+          "lock_sha256",
+          "engine_protocol_version",
+          "runner_protocol_version",
+          "evidence_limitations",
+          "activities",
+          "dimensions",
+          "reviews",
+          "next_actions",
+          "created_at",
+          "updated_at",
+          "retention_started_at",
+          "completed_at",
+          "ended_at",
+          "end_reason"
+        ],
+        "title": "LearningRunResponse",
+        "type": "object"
+      },
+      "MasteryDimensionResponse": {
+        "properties": {
+          "dimension": {
+            "enum": [
+              "understanding",
+              "operation",
+              "transfer",
+              "artifact",
+              "retention",
+              "correction"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          },
+          "evidence_count": {
+            "title": "Evidence Count",
+            "type": "integer"
+          },
+          "evidence_level": {
+            "enum": [
+              "none",
+              "limited",
+              "supported"
+            ],
+            "title": "Evidence Level",
+            "type": "string"
+          },
+          "review_flags": {
+            "items": {
+              "enum": [
+                "manual_review_pending",
+                "retention_due",
+                "source_review_pending"
+              ],
+              "type": "string"
+            },
+            "title": "Review Flags",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dimension",
+          "evidence_level",
+          "review_flags",
+          "evidence_count",
+          "updated_at"
+        ],
+        "title": "MasteryDimensionResponse",
+        "type": "object"
+      },
+      "MasteryEvidenceItemResponse": {
+        "properties": {
+          "activity_id": {
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "criterion_id": {
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "dimension": {
+            "title": "Dimension",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Flags",
+            "type": "array"
+          },
+          "strength": {
+            "enum": [
+              "limited",
+              "supported",
+              "retained_limited"
+            ],
+            "title": "Strength",
+            "type": "string"
+          },
+          "superseded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded At"
+          }
+        },
+        "required": [
+          "id",
+          "activity_id",
+          "attempt_id",
+          "criterion_id",
+          "dimension",
+          "method",
+          "result",
+          "strength",
+          "review_flags",
+          "created_at",
+          "superseded_at"
+        ],
+        "title": "MasteryEvidenceItemResponse",
         "type": "object"
       },
       "NotificationPreferenceResponse": {
@@ -854,6 +1580,68 @@
         "title": "NotificationResponse",
         "type": "object"
       },
+      "PlanningOptionResponse": {
+        "properties": {
+          "diagnostic_created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnostic Created At"
+          },
+          "diagnostic_session_id": {
+            "title": "Diagnostic Session Id",
+            "type": "string"
+          },
+          "has_newer_diagnostic": {
+            "title": "Has Newer Diagnostic",
+            "type": "boolean"
+          },
+          "has_newer_plan": {
+            "title": "Has Newer Plan",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_historical": {
+            "title": "Is Historical",
+            "type": "boolean"
+          },
+          "saved_at": {
+            "format": "date-time",
+            "title": "Saved At",
+            "type": "string"
+          },
+          "source_review_pending": {
+            "title": "Source Review Pending",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "diagnostic_session_id",
+          "diagnostic_created_at",
+          "saved_at",
+          "is_historical",
+          "has_newer_diagnostic",
+          "has_newer_plan",
+          "source_review_pending"
+        ],
+        "title": "PlanningOptionResponse",
+        "type": "object"
+      },
       "PlanningProposalResponse": {
         "properties": {
           "created_at": {
@@ -904,7 +1692,8 @@
             "enum": [
               "draft",
               "saved_preview",
-              "rejected"
+              "rejected",
+              "frozen_preview"
             ],
             "title": "Status",
             "type": "string"
@@ -1086,6 +1875,137 @@
           "decision"
         ],
         "title": "ResolveSourceChangeRequest",
+        "type": "object"
+      },
+      "ReviewTaskResponse": {
+        "properties": {
+          "activity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Id"
+          },
+          "attempt_number": {
+            "title": "Attempt Number",
+            "type": "integer"
+          },
+          "checkpoint_index": {
+            "title": "Checkpoint Index",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "interval_days": {
+            "title": "Interval Days",
+            "type": "integer"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "boolean"
+          },
+          "policy_id": {
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "scheduled",
+              "available",
+              "passed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "activity_id",
+          "checkpoint_index",
+          "attempt_number",
+          "interval_days",
+          "due_at",
+          "status",
+          "overdue",
+          "policy_id",
+          "policy_version",
+          "completed_at"
+        ],
+        "title": "ReviewTaskResponse",
+        "type": "object"
+      },
+      "SelfReviewAttemptRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "enum": [
+              "not_yet",
+              "uncertain",
+              "meets"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "rubric_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Rubric Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rubric_id",
+          "result"
+        ],
+        "title": "SelfReviewAttemptRequest",
+        "type": "object"
+      },
+      "SelfReviewAttemptResponse": {
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/LearningActivityResponse"
+          },
+          "attempt": {
+            "$ref": "#/components/schemas/ActivityAttemptResponse"
+          },
+          "run": {
+            "$ref": "#/components/schemas/LearningRunResponse"
+          }
+        },
+        "required": [
+          "attempt",
+          "activity",
+          "run"
+        ],
+        "title": "SelfReviewAttemptResponse",
         "type": "object"
       },
       "SourceChangeCandidateResponse": {
@@ -1334,6 +2254,114 @@
         "title": "SourceCheckRunResponse",
         "type": "object"
       },
+      "StartReviewResponse": {
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/LearningActivityResponse"
+          },
+          "review": {
+            "$ref": "#/components/schemas/ReviewTaskResponse"
+          }
+        },
+        "required": [
+          "review",
+          "activity"
+        ],
+        "title": "StartReviewResponse",
+        "type": "object"
+      },
+      "SubmissionFieldResponse": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "text",
+              "code",
+              "choice",
+              "confirmation"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max_length": {
+            "title": "Max Length",
+            "type": "integer"
+          },
+          "min_length": {
+            "title": "Min Length",
+            "type": "integer"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "required",
+          "min_length",
+          "max_length"
+        ],
+        "title": "SubmissionFieldResponse",
+        "type": "object"
+      },
+      "SubmitActivityAttemptRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "corrects_attempt_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrects Attempt Id"
+          },
+          "mark_uncertain": {
+            "default": false,
+            "title": "Mark Uncertain",
+            "type": "boolean"
+          },
+          "submission": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Submission",
+            "type": "object"
+          }
+        },
+        "required": [
+          "submission"
+        ],
+        "title": "SubmitActivityAttemptRequest",
+        "type": "object"
+      },
       "SubmitAnswerRequest": {
         "properties": {
           "content": {
@@ -1369,6 +2397,62 @@
           "response_kind"
         ],
         "title": "SubmitAnswerRequest",
+        "type": "object"
+      },
+      "TodayLearningRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "available_minutes": {
+            "default": 120,
+            "maximum": 480.0,
+            "minimum": 15.0,
+            "title": "Available Minutes",
+            "type": "integer"
+          }
+        },
+        "title": "TodayLearningRequest",
+        "type": "object"
+      },
+      "TodayLearningResponse": {
+        "properties": {
+          "available_minutes": {
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "estimated_minutes": {
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/LearningActivityResponse"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "run_id",
+          "generated_at",
+          "available_minutes",
+          "estimated_minutes",
+          "tasks",
+          "reason"
+        ],
+        "title": "TodayLearningResponse",
         "type": "object"
       },
       "UpdateNotificationPreferenceRequest": {
@@ -1609,6 +2693,58 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/activity-attempts/{attempt_id}/self-review": {
+      "post": {
+        "operationId": "self_review_activity_attempt_activity_attempts__attempt_id__self_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfReviewAttemptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelfReviewAttemptResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Self Review Activity Attempt",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
     "/ai/provider-profiles": {
       "get": {
         "operationId": "list_ai_provider_profiles_ai_provider_profiles_get",
@@ -2067,6 +3203,553 @@
         ]
       }
     },
+    "/learning-activities/{activity_id}/attempts": {
+      "post": {
+        "operationId": "submit_learning_activity_attempt_learning_activities__activity_id__attempts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "activity_id",
+            "required": true,
+            "schema": {
+              "title": "Activity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitActivityAttemptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityAttemptSubmissionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Learning Activity Attempt",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-activities/{activity_id}/attempts/{attempt_id}/corrections": {
+      "post": {
+        "operationId": "correct_learning_activity_attempt_learning_activities__activity_id__attempts__attempt_id__corrections_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "activity_id",
+            "required": true,
+            "schema": {
+              "title": "Activity Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitActivityAttemptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityAttemptSubmissionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Learning Activity Attempt",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-plan-options": {
+      "get": {
+        "operationId": "list_learning_planning_options_learning_plan_options_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlanningOptionResponse"
+                  },
+                  "title": "Response List Learning Planning Options Learning Plan Options Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Learning Planning Options",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-run-latest": {
+      "get": {
+        "operationId": "get_latest_learning_run_learning_run_latest_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Latest Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs": {
+      "post": {
+        "operationId": "create_learning_run_learning_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLearningRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/active": {
+      "get": {
+        "operationId": "get_active_learning_run_learning_runs_active_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skill_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Skill Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skill_version",
+            "required": true,
+            "schema": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Skill Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Active Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}": {
+      "get": {
+        "operationId": "get_learning_run_learning_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/end": {
+      "post": {
+        "operationId": "end_learning_run_learning_runs__run_id__end_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/evidence": {
+      "get": {
+        "operationId": "get_learning_evidence_learning_runs__run_id__evidence_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningEvidenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Learning Evidence",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/reviews": {
+      "get": {
+        "operationId": "get_learning_reviews_learning_runs__run_id__reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewTaskResponse"
+                  },
+                  "title": "Response Get Learning Reviews Learning Runs  Run Id  Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Learning Reviews",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/today": {
+      "post": {
+        "operationId": "generate_today_learning_learning_runs__run_id__today_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodayLearningRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayLearningResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Today Learning",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
     "/notifications": {
       "get": {
         "operationId": "list_notifications_notifications_get",
@@ -2467,6 +4150,48 @@
         "summary": "Update Planning Unit",
         "tags": [
           "planning"
+        ]
+      }
+    },
+    "/review-tasks/{review_id}/start": {
+      "post": {
+        "operationId": "start_learning_review_review_tasks__review_id__start_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Learning Review",
+        "tags": [
+          "learning-execution"
         ]
       }
     },

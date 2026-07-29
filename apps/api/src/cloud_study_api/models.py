@@ -245,7 +245,7 @@ class PlanningProposal(Base):
     __tablename__ = "planning_proposals"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('draft', 'saved_preview', 'rejected')",
+            "status IN ('draft', 'saved_preview', 'rejected', 'frozen_preview')",
             name="ck_planning_proposals_status",
         ),
     )
@@ -417,3 +417,312 @@ class AiProviderProfile(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class SkillVersionContentLock(Base):
+    __tablename__ = "skill_version_content_locks"
+    __table_args__ = (
+        UniqueConstraint(
+            "skill_id",
+            "skill_version",
+            name="uq_skill_version_content_lock",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    skill_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    skill_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    content_lock_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    content_lock_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class LearningRun(Base):
+    __tablename__ = "learning_runs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('active', 'retention_pending', 'completed', 'ended')",
+            name="ck_learning_runs_status",
+        ),
+        Index(
+            "uq_nonterminal_learning_run_skill_version",
+            "skill_id",
+            "skill_version",
+            unique=True,
+            sqlite_where=text("status IN ('active', 'retention_pending')"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    planning_proposal_id: Mapped[str] = mapped_column(
+        ForeignKey("planning_proposals.id"),
+        nullable=False,
+        index=True,
+    )
+    diagnostic_session_id: Mapped[str] = mapped_column(
+        ForeignKey("diagnostic_sessions.id"),
+        nullable=False,
+        index=True,
+    )
+    skill_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    skill_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")
+    is_preview: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    selected_historical_plan: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    reused_from_run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("learning_runs.id"),
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    retention_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    end_reason: Mapped[str | None] = mapped_column(String(100))
+
+
+class LearningRunLock(Base):
+    __tablename__ = "learning_run_locks"
+
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        primary_key=True,
+    )
+    lock_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    lock_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class LearningUnitInstance(Base):
+    __tablename__ = "learning_unit_instances"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'active', 'completed')",
+            name="ck_learning_unit_instances_status",
+        ),
+        UniqueConstraint("run_id", "sequence", name="uq_learning_unit_instance_sequence"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    template_unit_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class LearningActivity(Base):
+    __tablename__ = "learning_activities"
+    __table_args__ = (
+        CheckConstraint(
+            "activity_type IN "
+            "('study', 'explanation', 'structured_check', 'code_text', 'transfer', "
+            "'correction', 'project_evidence', 'review')",
+            name="ck_learning_activities_type",
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'available', 'completed', 'correction_required')",
+            name="ck_learning_activities_status",
+        ),
+        UniqueConstraint("run_id", "sequence", name="uq_learning_activity_sequence"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    unit_instance_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_unit_instances.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    template_activity_id: Mapped[str] = mapped_column(String(150), nullable=False)
+    activity_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    required: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    definition_json: Mapped[str] = mapped_column(Text, nullable=False)
+    available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ActivityAttempt(Base):
+    __tablename__ = "activity_attempts"
+    __table_args__ = (
+        UniqueConstraint("activity_id", "revision", name="uq_activity_attempt_revision"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    activity_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_activities.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    submission_json: Mapped[str] = mapped_column(Text, nullable=False)
+    corrects_attempt_id: Mapped[str | None] = mapped_column(
+        ForeignKey("activity_attempts.id"),
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ActivityEvaluation(Base):
+    __tablename__ = "activity_evaluations"
+    __table_args__ = (
+        CheckConstraint(
+            "method IN ('deterministic', 'self_review', 'review_pending', 'not_executable')",
+            name="ck_activity_evaluations_method",
+        ),
+        CheckConstraint(
+            "result IN ('passed', 'failed', 'submitted', 'uncertain', "
+            "'review_pending', 'not_executable')",
+            name="ck_activity_evaluations_result",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    attempt_id: Mapped[str] = mapped_column(
+        ForeignKey("activity_attempts.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    method: Mapped[str] = mapped_column(String(32), nullable=False)
+    result: Mapped[str] = mapped_column(String(32), nullable=False)
+    rubric_id: Mapped[str | None] = mapped_column(String(100))
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class MasteryEvidence(Base):
+    __tablename__ = "mastery_evidence"
+    __table_args__ = (
+        CheckConstraint(
+            "dimension IN ('understanding', 'operation', 'transfer', "
+            "'artifact', 'retention', 'correction')",
+            name="ck_mastery_evidence_dimension",
+        ),
+        CheckConstraint(
+            "strength IN ('limited', 'supported', 'retained_limited')",
+            name="ck_mastery_evidence_strength",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    activity_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_activities.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    attempt_id: Mapped[str] = mapped_column(
+        ForeignKey("activity_attempts.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    evaluation_id: Mapped[str] = mapped_column(
+        ForeignKey("activity_evaluations.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    criterion_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    method: Mapped[str] = mapped_column(String(32), nullable=False)
+    result: Mapped[str] = mapped_column(String(32), nullable=False)
+    strength: Mapped[str] = mapped_column(String(32), nullable=False)
+    review_flags_json: Mapped[str] = mapped_column(Text, nullable=False)
+    rubric_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    superseded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    superseded_by_attempt_id: Mapped[str | None] = mapped_column(
+        ForeignKey("activity_attempts.id"),
+    )
+
+
+class MasterySnapshot(Base):
+    __tablename__ = "mastery_snapshots"
+    __table_args__ = (
+        CheckConstraint(
+            "dimension IN ('understanding', 'operation', 'transfer', "
+            "'artifact', 'retention', 'correction')",
+            name="ck_mastery_snapshots_dimension",
+        ),
+        CheckConstraint(
+            "evidence_level IN ('none', 'limited', 'supported')",
+            name="ck_mastery_snapshots_level",
+        ),
+        UniqueConstraint("run_id", "dimension", name="uq_mastery_snapshot_dimension"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    evidence_level: Mapped[str] = mapped_column(String(32), nullable=False)
+    review_flags_json: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ReviewTask(Base):
+    __tablename__ = "review_tasks"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('scheduled', 'available', 'passed', 'failed')",
+            name="ck_review_tasks_status",
+        ),
+        UniqueConstraint(
+            "run_id",
+            "checkpoint_index",
+            "attempt_number",
+            name="uq_review_task_checkpoint_attempt",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    activity_id: Mapped[str | None] = mapped_column(
+        ForeignKey("learning_activities.id", ondelete="RESTRICT"),
+    )
+    checkpoint_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    interval_days: Mapped[int] = mapped_column(Integer, nullable=False)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    policy_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    policy_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class LearningEvent(Base):
+    __tablename__ = "learning_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

@@ -28,7 +28,9 @@ export default function Home() {
           查看学习面板
         </Link>
       </header>
-      <div className="status">开发状态：诊断访谈里程碑</div>
+      <div className="status">
+        开发状态：第三里程碑已验证 · 第四里程碑 4A 实施中
+      </div>
 
       <section className="grid" aria-label="当前基础能力">
         {milestones.map((milestone) => (
@@ -40,8 +42,8 @@ export default function Home() {
       </section>
 
       <aside className="notice">
-        算法技能包目前仍是草稿。诊断只能使用本地确定性流程，不会调用外部
-        AI，也不会生成正式学习计划、掌握结论或变现建议。
+        算法技能包 0.2.0 目前仍是草稿。诊断和学习执行只使用本地确定性流程，
+        不会调用外部 AI、执行代码、生成正式掌握结论或变现建议。
       </aside>
     </main>
   );

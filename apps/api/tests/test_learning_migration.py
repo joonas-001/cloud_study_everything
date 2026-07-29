@@ -67,7 +67,7 @@ def test_existing_milestone_three_database_upgrades_to_indeterminate_status(
 
     command.upgrade(config, "head")
 
-    assert read_schema_version(database_path) == "0004"
+    assert read_schema_version(database_path) == "0005"
     engine = create_database_engine(database_path)
     try:
         with engine.begin() as connection:
@@ -106,6 +106,98 @@ def test_existing_milestone_three_database_upgrades_to_indeterminate_status(
                     )
                 ).scalar_one()
                 == "manual"
+            )
+    finally:
+        engine.dispose()
+
+
+def test_upgrade_freezes_open_0_1_intake_with_audit_history(tmp_path: Path) -> None:
+    database_path = tmp_path / "freeze-legacy.db"
+    config = _migration_config(database_path)
+    command.upgrade(config, "0004")
+    engine = create_database_engine(database_path)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO diagnostic_sessions (
+                        id, skill_id, skill_version, is_preview, provider_id, model_id,
+                        credential_reference, external_ai_consent,
+                        external_ai_consent_at, status, current_question_id,
+                        created_at, updated_at, last_activity_at, ended_at, end_reason
+                    ) VALUES (
+                        'legacy-diagnostic', 'algorithm', '0.1.0', 1,
+                        'local-deterministic', 'diagnostic-v1', NULL, 0, NULL,
+                        'active', 'programming-background',
+                        '2026-07-27 08:00:00', '2026-07-27 08:00:00',
+                        '2026-07-27 08:00:00', NULL, NULL
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO planning_proposals (
+                        id, diagnostic_session_id, skill_id, skill_version,
+                        template_id, provider_id, model_id, is_preview, status,
+                        title, rationale, limitations_json, created_at, updated_at
+                    ) VALUES (
+                        'legacy-plan', 'legacy-diagnostic', 'algorithm', '0.1.0',
+                        'algorithm-common-trunk-entry', 'local-deterministic',
+                        'planner-sim-v1', 1, 'draft', 'legacy', 'legacy',
+                        '[]', '2026-07-27 08:00:00', '2026-07-27 08:00:00'
+                    )
+                    """
+                )
+            )
+    finally:
+        engine.dispose()
+
+    command.upgrade(config, "head")
+    engine = create_database_engine(database_path)
+    try:
+        with engine.connect() as connection:
+            diagnostic = connection.execute(
+                text(
+                    """
+                    SELECT status, end_reason
+                    FROM diagnostic_sessions
+                    WHERE id = 'legacy-diagnostic'
+                    """
+                )
+            ).one()
+            assert diagnostic == ("ended", "version_intake_closed")
+            assert (
+                connection.execute(
+                    text("SELECT status FROM planning_proposals WHERE id = 'legacy-plan'")
+                ).scalar_one()
+                == "frozen_preview"
+            )
+            assert (
+                connection.execute(
+                    text(
+                        """
+                        SELECT event_type
+                        FROM diagnostic_events
+                        WHERE session_id = 'legacy-diagnostic'
+                        """
+                    )
+                ).scalar_one()
+                == "version_intake_closed"
+            )
+            assert (
+                connection.execute(
+                    text(
+                        """
+                        SELECT event_type
+                        FROM planning_change_events
+                        WHERE proposal_id = 'legacy-plan'
+                        """
+                    )
+                ).scalar_one()
+                == "planning_preview_frozen"
             )
     finally:
         engine.dispose()

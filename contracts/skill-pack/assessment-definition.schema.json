@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/assessment-definition.schema.json",
+  "title": "Skill package assessment definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "skill_id", "skill_version", "criteria"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "skill_id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "skill_version": {
+      "$ref": "#/$defs/version"
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "activity_id",
+          "description",
+          "dimension",
+          "evaluation_method",
+          "passing_result",
+          "evidence_strength",
+          "review_flags"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "activity_id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dimension": {
+            "$ref": "#/$defs/dimension"
+          },
+          "evaluation_method": {
+            "enum": ["deterministic", "self_review", "review_pending", "not_executable"]
+          },
+          "self_review_rubric_id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "passing_result": {
+            "enum": ["passed", "submitted"]
+          },
+          "evidence_strength": {
+            "enum": ["limited", "supported", "retained_limited"]
+          },
+          "review_flags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "manual_review_pending",
+                "retention_due",
+                "source_review_pending"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "dimension": {
+      "enum": ["understanding", "operation", "transfer", "artifact", "retention", "correction"]
+    }
+  }
+}

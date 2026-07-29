@@ -71,7 +71,12 @@
               "curriculum",
               "diagnostic_definition",
               "source_catalog",
-              "planning_template"
+              "planning_template",
+              "learning_definition",
+              "assessment_definition",
+              "rubric_definition",
+              "review_policy",
+              "mastery_scope"
             ]
           },
           "path": {

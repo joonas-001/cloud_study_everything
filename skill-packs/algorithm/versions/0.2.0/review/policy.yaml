@@ -1,0 +1,23 @@
+schema_version: 1.0.0
+id: algorithm-entry-fixed-review
+version: 1.0.0
+skill_id: algorithm
+skill_version: 0.2.0
+strategy: fixed_expanding
+interval_days:
+  - 1
+  - 2
+  - 4
+  - 7
+  - 15
+failure_retry_days: 1
+missed_task_behavior: overdue_not_failure
+completion_checkpoint: 5
+source_ids:
+  - murre-ebbinghaus-2015
+  - cepeda-spacing-2008
+  - ies-study-guide
+limitations:
+  - 固定间隔是基于遗忘早期较快和分散提取原则形成的透明产品规则，不是普适最优曲线。
+  - 算法复杂任务的直接间隔研究少于事实记忆研究。
+  - 4A 结果最多形成 retained_limited 证据，不证明长期掌握。

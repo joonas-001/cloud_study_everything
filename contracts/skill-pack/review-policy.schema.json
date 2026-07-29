@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/review-policy.schema.json",
+  "title": "Skill package review policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "skill_id",
+    "skill_version",
+    "strategy",
+    "interval_days",
+    "failure_retry_days",
+    "missed_task_behavior",
+    "completion_checkpoint",
+    "source_ids",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "version": {
+      "$ref": "#/$defs/version"
+    },
+    "skill_id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "skill_version": {
+      "$ref": "#/$defs/version"
+    },
+    "strategy": {
+      "const": "fixed_expanding"
+    },
+    "interval_days": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 365
+      }
+    },
+    "failure_retry_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30
+    },
+    "missed_task_behavior": {
+      "const": "overdue_not_failure"
+    },
+    "completion_checkpoint": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/stableId"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    }
+  }
+}

@@ -17,6 +17,12 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 FAKE_SMTP_SECRET = "-".join(("smtp", "secret"))
 
 
+def _current_package():
+    return next(
+        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.0"
+    )
+
+
 class FakeSourceFetcher:
     def __init__(self) -> None:
         self.revision = "a"
@@ -89,7 +95,7 @@ def test_planning_preview_is_source_backed_editable_and_read_only_after_save(
     tmp_path: Path,
 ) -> None:
     diagnostics, learning, _, _ = _services(tmp_path)
-    package = validate_repository(REPOSITORY_ROOT)[0]
+    package = _current_package()
     diagnostic = diagnostics.create_session(
         skill_id=package.package_id,
         skill_version=package.version,
@@ -293,7 +299,7 @@ def test_source_history_is_isolated_by_skill_package_version(tmp_path: Path) -> 
 
 def test_rejected_proposal_can_be_replaced(tmp_path: Path) -> None:
     diagnostics, learning, _, _ = _services(tmp_path)
-    package = validate_repository(REPOSITORY_ROOT)[0]
+    package = _current_package()
     diagnostic = diagnostics.create_session(
         skill_id=package.package_id,
         skill_version=package.version,
