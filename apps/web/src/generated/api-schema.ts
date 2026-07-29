@@ -339,6 +339,7 @@ export interface SelfReviewAttemptRequest {
 }
 
 export interface SelfReviewAttemptResponse {
+  activity: LearningActivityResponse;
   attempt: ActivityAttemptResponse;
   run: LearningRunResponse;
 }

@@ -476,6 +476,7 @@ class SelfReviewAttemptRequest(BaseModel):
 
 class SelfReviewAttemptResponse(BaseModel):
     attempt: ActivityAttemptResponse
+    activity: LearningActivityResponse
     run: LearningRunResponse
 
 

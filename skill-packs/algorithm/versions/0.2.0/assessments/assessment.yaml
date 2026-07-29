@@ -8,6 +8,7 @@ criteria:
     description: 能结构化解释数组与链表取舍并写出假设。
     dimension: understanding
     evaluation_method: self_review
+    self_review_rubric_id: explanation-self-review
     passing_result: submitted
     evidence_strength: limited
     review_flags:
@@ -36,6 +37,7 @@ criteria:
     description: 针对需求变化提交结构选择与理由。
     dimension: transfer
     evaluation_method: self_review
+    self_review_rubric_id: transfer-self-review
     passing_result: submitted
     evidence_strength: limited
     review_flags:
@@ -54,6 +56,7 @@ criteria:
     description: 提交目标、决策、测试思路、反思和代码文本。
     dimension: artifact
     evaluation_method: review_pending
+    self_review_rubric_id: project-self-review
     passing_result: submitted
     evidence_strength: limited
     review_flags:

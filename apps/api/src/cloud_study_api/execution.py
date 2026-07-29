@@ -550,6 +550,17 @@ class LearningExecutionService:
                         "invalid_corrected_attempt",
                         "A correction must reference an earlier attempt for the same activity.",
                     )
+                latest_attempt = database.scalar(
+                    select(ActivityAttempt)
+                    .where(ActivityAttempt.activity_id == activity.id)
+                    .order_by(ActivityAttempt.revision.desc())
+                )
+                if latest_attempt is None or latest_attempt.id != previous_attempt.id:
+                    raise LearningExecutionError(
+                        409,
+                        "correction_must_target_latest_attempt",
+                        "A correction must reference the latest attempt for this activity.",
+                    )
             revision = (
                 database.scalar(
                     select(func.max(ActivityAttempt.revision)).where(
@@ -692,6 +703,29 @@ class LearningExecutionService:
                     "learning_run_read_only",
                     "Terminal learning runs are read-only.",
                 )
+            latest_attempt = database.scalar(
+                select(ActivityAttempt)
+                .where(ActivityAttempt.activity_id == activity.id)
+                .order_by(ActivityAttempt.revision.desc())
+            )
+            if latest_attempt is None or latest_attempt.id != attempt.id:
+                raise LearningExecutionError(
+                    409,
+                    "self_review_requires_latest_attempt",
+                    "Only the latest attempt can receive a self-review.",
+                )
+            prior_self_review = database.scalar(
+                select(ActivityEvaluation.id).where(
+                    ActivityEvaluation.attempt_id == attempt.id,
+                    ActivityEvaluation.method == "self_review",
+                )
+            )
+            if prior_self_review is not None:
+                raise LearningExecutionError(
+                    409,
+                    "attempt_already_self_reviewed",
+                    "Submit an appended correction before recording another self-review.",
+                )
             package = self._package(run.skill_id, run.skill_version)
             rubric = self._content(package, "rubric_definition")
             known_rubrics = {criterion["id"] for criterion in rubric["criteria"]}
@@ -700,6 +734,20 @@ class LearningExecutionService:
                     422,
                     "rubric_not_found",
                     "The selected rubric is not part of the locked package.",
+                )
+            assessment = self._content(package, "assessment_definition")
+            template_id = activity.template_activity_id.split(":", maxsplit=1)[0]
+            allowed_rubrics = {
+                criterion["self_review_rubric_id"]
+                for criterion in assessment["criteria"]
+                if criterion["activity_id"] == template_id
+                and criterion.get("self_review_rubric_id")
+            }
+            if rubric_id not in allowed_rubrics:
+                raise LearningExecutionError(
+                    422,
+                    "rubric_not_allowed_for_activity",
+                    "The selected rubric is not assigned to this activity.",
                 )
             evaluation = ActivityEvaluation(
                 id=str(uuid4()),
@@ -735,6 +783,11 @@ class LearningExecutionService:
                 evaluation,
                 now,
             )
+            if result in {"not_yet", "uncertain"}:
+                activity.status = "correction_required"
+                activity.completed_at = None
+                activity.available_at = now
+            run.updated_at = now
             self._rebuild_snapshots(database, run, now)
             self._event(
                 database,
@@ -745,12 +798,16 @@ class LearningExecutionService:
                     "rubric_id": rubric_id,
                     "result": result,
                     "reviewer_type": "self_review",
+                    "next_action": (
+                        "append_correction" if result in {"not_yet", "uncertain"} else "none"
+                    ),
                 },
                 now,
             )
             database.commit()
             return {
                 "attempt": self._attempt_payload(database, attempt),
+                "activity": self._activity_payload(database, activity, now),
                 "run": self._run_payload(database, run),
             }
 

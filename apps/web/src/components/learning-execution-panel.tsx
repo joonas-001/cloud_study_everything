@@ -231,6 +231,13 @@ export function LearningExecutionPanel({
         result,
       });
       setRun(reviewed.run);
+      setToday(null);
+      setSelectedActivityId(
+        reviewed.activity.status === "correction_required"
+          ? reviewed.activity.id
+          : "",
+      );
+      setSubmission({});
       setEvidence(await getLearningEvidence(reviewed.run.id));
     });
   }

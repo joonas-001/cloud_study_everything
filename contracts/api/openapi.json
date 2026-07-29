@@ -1990,6 +1990,9 @@
       },
       "SelfReviewAttemptResponse": {
         "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/LearningActivityResponse"
+          },
           "attempt": {
             "$ref": "#/components/schemas/ActivityAttemptResponse"
           },
@@ -1999,6 +2002,7 @@
         },
         "required": [
           "attempt",
+          "activity",
           "run"
         ],
         "title": "SelfReviewAttemptResponse",

@@ -4,7 +4,6 @@ version: 0.2.0
 title: 算法共同主干入口草稿
 state: draft
 availability: available
-intake: open
 engine_contract:
   version: ">=0.2.0 <0.3.0"
 runner_protocol:
@@ -29,7 +28,7 @@ content_files:
     sha256: 0611e08b5519b92660e0920159e4968db31dffa9157b09af46b35cdc5490def9
   - kind: assessment_definition
     path: assessments/assessment.yaml
-    sha256: 7d8d56b055e30b890a35546eacb8760497828c17cd5cb9f985dba35d50cdff31
+    sha256: 300a771378d00ba46981f5178c52c13895a19de5a12b8918e1b6a0403d484ec2
   - kind: rubric_definition
     path: assessments/rubric.yaml
     sha256: 112b893bafd9a531c4ebd9713272790261f55dd3d381ebf41d068faead72be24

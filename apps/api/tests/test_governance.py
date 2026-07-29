@@ -12,6 +12,12 @@ def test_repository_skill_packages_are_consistent() -> None:
     assert packages[0].state == "draft"
     assert packages[0].availability == "available"
     assert packages[0].intake == "closed"
+    assert (
+        packages[0].manifest_sha256
+        == "d6b69dc944070d80d5c1bc9f92144ed4bed4c5ef5d650deea8ae649ad21467df"
+    )
+    assert "intake" not in packages[0].manifest
     assert packages[1].state == "draft"
     assert packages[1].availability == "available"
     assert packages[1].intake == "open"
+    assert "intake" not in packages[1].manifest

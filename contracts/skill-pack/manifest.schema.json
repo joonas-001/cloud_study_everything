@@ -11,7 +11,6 @@
     "title",
     "state",
     "availability",
-    "intake",
     "engine_contract",
     "runner_protocol",
     "runtime_profiles",
@@ -40,9 +39,6 @@
     },
     "availability": {
       "enum": ["available", "suspended"]
-    },
-    "intake": {
-      "enum": ["open", "closed"]
     },
     "engine_contract": {
       "$ref": "#/$defs/versionRequirement"
