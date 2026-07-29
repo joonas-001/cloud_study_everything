@@ -113,6 +113,7 @@ def check_structure(root: Path) -> None:
         "contracts/api/openapi.json",
         "contracts/skill-pack/planning-template.schema.json",
         "contracts/skill-pack/learning-definition.schema.json",
+        "docs/architecture/monetization-and-continuous-update.md",
         "contracts/skill-pack/assessment-definition.schema.json",
         "contracts/skill-pack/rubric-definition.schema.json",
         "contracts/skill-pack/review-policy.schema.json",
