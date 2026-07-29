@@ -275,3 +275,87 @@ def test_initial_completion_review_failure_correction_and_next_day_retry(
     )
     assert passed["run"]["status"] == "retention_pending"
     assert passed["run"]["reviews"][-1]["checkpoint_index"] == 2
+
+
+def test_self_review_reopens_append_only_correction_and_binds_rubric(
+    tmp_path: Path,
+) -> None:
+    clock = [datetime(2026, 7, 28, 8, 0, tzinfo=UTC)]
+    diagnostics, learning, execution = _services(tmp_path, clock)
+    proposal = _saved_plan(diagnostics, learning)
+    created = _create_run(execution, proposal["id"])
+    run = _finish_initial_learning(execution, created["id"])
+    explanation = next(
+        activity
+        for activity in run["activities"]
+        if activity["template_activity_id"] == "checkpoint-explanation"
+    )
+    first_attempt = explanation["attempts"][-1]
+
+    with pytest.raises(LearningExecutionError) as wrong_rubric:
+        execution.self_review_attempt(
+            first_attempt["id"],
+            rubric_id="transfer-self-review",
+            result="not_yet",
+        )
+    assert wrong_rubric.value.code == "rubric_not_allowed_for_activity"
+
+    needs_revision = execution.self_review_attempt(
+        first_attempt["id"],
+        rubric_id="explanation-self-review",
+        result="not_yet",
+    )
+    assert needs_revision["activity"]["status"] == "correction_required"
+    evidence = execution.get_evidence(run["id"])
+    understanding = next(
+        item for item in evidence["dimensions"] if item["dimension"] == "understanding"
+    )
+    assert understanding["evidence_level"] == "none"
+
+    second = execution.submit_attempt(
+        explanation["id"],
+        submission=_submission(explanation),
+        corrects_attempt_id=first_attempt["id"],
+    )
+    assert second["attempt"]["revision"] == 2
+    assert second["activity"]["status"] == "completed"
+
+    uncertain = execution.self_review_attempt(
+        second["attempt"]["id"],
+        rubric_id="explanation-self-review",
+        result="uncertain",
+    )
+    assert uncertain["activity"]["status"] == "correction_required"
+
+    with pytest.raises(LearningExecutionError) as stale_correction:
+        execution.submit_attempt(
+            explanation["id"],
+            submission=_submission(explanation),
+            corrects_attempt_id=first_attempt["id"],
+        )
+    assert stale_correction.value.code == "correction_must_target_latest_attempt"
+
+    third = execution.submit_attempt(
+        explanation["id"],
+        submission=_submission(explanation),
+        corrects_attempt_id=second["attempt"]["id"],
+    )
+    reviewed = execution.self_review_attempt(
+        third["attempt"]["id"],
+        rubric_id="explanation-self-review",
+        result="meets",
+    )
+    assert reviewed["activity"]["status"] == "completed"
+    evidence = execution.get_evidence(run["id"])
+    understanding = next(
+        item for item in evidence["dimensions"] if item["dimension"] == "understanding"
+    )
+    assert understanding["evidence_level"] == "limited"
+
+    with pytest.raises(LearningExecutionError) as duplicate_review:
+        execution.self_review_attempt(
+            third["attempt"]["id"],
+            rubric_id="explanation-self-review",
+            result="meets",
+        )
+    assert duplicate_review.value.code == "attempt_already_self_reviewed"

@@ -291,6 +291,19 @@ def _validate_learning_content(
             raise RepositoryValidationError(
                 f"{labels['rubric_definition']}: rubric {criterion['id']} has duplicate levels"
             )
+    known_rubric_ids = set(rubric_ids)
+    for criterion in assessment["criteria"]:
+        self_review_rubric_id = criterion.get("self_review_rubric_id")
+        if criterion["evaluation_method"] == "self_review" and not self_review_rubric_id:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: self-review criterion "
+                f"{criterion['id']} lacks a self_review_rubric_id"
+            )
+        if self_review_rubric_id and self_review_rubric_id not in known_rubric_ids:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: criterion {criterion['id']} references "
+                f"unknown rubric {self_review_rubric_id}"
+            )
 
     review = documents["review_policy"]
     intervals = review["interval_days"]
@@ -380,7 +393,7 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
             raise RepositoryValidationError(
                 f"{entry['path']}: path must match id/version directory convention"
             )
-        for field in ("id", "version", "state", "availability", "intake"):
+        for field in ("id", "version", "state", "availability"):
             if manifest[field] != entry[field]:
                 raise RepositoryValidationError(
                     f"{manifest_path}: {field} differs from registry entry"
@@ -471,6 +484,8 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 path=package_path,
                 state=entry["state"],
                 availability=entry["availability"],
+                # Intake controls creation of new records and can change without
+                # rewriting an immutable, historically referenced manifest.
                 intake=entry["intake"],
                 manifest_sha256=entry["manifest_sha256"],
                 manifest=manifest,
