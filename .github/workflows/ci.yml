@@ -93,6 +93,30 @@ jobs:
       - uses: ./.github/actions/setup-project
       - run: pnpm check:mastery-policy
 
+  market_sources:
+    name: market-sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:market-sources
+
+  monetization_policy:
+    name: monetization-policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:monetization-policy
+
+  external_call_boundary:
+    name: external-call-boundary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:external-call-boundary
+
   api_tests:
     name: api-tests
     runs-on: ubuntu-latest
@@ -148,6 +172,9 @@ jobs:
       - assessment_contract
       - review_policy
       - mastery_policy
+      - market_sources
+      - monetization_policy
+      - external_call_boundary
       - api_tests
       - web_tests
       - end_to_end
@@ -168,6 +195,9 @@ jobs:
           test "${{ needs.assessment_contract.result }}" = "success"
           test "${{ needs.review_policy.result }}" = "success"
           test "${{ needs.mastery_policy.result }}" = "success"
+          test "${{ needs.market_sources.result }}" = "success"
+          test "${{ needs.monetization_policy.result }}" = "success"
+          test "${{ needs.external_call_boundary.result }}" = "success"
           test "${{ needs.api_tests.result }}" = "success"
           test "${{ needs.web_tests.result }}" = "success"
           test "${{ needs.end_to_end.result }}" = "success"

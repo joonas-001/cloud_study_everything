@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "synthetic-market-stale",
+  "version": "1.0.0",
+  "mode": "synthetic_fixture",
+  "synthetic": true,
+  "label": "合成市场快照：已过期",
+  "as_of": "2025-01-01T00:00:00Z",
+  "freshness_status": "stale",
+  "limitations": [
+    "这是用于验证过期阻断的合成数据。",
+    "不得据此形成当前市场结论。"
+  ],
+  "sources": [
+    { "id": "synthetic-stale-a", "locator": "synthetic://stale/a", "publisher": "云奕学 5A 合成测试夹具", "evidence_kind": "synthetic" },
+    { "id": "synthetic-stale-b", "locator": "synthetic://stale/b", "publisher": "云奕学 5A 合成测试夹具", "evidence_kind": "synthetic" }
+  ],
+  "paths": [
+    { "path": "employment", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "快照已过期。" }, { "dimension": "entry_cost", "signal": "unknown", "rationale": "快照已过期。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "不能判断。" }], "source_ids": ["synthetic-stale-a"], "uncertainties": ["需要重新复核。"] },
+    { "path": "freelancing", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "快照已过期。" }, { "dimension": "delivery_risk", "signal": "unknown", "rationale": "快照已过期。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "不能判断。" }], "source_ids": ["synthetic-stale-b"], "uncertainties": ["需要重新复核。"] },
+    { "path": "productization", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "快照已过期。" }, { "dimension": "entry_cost", "signal": "unknown", "rationale": "快照已过期。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "不能判断。" }], "source_ids": ["synthetic-stale-a", "synthetic-stale-b"], "uncertainties": ["需要重新复核。"] }
+  ]
+}

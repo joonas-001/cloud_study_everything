@@ -1414,6 +1414,201 @@ textarea::placeholder {
   cursor: pointer;
 }
 
+.readiness-page {
+  width: min(1240px, calc(100% - 40px));
+}
+
+.readiness-shell {
+  display: grid;
+  gap: 24px;
+  padding: 34px;
+  border: 1px solid var(--line);
+  background: rgb(249 251 250 / 88%);
+  box-shadow: 0 20px 60px rgb(25 54 45 / 7%);
+}
+
+.section-heading,
+.goal-summary,
+.readiness-status,
+.synthetic-warning {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.section-heading h2,
+.readiness-result h3,
+.comparison-result h3 {
+  margin: 0;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+}
+
+.boundary-badge {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid #8cab9f;
+  border-radius: 999px;
+  background: #e5efeb;
+  color: var(--deep);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.readiness-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: #f2f6f4;
+}
+
+.readiness-form-grid label,
+.synthetic-selector label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.secondary-button,
+.decision-actions button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--deep);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--deep);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.secondary-button {
+  justify-self: start;
+}
+
+.goal-summary,
+.synthetic-selector,
+.readiness-status,
+.synthetic-warning {
+  padding: 18px 20px;
+  border-left: 3px solid var(--deep);
+  background: #edf4f1;
+}
+
+.goal-summary {
+  display: block;
+}
+
+.goal-summary p,
+.synthetic-selector p,
+.readiness-status p,
+.synthetic-warning p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.synthetic-selector {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(260px, 1.2fr);
+  align-items: end;
+  gap: 24px;
+  border-left-color: var(--warm);
+  background: #f7f1ec;
+}
+
+.readiness-result,
+.comparison-result {
+  display: grid;
+  gap: 22px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.status-not_applicable {
+  border-left-color: #708079;
+  background: #f0f2f1;
+}
+
+.status-not_ready,
+.status-review_required {
+  border-left-color: var(--warm);
+  background: #f7f1ec;
+}
+
+.reason-list {
+  padding: 20px;
+  border: 1px solid var(--line);
+}
+
+.reason-list h3,
+.comparison-result h4 {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+}
+
+.reason-list ul,
+.comparison-result ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.evidence-grid,
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.evidence-grid article,
+.comparison-grid article {
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.evidence-grid p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.comparison-grid article {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.comparison-grid .selected-path {
+  border-color: var(--deep);
+  box-shadow: inset 0 3px 0 var(--deep);
+}
+
+.comparison-grid article > span {
+  color: var(--deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.decision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.audit-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 @keyframes breathe {
   from {
     opacity: 0.35;
@@ -1468,12 +1663,18 @@ textarea::placeholder {
   .grid {
     grid-template-columns: 1fr;
   }
+
+  .evidence-grid,
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
   .page,
   .diagnostic-page,
   .learning-page,
+  .readiness-page,
   .settings-page {
     width: min(100% - 24px, 1240px);
     padding-top: 18px;
@@ -1580,8 +1781,20 @@ textarea::placeholder {
   }
 
   .form-grid,
-  .provider-cards {
+  .provider-cards,
+  .readiness-form-grid,
+  .synthetic-selector {
     grid-template-columns: 1fr;
+  }
+
+  .readiness-shell {
+    padding: 22px;
+  }
+
+  .section-heading,
+  .readiness-status,
+  .synthetic-warning {
+    display: grid;
   }
 }
 

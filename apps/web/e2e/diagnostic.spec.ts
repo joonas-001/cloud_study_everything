@@ -96,4 +96,25 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(page.getByText("六维证据，不是掌握百分比")).toBeVisible();
   await page.getByRole("button", { name: "明确结束本次学习执行" }).click();
   await expect(page.getByText(/本次执行已明确结束且不可恢复/)).toBeVisible();
+
+  await page.goto("/readiness");
+  await expect(
+    page.getByRole("heading", { name: "先选择目标，再决定比较是否适用。" }),
+  ).toBeVisible();
+  await page.getByLabel("当前目标").selectOption("exam");
+  await page.getByRole("button", { name: "保存目标" }).click();
+  await expect(page.getByText("已保存：准备考试")).toBeVisible();
+  await expect(
+    page.getByText("这是非变现目标；系统不会强制生成就业、接单或产品化建议。"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "生成准备度评估" }).click();
+  await expect(page.getByRole("heading", { name: "本次不适用变现比较" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "生成三路径合成比较" }),
+  ).toHaveCount(0);
+  await expect(page.getByText("5B、5C、真实模型、市场来源与预算仍未授权。")).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("readiness-exam-goal.png"),
+    fullPage: true,
+  });
 });

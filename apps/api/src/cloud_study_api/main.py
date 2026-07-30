@@ -22,6 +22,7 @@ from cloud_study_api.governance import validate_repository
 from cloud_study_api.learning import LearningService
 from cloud_study_api.notifications import NotificationService
 from cloud_study_api.providers import ProviderRegistry
+from cloud_study_api.readiness import ReadinessService
 from cloud_study_api.routes import router
 
 
@@ -60,6 +61,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         notification_service=notification_service,
     )
     app.state.learning_execution_service = LearningExecutionService(
+        repository_root=settings.repository_root,
+        packages=packages,
+        session_factory=session_factory,
+    )
+    app.state.readiness_service = ReadinessService(
         repository_root=settings.repository_root,
         packages=packages,
         session_factory=session_factory,

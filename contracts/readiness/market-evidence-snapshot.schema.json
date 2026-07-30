@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/market-evidence-snapshot.schema.json",
+  "title": "Market evidence snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "mode",
+    "synthetic",
+    "label",
+    "as_of",
+    "freshness_status",
+    "limitations",
+    "sources",
+    "paths"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "mode": { "const": "synthetic_fixture" },
+    "synthetic": { "const": true },
+    "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "as_of": { "type": "string", "format": "date-time" },
+    "freshness_status": {
+      "enum": ["current", "stale", "conflicted", "indeterminate"]
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "locator", "publisher", "evidence_kind"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "locator": { "type": "string", "pattern": "^synthetic://" },
+          "publisher": { "const": "云奕学 5A 合成测试夹具" },
+          "evidence_kind": { "const": "synthetic" }
+        }
+      }
+    },
+    "paths": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "factors", "source_ids", "uncertainties"],
+        "properties": {
+          "path": {
+            "enum": ["employment", "freelancing", "productization"]
+          },
+          "factors": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["dimension", "signal", "rationale"],
+              "properties": {
+                "dimension": {
+                  "enum": [
+                    "evidence_fit",
+                    "missing_capability",
+                    "market_demand",
+                    "entry_cost",
+                    "delivery_risk",
+                    "reversibility",
+                    "uncertainty"
+                  ]
+                },
+                "signal": { "enum": ["low", "medium", "high", "unknown"] },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              }
+            }
+          },
+          "source_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+          },
+          "uncertainties": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        }
+      }
+    }
+  }
+}

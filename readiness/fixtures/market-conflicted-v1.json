@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "synthetic-market-conflicted",
+  "version": "1.0.0",
+  "mode": "synthetic_fixture",
+  "synthetic": true,
+  "label": "合成市场快照：来源冲突",
+  "as_of": "2026-07-29T00:00:00Z",
+  "freshness_status": "conflicted",
+  "limitations": [
+    "这是用于验证来源冲突阻断的合成数据。",
+    "冲突未复核前不得形成路径建议。"
+  ],
+  "sources": [
+    { "id": "synthetic-conflict-a", "locator": "synthetic://conflict/a", "publisher": "云奕学 5A 合成测试夹具", "evidence_kind": "synthetic" },
+    { "id": "synthetic-conflict-b", "locator": "synthetic://conflict/b", "publisher": "云奕学 5A 合成测试夹具", "evidence_kind": "synthetic" }
+  ],
+  "paths": [
+    { "path": "employment", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "合成来源互相冲突。" }, { "dimension": "entry_cost", "signal": "medium", "rationale": "仅作结构测试。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "冲突未解决。" }], "source_ids": ["synthetic-conflict-a", "synthetic-conflict-b"], "uncertainties": ["来源结论相反。"] },
+    { "path": "freelancing", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "合成来源互相冲突。" }, { "dimension": "delivery_risk", "signal": "high", "rationale": "4B 尚未授权。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "冲突未解决。" }], "source_ids": ["synthetic-conflict-a", "synthetic-conflict-b"], "uncertainties": ["来源结论相反。"] },
+    { "path": "productization", "factors": [{ "dimension": "market_demand", "signal": "unknown", "rationale": "合成来源互相冲突。" }, { "dimension": "entry_cost", "signal": "high", "rationale": "仅作结构测试。" }, { "dimension": "uncertainty", "signal": "high", "rationale": "冲突未解决。" }], "source_ids": ["synthetic-conflict-a", "synthetic-conflict-b"], "uncertainties": ["来源结论相反。"] }
+  ]
+}

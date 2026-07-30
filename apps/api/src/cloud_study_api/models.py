@@ -726,3 +726,184 @@ class LearningEvent(Base):
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class UserGoalSelection(Base):
+    __tablename__ = "user_goal_selections"
+    __table_args__ = (
+        CheckConstraint(
+            "goal_kind IN ('learning', 'exam', 'employment', 'freelancing', "
+            "'productization', 'other')",
+            name="ck_user_goal_selections_kind",
+        ),
+        Index(
+            "uq_active_user_goal_scope",
+            "skill_id",
+            "skill_version",
+            "capability_scope_id",
+            unique=True,
+            sqlite_where=text("superseded_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    skill_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    skill_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    capability_scope_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    goal_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    custom_label: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    superseded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ReadinessPolicySnapshot(Base):
+    __tablename__ = "readiness_policy_snapshots"
+    __table_args__ = (
+        UniqueConstraint(
+            "policy_id",
+            "policy_version",
+            name="uq_readiness_policy_snapshot",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    policy_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    policy_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    payload_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class MarketEvidenceSnapshot(Base):
+    __tablename__ = "market_evidence_snapshots"
+    __table_args__ = (
+        CheckConstraint("synthetic = 1", name="ck_market_evidence_5a_synthetic"),
+        CheckConstraint(
+            "freshness_status IN ('current', 'stale', 'conflicted', 'indeterminate')",
+            name="ck_market_evidence_freshness",
+        ),
+        UniqueConstraint(
+            "fixture_id",
+            "fixture_version",
+            name="uq_market_evidence_snapshot",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    fixture_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    fixture_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    label: Mapped[str] = mapped_column(String(200), nullable=False)
+    synthetic: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    freshness_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    payload_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ReadinessEvaluation(Base):
+    __tablename__ = "readiness_evaluations"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('not_applicable', 'not_ready', 'review_required', "
+            "'comparison_ready', 'experiment_ready')",
+            name="ck_readiness_evaluations_status",
+        ),
+        CheckConstraint(
+            "status != 'experiment_ready'",
+            name="ck_readiness_5a_no_experiment_ready",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    goal_selection_id: Mapped[str] = mapped_column(
+        ForeignKey("user_goal_selections.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    learning_run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    policy_snapshot_id: Mapped[str] = mapped_column(
+        ForeignKey("readiness_policy_snapshots.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    market_snapshot_id: Mapped[str | None] = mapped_column(
+        ForeignKey("market_evidence_snapshots.id", ondelete="RESTRICT"),
+    )
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason_codes_json: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    limitations_json: Mapped[str] = mapped_column(Text, nullable=False)
+    input_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PathComparison(Base):
+    __tablename__ = "path_comparisons"
+    __table_args__ = (
+        CheckConstraint("synthetic = 1", name="ck_path_comparisons_5a_synthetic"),
+        UniqueConstraint("evaluation_id", name="uq_path_comparison_evaluation"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    evaluation_id: Mapped[str] = mapped_column(
+        ForeignKey("readiness_evaluations.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    market_snapshot_id: Mapped[str] = mapped_column(
+        ForeignKey("market_evidence_snapshots.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    synthetic: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    comparison_json: Mapped[str] = mapped_column(Text, nullable=False)
+    payload_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PathComparisonDecision(Base):
+    __tablename__ = "path_comparison_decisions"
+    __table_args__ = (
+        CheckConstraint(
+            "decision IN ('accepted', 'rejected', 'deferred')",
+            name="ck_path_comparison_decisions_value",
+        ),
+        UniqueConstraint(
+            "comparison_id",
+            "revision",
+            name="uq_path_comparison_decision_revision",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    comparison_id: Mapped[str] = mapped_column(
+        ForeignKey("path_comparisons.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    decision: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ReadinessEvent(Base):
+    __tablename__ = "readiness_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    goal_selection_id: Mapped[str | None] = mapped_column(
+        ForeignKey("user_goal_selections.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    evaluation_id: Mapped[str | None] = mapped_column(
+        ForeignKey("readiness_evaluations.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    comparison_id: Mapped[str | None] = mapped_column(
+        ForeignKey("path_comparisons.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

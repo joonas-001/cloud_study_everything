@@ -1,13 +1,17 @@
 import type {
   AiProviderProfileResponse,
   AiProviderResponse,
+  CapabilityScopeResponse,
   CorrectAnswerRequest,
+  CreatePathComparisonRequest,
+  CreateReadinessEvaluationRequest,
   CreateAiProviderProfileRequest,
   CreateDiagnosticSessionRequest,
   CreateLearningRunRequest,
   CreatePlanningProposalRequest,
   CreateSourceCheckRequest,
   DiagnosticSessionResponse,
+  DecidePathComparisonRequest,
   ActivityAttemptSubmissionResponse,
   EmailOutboxProcessResponse,
   NotificationPreferenceResponse,
@@ -16,7 +20,12 @@ import type {
   PlanningOptionResponse,
   LearningEvidenceResponse,
   LearningRunResponse,
+  MarketSnapshotResponse,
+  PathComparisonDecisionResponse,
+  PathComparisonResponse,
   PrivacySettingsResponse,
+  ReadinessEvaluationResponse,
+  ReadinessHistoryResponse,
   ResolveSourceChangeRequest,
   SourceChangeCandidateResponse,
   SourceCheckRunResponse,
@@ -24,6 +33,7 @@ import type {
   SubmitActivityAttemptRequest,
   SelfReviewAttemptRequest,
   SelfReviewAttemptResponse,
+  SelectUserGoalRequest,
   StartReviewResponse,
   TodayLearningRequest,
   TodayLearningResponse,
@@ -31,6 +41,7 @@ import type {
   UpdatePlanningStatusRequest,
   UpdatePlanningUnitRequest,
   UpdatePrivacySettingsRequest,
+  UserGoalResponse,
 } from "@/generated/api-schema";
 
 const API_BASE_URL =
@@ -329,6 +340,72 @@ export function startLearningReview(
 
 export function endLearningRun(runId: string): Promise<LearningRunResponse> {
   return request(`/learning-runs/${runId}/end`, { method: "POST" });
+}
+
+export function getReadinessScopes(): Promise<Array<CapabilityScopeResponse>> {
+  return request("/readiness/scopes");
+}
+
+export function selectReadinessGoal(
+  payload: SelectUserGoalRequest,
+): Promise<UserGoalResponse> {
+  return request("/readiness/goals", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getCurrentReadinessGoal(
+  skillId: string,
+  skillVersion: string,
+  capabilityScopeId: string,
+): Promise<UserGoalResponse | null> {
+  const query = new URLSearchParams({
+    skill_id: skillId,
+    skill_version: skillVersion,
+    capability_scope_id: capabilityScopeId,
+  });
+  return request(`/readiness/goals/current?${query.toString()}`);
+}
+
+export function getSyntheticMarketSnapshots(): Promise<
+  Array<MarketSnapshotResponse>
+> {
+  return request("/readiness/market-snapshots");
+}
+
+export function createReadinessEvaluation(
+  payload: CreateReadinessEvaluationRequest,
+): Promise<ReadinessEvaluationResponse> {
+  return request("/readiness/evaluations", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createPathComparison(
+  payload: CreatePathComparisonRequest,
+): Promise<PathComparisonResponse> {
+  return request("/readiness/comparisons", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function decidePathComparison(
+  comparisonId: string,
+  payload: DecidePathComparisonRequest,
+): Promise<PathComparisonDecisionResponse> {
+  return request(`/readiness/comparisons/${comparisonId}/decisions`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getReadinessHistory(
+  goalSelectionId: string,
+): Promise<ReadinessHistoryResponse> {
+  return request(`/readiness/goals/${goalSelectionId}/history`);
 }
 
 export function createSourceCheck(
