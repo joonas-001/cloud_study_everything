@@ -15,6 +15,7 @@ export default function ReadinessPage() {
           <Link aria-current="page" href="/readiness">
             目标与准备度
           </Link>
+          <Link href="/market-research">市场研究</Link>
           <Link href="/settings">设置</Link>
         </div>
       </nav>
@@ -23,7 +24,8 @@ export default function ReadinessPage() {
         <h1>目标由你选择，系统只在证据允许时比较。</h1>
         <p>
           第五里程碑 5A
-          只使用本地能力证据和显著标记的合成市场夹具。考试或纯学习目标不会被强制导向求职。
+          仍只使用本地能力证据和显著标记的合成市场夹具。5B 的真实研究记录不会自动替换
+          5A 结果；考试或纯学习目标也不会被强制导向求职。
         </p>
       </header>
       <ReadinessPanel />

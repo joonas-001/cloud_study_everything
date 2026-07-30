@@ -57,15 +57,15 @@ PROVIDERS: tuple[dict[str, Any], ...] = (
         "display_name": "DeepSeek",
         "default_base_url": "https://api.deepseek.com",
         "is_external": True,
-        "executable": False,
-        "models": [],
+        "executable": True,
+        "models": ["deepseek-v4-flash"],
         "capabilities": {
             "streaming": True,
             "tools": True,
-            "structured_output": False,
+            "structured_output": True,
             "model_discovery": True,
         },
-        "status_note": "独立适配器接口；不得因为部分格式兼容而复用 OpenAI 语义。",
+        "status_note": "5B 仅允许 deepseek-v4-flash；调用受外发开关、费用和来源门禁约束。",
     },
     {
         "id": "moonshot",
@@ -115,6 +115,7 @@ class AiConfigurationService:
         base_url: str | None,
         api_key: str | None,
         enabled: bool,
+        model_id: str | None = None,
     ) -> dict[str, Any]:
         provider = self._providers.get(provider_id)
         if provider is None:
@@ -128,6 +129,40 @@ class AiConfigurationService:
                 422,
                 "local_provider_forbids_credentials",
                 "The local deterministic provider does not use credentials.",
+            )
+        allowed_models = set(provider["models"])
+        if provider["is_external"] and provider["executable"] and model_id not in allowed_models:
+            raise AiConfigurationError(
+                422,
+                "unsupported_model",
+                "The selected model is not approved for this provider.",
+            )
+        if provider["is_external"] and not provider["executable"] and model_id is not None:
+            raise AiConfigurationError(
+                422,
+                "provider_model_not_approved",
+                "No model is approved for this provider yet.",
+            )
+        if provider_id == "local-deterministic" and model_id is not None:
+            raise AiConfigurationError(
+                422,
+                "local_profile_forbids_model",
+                "Local deterministic profiles do not lock a remote model.",
+            )
+        if provider_id == "deepseek" and base_url not in {
+            None,
+            "https://api.deepseek.com",
+        }:
+            raise AiConfigurationError(
+                422,
+                "deepseek_official_base_url_required",
+                "DeepSeek 5B profiles must use the official API base URL.",
+            )
+        if provider_id == "deepseek" and not api_key:
+            raise AiConfigurationError(
+                422,
+                "deepseek_credential_required",
+                "DeepSeek 5B profiles require an API key in Windows Credential Manager.",
             )
         profile_id = str(uuid4())
         credential_reference: str | None = None
@@ -151,6 +186,7 @@ class AiConfigurationService:
                 id=profile_id,
                 provider_id=provider_id,
                 display_name=display_name.strip(),
+                model_id=model_id,
                 base_url=(base_url or provider["default_base_url"]),
                 credential_reference=credential_reference,
                 enabled=enabled,
@@ -173,6 +209,7 @@ class AiConfigurationService:
             "id": profile.id,
             "provider_id": profile.provider_id,
             "display_name": profile.display_name,
+            "model_id": profile.model_id,
             "base_url": profile.base_url,
             "credential_reference": profile.credential_reference,
             "enabled": profile.enabled,

@@ -412,6 +412,7 @@ class AiProviderProfile(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     provider_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    model_id: Mapped[str | None] = mapped_column(String(100))
     base_url: Mapped[str | None] = mapped_column(Text)
     credential_reference: Mapped[str | None] = mapped_column(String(255))
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
@@ -902,6 +903,143 @@ class ReadinessEvent(Base):
     )
     comparison_id: Mapped[str | None] = mapped_column(
         ForeignKey("path_comparisons.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class MarketResearchRun(Base):
+    __tablename__ = "market_research_runs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('source_pending', 'synthesis_pending', 'synthesis_in_progress', "
+            "'recovery_required', 'review_pending', 'completed', 'blocked', 'failed')",
+            name="ck_market_research_runs_status",
+        ),
+        CheckConstraint(
+            "review_status IN ('not_ready', 'not_requested', 'pending', 'accepted', 'rejected')",
+            name="ck_market_research_runs_review_status",
+        ),
+        CheckConstraint(
+            "estimated_cost_micros >= 0 AND actual_cost_micros >= 0 AND accounted_cost_micros >= 0",
+            name="ck_market_research_runs_nonnegative_cost",
+        ),
+        Index(
+            "uq_active_market_research_run",
+            "catalog_id",
+            "catalog_version",
+            unique=True,
+            sqlite_where=text(
+                "status IN ('source_pending', 'synthesis_pending', "
+                "'synthesis_in_progress', 'review_pending')"
+            ),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    catalog_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    catalog_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    catalog_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    catalog_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    skill_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    capability_scope_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    goal_selection_id: Mapped[str] = mapped_column(
+        ForeignKey("user_goal_selections.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    goal_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    goal_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    readiness_evaluation_id: Mapped[str | None] = mapped_column(
+        ForeignKey("readiness_evaluations.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    scope_json: Mapped[str] = mapped_column(Text, nullable=False)
+    budget_policy_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    budget_policy_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    budget_policy_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    budget_policy_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    provider_profile_id: Mapped[str] = mapped_column(
+        ForeignKey("ai_provider_profiles.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    provider_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    model_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    response_model_id: Mapped[str | None] = mapped_column(String(100))
+    credential_reference: Mapped[str] = mapped_column(String(255), nullable=False)
+    external_ai_consent: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    source_results_json: Mapped[str] = mapped_column(Text, nullable=False)
+    synthesis_json: Mapped[str | None] = mapped_column(Text)
+    synthesis_valid: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    synthesis_attempt_id: Mapped[str | None] = mapped_column(String(36))
+    synthesis_invalidated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cost_accounted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    review_note: Mapped[str | None] = mapped_column(Text)
+    estimated_cost_micros: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    actual_cost_micros: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    accounted_cost_micros: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    cached_input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    failure_code: Mapped[str | None] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class MarketResearchSynthesisAttempt(Base):
+    __tablename__ = "market_research_synthesis_attempts"
+    __table_args__ = (
+        CheckConstraint(
+            "phase IN ('claimed', 'dispatch_started', 'response_received', "
+            "'accounted', 'recovery_required', 'failed')",
+            name="ck_market_research_attempts_phase",
+        ),
+        CheckConstraint(
+            "reserved_cost_micros >= 0 AND accounted_cost_micros >= 0",
+            name="ck_market_research_attempts_nonnegative_cost",
+        ),
+        UniqueConstraint("run_id", name="uq_market_research_attempt_run"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("market_research_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    provider_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    model_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    response_model_id: Mapped[str | None] = mapped_column(String(100))
+    budget_policy_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    budget_policy_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    phase: Mapped[str] = mapped_column(String(32), nullable=False)
+    reserved_cost_micros: Mapped[int] = mapped_column(Integer, nullable=False)
+    accounted_cost_micros: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    charge_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    response_sha256: Mapped[str | None] = mapped_column(String(64))
+    failure_code: Mapped[str | None] = mapped_column(String(100))
+    lease_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claimed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    dispatch_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    response_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    accounted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class MarketResearchEvent(Base):
+    __tablename__ = "market_research_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("market_research_runs.id", ondelete="RESTRICT"),
+        nullable=False,
         index=True,
     )
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)

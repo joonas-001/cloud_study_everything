@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 
 class CredentialStoreError(RuntimeError):
@@ -136,7 +136,7 @@ class WindowsCredentialStore:
                 credential.CredentialBlob,
                 credential.CredentialBlobSize,
             )
-            return raw.decode("utf-16-le")
+            return cast(str, raw.decode("utf-16-le"))
         finally:
             advapi32.CredFree(pointer)
 

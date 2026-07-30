@@ -33,7 +33,7 @@ build-backend = "hatchling.build"
 packages = ["src/cloud_study_api"]
 
 [tool.pytest.ini_options]
-addopts = "--strict-config --strict-markers -q"
+addopts = "--strict-config --strict-markers -q --basetemp=.pytest-tmp -p no:cacheprovider"
 pythonpath = ["../.."]
 testpaths = ["tests"]
 

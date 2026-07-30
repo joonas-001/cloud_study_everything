@@ -436,7 +436,10 @@ def test_ai_provider_capabilities_and_credentials_stay_out_of_sqlite_and_logs(
     ]
     assert all(provider["capabilities"] for provider in providers)
     assert providers[0]["executable"] is True
-    assert all(provider["executable"] is False for provider in providers[1:])
+    assert providers[1]["executable"] is False
+    assert providers[2]["executable"] is True
+    assert providers[2]["models"] == ["deepseek-v4-flash"]
+    assert providers[3]["executable"] is False
 
     api_key = "-".join(("third", "milestone", "credential"))
     profile = service.create_profile(

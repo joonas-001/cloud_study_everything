@@ -16,6 +16,7 @@ from cloud_study_api.execution import (
     LearningExecutionService,
 )
 from cloud_study_api.learning import LearningError, LearningService
+from cloud_study_api.market_research import MarketResearchError, MarketResearchService
 from cloud_study_api.notifications import NotificationError, NotificationService
 from cloud_study_api.readiness import ReadinessError, ReadinessService
 
@@ -270,6 +271,7 @@ class AiProviderResponse(BaseModel):
 class CreateAiProviderProfileRequest(BaseModel):
     provider_id: str = Field(min_length=1, max_length=100)
     display_name: str = Field(min_length=1, max_length=200)
+    model_id: str | None = Field(default=None, min_length=1, max_length=100)
     base_url: str | None = Field(default=None, max_length=2000)
     api_key: str | None = Field(default=None, min_length=1, max_length=2000)
     enabled: bool = True
@@ -279,6 +281,7 @@ class AiProviderProfileResponse(BaseModel):
     id: str
     provider_id: str
     display_name: str
+    model_id: str | None
     base_url: str | None
     credential_reference: str | None
     enabled: bool
@@ -637,6 +640,171 @@ class ReadinessHistoryResponse(BaseModel):
     events: list[dict[str, object]]
 
 
+MarketResearchStatus = Literal[
+    "source_pending",
+    "synthesis_pending",
+    "synthesis_in_progress",
+    "recovery_required",
+    "review_pending",
+    "completed",
+    "blocked",
+    "failed",
+]
+
+
+class CreateMarketResearchRunRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    provider_profile_id: str = Field(min_length=1, max_length=36)
+    goal_selection_id: str = Field(min_length=1, max_length=36)
+    catalog_id: str = Field(min_length=1, max_length=100)
+    catalog_version: str = Field(min_length=1, max_length=50)
+    readiness_evaluation_id: str | None = Field(default=None, max_length=36)
+    confirm_external_sources: bool
+
+
+class SynthesizeMarketResearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm_external_ai: bool
+
+
+class RecoverPreDispatchMarketResearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm_recovery: bool
+
+
+class ReviewMarketResearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["accepted", "rejected"]
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class ReconcileMarketResearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm_end: bool
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class RedactMarketSourceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm_redaction: bool
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class MarketResearchRunResponse(BaseModel):
+    id: str
+    catalog_id: str
+    catalog_version: str
+    catalog_sha256: str
+    skill_id: str
+    skill_version: str
+    capability_scope_id: str
+    goal_selection_id: str
+    goal_kind: Literal["employment", "freelancing", "productization"]
+    goal_snapshot: dict[str, object]
+    readiness_evaluation_id: str | None
+    budget_policy_id: str
+    budget_policy_version: str
+    budget_policy_sha256: str
+    scope: dict[str, object]
+    status: MarketResearchStatus
+    provider_profile_id: str
+    provider_id: Literal["deepseek"]
+    model_id: Literal["deepseek-v4-flash"]
+    response_model_id: str | None
+    external_ai_consent: bool
+    sources: list[dict[str, object]]
+    outbound_material_preview: dict[str, object]
+    synthesis: dict[str, object] | None
+    synthesis_valid: bool
+    synthesis_invalidated_at: datetime | None
+    review_status: Literal[
+        "not_ready",
+        "not_requested",
+        "pending",
+        "accepted",
+        "rejected",
+    ]
+    review_note: str | None
+    estimated_cost_micros: int
+    actual_cost_micros: int
+    accounted_cost_micros: int
+    input_tokens: int
+    cached_input_tokens: int
+    output_tokens: int
+    failure_code: str | None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None
+
+
+class SourceAccessStateResponse(BaseModel):
+    source_id: str
+    latest_attempt_at: datetime | None
+    latest_attempt_run_id: str | None
+    latest_attempt_status: Literal["succeeded", "failed"] | None
+    latest_attempt_error_code: str | None
+    latest_success_at: datetime | None
+    latest_success_run_id: str | None
+    next_allowed_at: datetime | None
+    cooldown_kind: (
+        Literal[
+            "successful_refresh_interval",
+            "failed_access_cooldown",
+        ]
+        | None
+    )
+    cooling_down: bool
+
+
+class SourceAccessPolicyResponse(BaseModel):
+    success_refresh_interval_days: int
+    failure_cooldown_hours: int
+    manual_bypass_allowed: bool
+    blocked: bool
+    blocking_reason: (
+        Literal[
+            "successful_refresh_interval",
+            "failed_access_cooldown",
+        ]
+        | None
+    )
+    next_allowed_at: datetime | None
+    remaining_seconds: int
+    eligible_source_ids: list[str]
+    blocked_source_ids: list[str]
+    latest_research_attempt_at: datetime | None
+    latest_research_attempt_run_id: str | None
+    latest_research_attempt_status: str | None
+    sources: list[SourceAccessStateResponse]
+
+
+class MarketResearchOverviewResponse(BaseModel):
+    catalog: dict[str, object]
+    budget: dict[str, object]
+    source_access_policy: SourceAccessPolicyResponse
+    available_contexts: list[dict[str, object]]
+    latest_run: MarketResearchRunResponse | None
+
+
+class MarketResearchEventResponse(BaseModel):
+    id: int
+    run_id: str
+    event_type: str
+    payload: dict[str, object]
+    occurred_at: datetime
+
+
+class MarketResearchHistoryResponse(BaseModel):
+    runs: list[MarketResearchRunResponse]
+    events: list[MarketResearchEventResponse]
+
+
 router = APIRouter()
 
 
@@ -706,6 +874,17 @@ AiConfigurationServiceDependency = Annotated[
 ]
 
 
+def get_market_research_service(request: Request) -> MarketResearchService:
+    service: MarketResearchService = request.app.state.market_research_service
+    return service
+
+
+MarketResearchServiceDependency = Annotated[
+    MarketResearchService,
+    Depends(get_market_research_service),
+]
+
+
 def _raise_http(error: DiagnosticError) -> None:
     raise HTTPException(
         status_code=error.status_code,
@@ -724,11 +903,20 @@ def _raise_service_http(
         | NotificationError
         | AiConfigurationError
         | ReadinessError
+        | MarketResearchError
     ),
 ) -> None:
     context = (
         error.context
-        if isinstance(error, (LearningError, LearningExecutionError, ReadinessError))
+        if isinstance(
+            error,
+            (
+                LearningError,
+                LearningExecutionError,
+                ReadinessError,
+                MarketResearchError,
+            ),
+        )
         else {}
     )
     raise HTTPException(
@@ -1514,3 +1702,171 @@ def get_readiness_history(
     except ReadinessError as error:
         _raise_service_http(error)
     return ReadinessHistoryResponse.model_validate(result)
+
+
+@router.get(
+    "/market-research/overview",
+    response_model=MarketResearchOverviewResponse,
+    tags=["market-research-5b"],
+)
+def get_market_research_overview(
+    service: MarketResearchServiceDependency,
+    goal_selection_id: str | None = Query(default=None, max_length=36),
+) -> MarketResearchOverviewResponse:
+    return MarketResearchOverviewResponse.model_validate(
+        service.overview(goal_selection_id=goal_selection_id)
+    )
+
+
+@router.get(
+    "/market-research/history",
+    response_model=MarketResearchHistoryResponse,
+    tags=["market-research-5b"],
+)
+def get_market_research_history(
+    service: MarketResearchServiceDependency,
+    limit: int = Query(default=20, ge=1, le=100),
+) -> MarketResearchHistoryResponse:
+    return MarketResearchHistoryResponse.model_validate(service.history(limit=limit))
+
+
+@router.post(
+    "/market-research/runs",
+    response_model=MarketResearchRunResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["market-research-5b"],
+)
+def create_market_research_run(
+    payload: CreateMarketResearchRunRequest,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.create_run(**payload.model_dump())
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.get(
+    "/market-research/runs/{run_id}",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def get_market_research_run(
+    run_id: str,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.get_run(run_id)
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.post(
+    "/market-research/runs/{run_id}/synthesis",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def synthesize_market_research_run(
+    run_id: str,
+    payload: SynthesizeMarketResearchRequest,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.synthesize(run_id, **payload.model_dump())
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.post(
+    "/market-research/runs/{run_id}/recover-pre-dispatch",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def recover_pre_dispatch_market_research_run(
+    run_id: str,
+    payload: RecoverPreDispatchMarketResearchRequest,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.recover_pre_dispatch_failure(
+            run_id,
+            **payload.model_dump(),
+        )
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.post(
+    "/market-research/runs/{run_id}/complete-metadata-only",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def complete_market_research_metadata_only(
+    run_id: str,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.complete_metadata_only(run_id)
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.post(
+    "/market-research/runs/{run_id}/review",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def review_market_research_run(
+    run_id: str,
+    payload: ReviewMarketResearchRequest,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.review(run_id, **payload.model_dump())
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.post(
+    "/market-research/runs/{run_id}/sources/{source_id}/redact",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def redact_market_research_source(
+    run_id: str,
+    source_id: str,
+    payload: RedactMarketSourceRequest,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.redact_source_excerpt(
+            run_id,
+            source_id,
+            **payload.model_dump(),
+        )
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)
+
+
+@router.post(
+    "/market-research/runs/{run_id}/reconcile-recovery",
+    response_model=MarketResearchRunResponse,
+    tags=["market-research-5b"],
+)
+def reconcile_market_research_recovery(
+    run_id: str,
+    payload: ReconcileMarketResearchRequest,
+    service: MarketResearchServiceDependency,
+) -> MarketResearchRunResponse:
+    try:
+        result = service.reconcile_recovery(run_id, **payload.model_dump())
+    except MarketResearchError as error:
+        _raise_service_http(error)
+    return MarketResearchRunResponse.model_validate(result)

@@ -145,6 +145,9 @@ class ReadinessService:
             )
             if active is not None:
                 active.superseded_at = now
+                # Flush the partial-unique-index release before inserting the
+                # replacement goal; SQLite may otherwise order the INSERT first.
+                database.flush()
             goal = UserGoalSelection(
                 id=str(uuid4()),
                 skill_id=skill_id,

@@ -3,6 +3,18 @@ import { expect, test } from "@playwright/test";
 test("completes the guarded diagnostic preview and preserves corrections", async ({
   page,
 }, testInfo) => {
+  const apiBaseUrl =
+    process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000";
+  const marketMode =
+    testInfo.project.name === "mobile-chromium"
+      ? "model_mismatch"
+      : "success";
+  await page.request.put(`${apiBaseUrl}/settings/privacy`, {
+    data: { external_ai_enabled: false },
+  });
+  await page.request.post(`${apiBaseUrl}/__e2e__/market-reset`, {
+    data: { mode: marketMode },
+  });
   await page.goto("/diagnostic");
 
   await expect(
@@ -101,6 +113,7 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(
     page.getByRole("heading", { name: "先选择目标，再决定比较是否适用。" }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "保存目标" })).toBeEnabled();
   await page.getByLabel("当前目标").selectOption("exam");
   await page.getByRole("button", { name: "保存目标" }).click();
   await expect(page.getByText("已保存：准备考试")).toBeVisible();
@@ -112,9 +125,97 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(
     page.getByRole("button", { name: "生成三路径合成比较" }),
   ).toHaveCount(0);
-  await expect(page.getByText("5B、5C、真实模型、市场来源与预算仍未授权。")).toBeVisible();
+  await expect(page.getByText(/5B 的真实市场研究已独立接入/)).toBeVisible();
   await page.screenshot({
     path: testInfo.outputPath("readiness-exam-goal.png"),
+    fullPage: true,
+  });
+  await page.getByLabel("当前目标").selectOption("employment");
+  await page.getByRole("button", { name: "保存目标" }).click();
+  await expect(page.getByText("已保存：就业")).toBeVisible();
+  await page.getByRole("button", { name: "生成准备度评估" }).click();
+
+  await page.goto("/diagnostic");
+  await page.getByRole("switch", { name: "允许外部 AI" }).click();
+  await expect(page.getByRole("switch", { name: "允许外部 AI" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  await page.goto("/market-research");
+  await expect(
+    page.getByRole("heading", {
+      name: "先核验来源与费用，再让 AI 做有限综合。",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("¥0.0000 / ¥5.0000")).toBeVisible();
+  await expect(page.getByText("中华人民共和国国家统计局")).toBeVisible();
+  await expect(page.getByText("中华人民共和国工业和信息化部")).toBeVisible();
+  await expect(
+    page.getByText(/成功来源 7 天后才可再次访问；访问失败后冷却 24/),
+  ).toBeVisible();
+  await expect(page.getByText(/首版不提供人工绕过/)).toBeVisible();
+  await expect(
+    page.getByText(
+      "algorithm@0.2.0 · algorithm-entry-mastery-scope",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/employment 证据能力：当前来源体系不支持判断/),
+  ).toBeVisible();
+  await expect(page.getByText("查看历史研究与审计事件")).toBeVisible();
+  await expect(page.getByRole("button", { name: "检查官方市场来源" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }),
+  ).toHaveCount(0);
+  await page.getByLabel("确认本次访问上述官方公开来源").check();
+  await page.getByRole("button", { name: "检查官方市场来源" }).click();
+  await expect(page.getByText("发送前最终材料预览")).toBeVisible();
+  await expect(page.getByText(/以下 4 项材料与后端实际构造综合请求/)).toBeVisible();
+  await expect(page.getByText("API 密钥或凭据引用")).toBeVisible();
+  await expect(
+    page.getByLabel("确认删除 cn-nbs-data 的已保存摘录"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }),
+  ).toBeDisabled();
+  await page.getByLabel("确认发送净化后的最少官方摘录给 DeepSeek").check();
+  await page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }).click();
+
+  if (marketMode === "model_mismatch") {
+    await expect(page.locator(".error-banner")).toContainText(
+      "响应声明的模型与锁定模型不一致",
+    );
+    await expect(page.getByText("本次研究已停止")).toBeVisible();
+    await page.getByText("查看本次研究审计摘要").click();
+    await expect(
+      page.getByText("deepseek_response_model_mismatch", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("¥0.2000").first()).toBeVisible();
+    await page.screenshot({
+      path: testInfo.outputPath("market-research-failed-state-refreshed.png"),
+      fullPage: true,
+    });
+    return;
+  }
+
+  await expect(page.getByText("AI 综合结果（尚未采纳）")).toBeVisible();
+  await page.getByText("查看本次研究审计摘要").click();
+  await expect(page.getByText(/deepseek-v4-flash \/ deepseek-v4-flash/)).toBeVisible();
+  await page.getByRole("button", { name: "接受为研究记录" }).click();
+  await expect(page.getByText("本次研究已结束")).toBeVisible();
+  await page.getByText("逐项检查或删除已保存的净化摘录").click();
+  await page.getByLabel("确认删除 cn-nbs-data 的已保存摘录").check();
+  await page.getByRole("button", { name: "删除这项摘录" }).first().click();
+  await expect(
+    page.getByText("该综合结果所依赖的来源已撤回，只保留审计记录，不能继续采纳。"),
+  ).toBeVisible();
+  await page.getByText("查看历史研究与审计事件").click();
+  await expect(page.getByText("source_excerpt_redacted")).toBeVisible();
+  await expect(
+    page.getByLabel("确认删除 cn-nbs-data 的已保存摘录"),
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: testInfo.outputPath("market-research-offline-complete-and-redacted.png"),
     fullPage: true,
   });
 });

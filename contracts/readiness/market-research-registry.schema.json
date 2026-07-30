@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloud-study.local/contracts/readiness/market-research-registry.schema.json",
+  "title": "Versioned market research registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registrations"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "registrations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "catalog_id",
+          "catalog_version",
+          "catalog_path",
+          "budget_policy_id",
+          "budget_policy_version",
+          "budget_policy_path"
+        ],
+        "properties": {
+          "catalog_id": { "type": "string", "minLength": 1 },
+          "catalog_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "catalog_path": {
+            "type": "string",
+            "pattern": "^readiness/sources/[A-Za-z0-9._/-]+\\.json$"
+          },
+          "budget_policy_id": { "type": "string", "minLength": 1 },
+          "budget_policy_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "budget_policy_path": {
+            "type": "string",
+            "pattern": "^readiness/policies/[A-Za-z0-9._/-]+\\.json$"
+          }
+        }
+      }
+    }
+  }
+}
