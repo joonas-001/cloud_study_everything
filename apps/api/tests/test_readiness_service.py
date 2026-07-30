@@ -207,6 +207,39 @@ def test_non_monetization_goal_is_not_forced_into_market_comparison(
         raise AssertionError("non-monetization goal unexpectedly created a comparison")
 
 
+def test_replacing_current_goal_releases_partial_unique_index_before_insert(
+    tmp_path: Path,
+) -> None:
+    diagnostics, learning, execution, readiness, _session_factory = _services(tmp_path)
+    run = _create_run(diagnostics, learning, execution)
+    scope = readiness.list_scopes()[0]
+    first = readiness.select_goal(
+        skill_id=run["skill_id"],
+        skill_version=run["skill_version"],
+        capability_scope_id=scope["capability_scope_id"],
+        goal_kind="employment",
+        custom_label=None,
+    )
+
+    replacement = readiness.select_goal(
+        skill_id=run["skill_id"],
+        skill_version=run["skill_version"],
+        capability_scope_id=scope["capability_scope_id"],
+        goal_kind="exam",
+        custom_label=None,
+    )
+
+    current = readiness.get_current_goal(
+        run["skill_id"],
+        run["skill_version"],
+        scope["capability_scope_id"],
+    )
+    assert replacement["id"] != first["id"]
+    assert replacement["goal_kind"] == "exam"
+    assert current is not None
+    assert current["id"] == replacement["id"]
+
+
 def test_real_evidence_can_only_create_a_synthetic_local_comparison(
     tmp_path: Path,
 ) -> None:

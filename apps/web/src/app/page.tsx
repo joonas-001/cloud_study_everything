@@ -13,6 +13,7 @@ export default function Home() {
           <Link href="/diagnostic">诊断</Link>
           <Link href="/learning">学习面板</Link>
           <Link href="/readiness">目标与准备度</Link>
+          <Link href="/market-research">市场研究</Link>
           <Link href="/settings">设置</Link>
         </div>
       </nav>
@@ -31,8 +32,13 @@ export default function Home() {
         <Link className="secondary-link" href="/readiness">
           选择目标并查看准备度
         </Link>
+        <Link className="secondary-link" href="/market-research">
+          检查官方市场来源
+        </Link>
       </header>
-      <div className="status">开发状态：第四里程碑 4A 已合并 · 第五里程碑 5A 实施中</div>
+      <div className="status">
+        开发状态：4A 已合并 · 5A 位于 Draft PR · 5B 本地实现验证中
+      </div>
 
       <section className="grid" aria-label="当前基础能力">
         {milestones.map((milestone) => (
@@ -45,7 +51,8 @@ export default function Home() {
 
       <aside className="notice">
         算法技能包 0.2.0 目前仍是草稿。诊断和学习执行只使用本地确定性流程，
-        不会调用外部 AI、执行代码或生成正式掌握结论。5A 只提供显著标记的合成比较。
+        诊断和学习执行不会调用外部 AI、执行代码或生成正式掌握结论。5A
+        只提供显著标记的合成比较；5B 的真实外发必须逐次确认并受费用硬门禁约束。
       </aside>
     </main>
   );

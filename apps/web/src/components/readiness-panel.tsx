@@ -450,8 +450,8 @@ export function ReadinessPanel() {
       ) : null}
 
       <aside className="notice">
-        5B、5C、真实模型、市场来源与预算仍未授权。4B 也未授权，因此代码文本不会被执行，
-        真实算法交付资格不会被推断。
+        5B 的真实市场研究已独立接入，但不会自动改写本页的 5A
+        合成比较。5C 与 4B 仍未授权，因此代码文本不会被执行，真实算法交付资格不会被推断。
       </aside>
     </section>
   );
