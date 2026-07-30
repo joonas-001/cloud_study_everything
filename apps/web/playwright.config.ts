@@ -11,6 +11,7 @@ const runDatabase = path.join(
 );
 const externalServers = process.env.PLAYWRIGHT_EXTERNAL_SERVERS === "1";
 const completionFile = process.env.PLAYWRIGHT_COMPLETION_FILE;
+const apiSourcePath = path.join(repositoryRoot, "apps", "api", "src");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -49,11 +50,12 @@ export default defineConfig({
     : [
         {
           command:
-            "uv run --project apps/api --locked uvicorn cloud_study_api.main:app --app-dir apps/api/src --host 127.0.0.1 --port 8000",
+            "uv run --project apps/api --locked uvicorn e2e_app:app --app-dir apps/api/tests --host 127.0.0.1 --port 8000",
           cwd: repositoryRoot,
           env: {
             CLOUD_STUDY_DATABASE_PATH: runDatabase,
             UV_CACHE_DIR: path.join(repositoryRoot, ".uv-cache"),
+            PYTHONPATH: apiSourcePath,
           },
           port: 8000,
           reuseExistingServer: false,

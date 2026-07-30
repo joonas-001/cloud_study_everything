@@ -32,6 +32,7 @@ export interface AiProviderProfileResponse {
   enabled: boolean;
   executable: boolean;
   id: string;
+  model_id: string | null;
   provider_id: string;
   status_note: string;
   updated_at: string;
@@ -69,6 +70,7 @@ export interface CreateAiProviderProfileRequest {
   base_url?: string | null;
   display_name: string;
   enabled?: boolean;
+  model_id?: string | null;
   provider_id: string;
 }
 
@@ -90,6 +92,15 @@ export interface CreateLearningRunRequest {
   planning_proposal_id: string;
   preview?: boolean;
   reuse_from_run_id?: string | null;
+}
+
+export interface CreateMarketResearchRunRequest {
+  catalog_id: string;
+  catalog_version: string;
+  confirm_external_sources: boolean;
+  goal_selection_id: string;
+  provider_profile_id: string;
+  readiness_evaluation_id?: string | null;
 }
 
 export interface CreatePathComparisonRequest {
@@ -230,6 +241,68 @@ export interface LearningRunResponse {
   skill_id: string;
   skill_version: string;
   status: "active" | "retention_pending" | "completed" | "ended";
+  updated_at: string;
+}
+
+export interface MarketResearchEventResponse {
+  event_type: string;
+  id: number;
+  occurred_at: string;
+  payload: Record<string, unknown>;
+  run_id: string;
+}
+
+export interface MarketResearchHistoryResponse {
+  events: Array<MarketResearchEventResponse>;
+  runs: Array<MarketResearchRunResponse>;
+}
+
+export interface MarketResearchOverviewResponse {
+  available_contexts: Array<Record<string, unknown>>;
+  budget: Record<string, unknown>;
+  catalog: Record<string, unknown>;
+  latest_run: MarketResearchRunResponse | null;
+  source_access_policy: SourceAccessPolicyResponse;
+}
+
+export interface MarketResearchRunResponse {
+  accounted_cost_micros: number;
+  actual_cost_micros: number;
+  budget_policy_id: string;
+  budget_policy_sha256: string;
+  budget_policy_version: string;
+  cached_input_tokens: number;
+  capability_scope_id: string;
+  catalog_id: string;
+  catalog_sha256: string;
+  catalog_version: string;
+  completed_at: string | null;
+  created_at: string;
+  estimated_cost_micros: number;
+  external_ai_consent: boolean;
+  failure_code: string | null;
+  goal_kind: "employment" | "freelancing" | "productization";
+  goal_selection_id: string;
+  goal_snapshot: Record<string, unknown>;
+  id: string;
+  input_tokens: number;
+  model_id: string;
+  outbound_material_preview: Record<string, unknown>;
+  output_tokens: number;
+  provider_id: string;
+  provider_profile_id: string;
+  readiness_evaluation_id: string | null;
+  response_model_id: string | null;
+  review_note: string | null;
+  review_status: "not_ready" | "not_requested" | "pending" | "accepted" | "rejected";
+  scope: Record<string, unknown>;
+  skill_id: string;
+  skill_version: string;
+  sources: Array<Record<string, unknown>>;
+  status: "source_pending" | "synthesis_pending" | "synthesis_in_progress" | "recovery_required" | "review_pending" | "completed" | "blocked" | "failed";
+  synthesis: Record<string, unknown> | null;
+  synthesis_invalidated_at: string | null;
+  synthesis_valid: boolean;
   updated_at: string;
 }
 
@@ -399,8 +472,27 @@ export interface ReadinessHistoryResponse {
   goal: UserGoalResponse;
 }
 
+export interface ReconcileMarketResearchRequest {
+  confirm_end: boolean;
+  note?: string | null;
+}
+
+export interface RecoverPreDispatchMarketResearchRequest {
+  confirm_recovery: boolean;
+}
+
+export interface RedactMarketSourceRequest {
+  confirm_redaction: boolean;
+  reason: string;
+}
+
 export interface ResolveSourceChangeRequest {
   decision: "dismissed" | "accepted";
+}
+
+export interface ReviewMarketResearchRequest {
+  decision: "accepted" | "rejected";
+  note?: string | null;
 }
 
 export interface ReviewTaskResponse {
@@ -434,6 +526,35 @@ export interface SelfReviewAttemptResponse {
   activity: LearningActivityResponse;
   attempt: ActivityAttemptResponse;
   run: LearningRunResponse;
+}
+
+export interface SourceAccessPolicyResponse {
+  blocked: boolean;
+  blocked_source_ids: Array<string>;
+  blocking_reason: "successful_refresh_interval" | "failed_access_cooldown" | null;
+  eligible_source_ids: Array<string>;
+  failure_cooldown_hours: number;
+  latest_research_attempt_at: string | null;
+  latest_research_attempt_run_id: string | null;
+  latest_research_attempt_status: string | null;
+  manual_bypass_allowed: boolean;
+  next_allowed_at: string | null;
+  remaining_seconds: number;
+  sources: Array<SourceAccessStateResponse>;
+  success_refresh_interval_days: number;
+}
+
+export interface SourceAccessStateResponse {
+  cooldown_kind: "successful_refresh_interval" | "failed_access_cooldown" | null;
+  cooling_down: boolean;
+  latest_attempt_at: string | null;
+  latest_attempt_error_code: string | null;
+  latest_attempt_run_id: string | null;
+  latest_attempt_status: "succeeded" | "failed" | null;
+  latest_success_at: string | null;
+  latest_success_run_id: string | null;
+  next_allowed_at: string | null;
+  source_id: string;
 }
 
 export interface SourceChangeCandidateResponse {
@@ -501,6 +622,10 @@ export interface SubmitAnswerRequest {
   content?: string | null;
   question_id: string;
   response_kind: "answered" | "skipped" | "uncertain";
+}
+
+export interface SynthesizeMarketResearchRequest {
+  confirm_external_ai: boolean;
 }
 
 export interface TodayLearningRequest {

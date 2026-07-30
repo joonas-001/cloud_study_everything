@@ -10,6 +10,9 @@
   "scripts": {
     "dev:api": "uv run --project apps/api --locked uvicorn cloud_study_api.main:app --reload --app-dir apps/api/src",
     "dev:web": "pnpm --filter @cloud-study/web dev",
+    "local-services:start": "node tools/run_local_services.mjs start",
+    "local-services:status": "node tools/run_local_services.mjs status",
+    "local-services:stop": "node tools/run_local_services.mjs stop",
     "check:markdown": "uv run --project apps/api --locked python tools/repo_checks.py markdown",
     "check:structure": "uv run --project apps/api --locked python tools/repo_checks.py structure",
     "check:registry": "uv run --project apps/api --locked python tools/repo_checks.py registry",
@@ -25,7 +28,7 @@
     "check:monetization-policy": "uv run --project apps/api --locked python tools/repo_checks.py monetization-policy",
     "check:external-call-boundary": "uv run --project apps/api --locked python tools/repo_checks.py external-call-boundary",
     "check:contracts": "uv run --project apps/api --locked python tools/repo_checks.py contracts",
-    "check:api": "uv run --project apps/api --locked ruff format --check apps/api/src apps/api/tests tools && uv run --project apps/api --locked ruff check apps/api/src apps/api/tests tools && uv run --project apps/api --locked mypy apps/api/src tools && uv run --project apps/api --locked pytest apps/api/tests",
+    "check:api": "uv run --project apps/api --locked ruff format --check apps/api/src apps/api/tests tools && uv run --project apps/api --locked ruff check apps/api/src apps/api/tests tools && uv run --project apps/api --locked mypy apps/api/src tools && uv run --project apps/api --locked python tools/run_pytest.py apps/api/tests",
     "check:web": "pnpm --filter @cloud-study/web lint && pnpm --filter @cloud-study/web typecheck && pnpm --filter @cloud-study/web test && pnpm --filter @cloud-study/web build",
     "check:e2e": "node tools/run_e2e.mjs",
     "check:contract-drift": "uv run --project apps/api --locked python tools/generate_contracts.py --check",

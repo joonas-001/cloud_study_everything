@@ -8,6 +8,7 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import yaml
 from cloud_study_api.governance import (
@@ -17,7 +18,7 @@ from cloud_study_api.governance import (
     validate_dependency_graph,
     validate_repository,
 )
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PARTS = {
@@ -26,6 +27,8 @@ EXCLUDED_PARTS = {
     ".mypy_cache",
     ".next",
     ".pytest_cache",
+    ".pytest-tmp",
+    ".tmp",
     ".pnpm-store",
     ".ruff_cache",
     ".uv-cache",
@@ -457,7 +460,7 @@ def _validate_json_instance(
 ) -> dict[str, Any]:
     instance = _read_json(instance_path)
     schema = _read_json(schema_path)
-    validator = Draft202012Validator(schema)
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(instance), key=lambda error: list(error.path))
     if errors:
         detail = "; ".join(
@@ -504,6 +507,153 @@ def check_market_sources(root: Path) -> None:
     if statuses != required:
         raise CheckFailure(f"5A fixture freshness coverage differs: {sorted(statuses)}")
 
+    registry = _validate_json_instance(
+        root / "readiness" / "market-research-registry-v1.json",
+        root / "contracts" / "readiness" / "market-research-registry.schema.json",
+    )
+    if len(registry["registrations"]) != len(
+        {
+            (item["catalog_id"], item["catalog_version"])
+            for item in registry["registrations"]
+        }
+    ):
+        raise CheckFailure(
+            "5B market research registry contains duplicate catalog versions"
+        )
+    registration = registry["registrations"][0]
+    catalog_path = (root / registration["catalog_path"]).resolve()
+    budget_path = (root / registration["budget_policy_path"]).resolve()
+    if (
+        root.resolve() not in catalog_path.parents
+        or root.resolve() not in budget_path.parents
+    ):
+        raise CheckFailure("5B market research registry path escapes the repository")
+    catalog = _validate_json_instance(
+        catalog_path,
+        root / "contracts" / "readiness" / "official-market-source-catalog.schema.json",
+    )
+    if (
+        catalog["catalog_id"],
+        catalog["version"],
+    ) != (
+        registration["catalog_id"],
+        registration["catalog_version"],
+    ):
+        raise CheckFailure("5B registry catalog identity does not match its file")
+    budget = _validate_json_instance(
+        budget_path,
+        root / "contracts" / "readiness" / "deepseek-budget-policy.schema.json",
+    )
+    if (
+        budget["policy_id"],
+        budget["version"],
+    ) != (
+        registration["budget_policy_id"],
+        registration["budget_policy_version"],
+    ):
+        raise CheckFailure("5B registry budget identity does not match its file")
+    approved_sources = {
+        "cn-nbs-data": ("中华人民共和国国家统计局", "www.stats.gov.cn"),
+        "cn-mohrss-statistics": (
+            "中华人民共和国人力资源和社会保障部",
+            "www.mohrss.gov.cn",
+        ),
+        "cn-public-recruitment": ("中国公共招聘网", "job.mohrss.gov.cn"),
+        "cn-miit-data": ("中华人民共和国工业和信息化部", "www.miit.gov.cn"),
+    }
+    if {source["id"] for source in catalog["sources"]} != set(approved_sources):
+        raise CheckFailure("5B official source IDs differ from the approved catalog")
+    covered_paths: set[str] = set()
+    direct_paths: set[str] = set()
+    independence_groups_by_owner: dict[str, set[str]] = {}
+    independence_groups_by_path: dict[str, set[str]] = {
+        path: set() for path in ("employment", "freelancing", "productization")
+    }
+    for source in catalog["sources"]:
+        expected_owner, expected_host = approved_sources[source["id"]]
+        parsed = urlsplit(source["url"])
+        if (
+            source["owner"] != expected_owner
+            or parsed.scheme != "https"
+            or parsed.hostname != expected_host
+            or source["allowed_hosts"] != [expected_host]
+        ):
+            raise CheckFailure(
+                f"{source['id']}: source owner, HTTPS URL, or host differs from approval"
+            )
+        covered_paths.update(source["paths"])
+        independence_groups_by_owner.setdefault(source["owner"], set()).add(
+            source["independence_group"]
+        )
+        for path in source["paths"]:
+            independence_groups_by_path[path].add(source["independence_group"])
+        if source["evidence_role"] == "direct_signal":
+            direct_paths.update(source["paths"])
+            observable = source.get("observable_signals", {})
+            if any(path not in observable for path in source["paths"]):
+                raise CheckFailure(
+                    f"{source['id']}: direct signal source lacks observable terms for a path"
+                )
+    if covered_paths != {"employment", "freelancing", "productization"}:
+        raise CheckFailure("5B official sources must cover all approved market paths")
+    owners_with_multiple_independence_groups = sorted(
+        owner
+        for owner, groups in independence_groups_by_owner.items()
+        if len(groups) > 1
+    )
+    if owners_with_multiple_independence_groups:
+        raise CheckFailure(
+            "5B pages from one source owner must not count as independent groups: "
+            f"{owners_with_multiple_independence_groups}"
+        )
+    if set(catalog["path_evidence_capabilities"]) != set(
+        catalog["research_context"]["allowed_paths"]
+    ):
+        raise CheckFailure(
+            "5B path capability declarations must match the allowed paths"
+        )
+    for path, capability in catalog["path_evidence_capabilities"].items():
+        if capability["coverage"] == "conclusive_supported" and (
+            path not in direct_paths or len(independence_groups_by_path[path]) < 2
+        ):
+            raise CheckFailure(
+                f"5B {path} declares conclusive support without a direct signal "
+                "and two independent source groups"
+            )
+    context = catalog["research_context"]
+    if set(context["allowed_paths"]) != {
+        "employment",
+        "freelancing",
+        "productization",
+    }:
+        raise CheckFailure(
+            "5B first catalog must explicitly allow the three approved paths"
+        )
+    if catalog["content_removal_policy"] != {
+        "explicit_confirmation_required": True,
+        "remove_saved_excerpt": True,
+        "retain_hash_and_audit": True,
+    }:
+        raise CheckFailure(
+            "5B source removal policy must redact excerpts and retain audit"
+        )
+    if (
+        catalog["refresh_policy"]["metadata_interval_days"]
+        != budget["metadata_refresh_interval_days"]
+        or catalog["refresh_policy"]["synthesis_interval_days"]
+        != budget["synthesis_interval_days"]
+    ):
+        raise CheckFailure(
+            "5B catalog and budget refresh intervals must remain aligned"
+        )
+    if (
+        catalog["refresh_policy"]["failure_cooldown_hours"] != 24
+        or catalog["refresh_policy"]["manual_bypass_allowed"] is not False
+    ):
+        raise CheckFailure(
+            "5B failed source access must cool down for 24 hours without manual bypass"
+        )
+
 
 def check_monetization_policy(root: Path) -> None:
     policy = _validate_json_instance(
@@ -525,6 +675,19 @@ def check_monetization_policy(root: Path) -> None:
         raise CheckFailure("5A policy must expose the unconfirmed experiment threshold")
     if "goal_not_monetization" not in policy["reason_codes"]:
         raise CheckFailure("5A policy must support non-monetization goals")
+    budget = _validate_json_instance(
+        root / "readiness" / "policies" / "deepseek-v4-flash-budget-v1.json",
+        root / "contracts" / "readiness" / "deepseek-budget-policy.schema.json",
+    )
+    if budget["automatic_top_up"]:
+        raise CheckFailure("5B must never enable automatic top-up")
+    if {
+        budget["unknown_price_action"],
+        budget["price_change_action"],
+    } != {"stop"}:
+        raise CheckFailure("5B must stop on unknown or changed prices")
+    if budget["synthesis_lease_minutes"] != 5:
+        raise CheckFailure("5B synthesis lease must remain the approved five minutes")
 
 
 def check_external_call_boundary(root: Path) -> None:
@@ -560,6 +723,78 @@ def check_external_call_boundary(root: Path) -> None:
     found_routes = sorted(route for route in forbidden_routes if route in route_text)
     if found_routes:
         raise CheckFailure(f"5A exposes forbidden routes: {found_routes}")
+
+    market_service_text = (
+        root / "apps" / "api" / "src" / "cloud_study_api" / "market_research.py"
+    ).read_text(encoding="utf-8")
+    market_adapter_text = (
+        root / "apps" / "api" / "src" / "cloud_study_api" / "market_ai.py"
+    ).read_text(encoding="utf-8")
+    required_guards = {
+        '"external_ai_disabled"',
+        '"external_ai_confirmation_required"',
+        '"external_source_confirmation_required"',
+        '"price_change_action"',
+        '"unknown_price_action"',
+        '"pricing_changed_or_unverifiable"',
+        '"source_excerpt_redacted"',
+        '"ai_synthesis_skipped"',
+        "RobotFileParser",
+        "MAX_SOURCE_BYTES",
+        "MAX_EXCERPT_CHARS",
+        '"synthesis_in_progress"',
+        '"synthesis_input_preflight_exceeded"',
+        '"external_ai_request_dispatch_started"',
+        "catalog_snapshot_json",
+        "budget_policy_snapshot_json",
+        "normalized_content_sha256",
+        "excerpt_sha256",
+        '"recovery_required"',
+        "MarketResearchSynthesisAttempt",
+        "market-research-registry-v1.json",
+        "deepseek_response_model_missing",
+        "deepseek_response_model_mismatch",
+        "response_model_id",
+        "_outbound_source_material",
+        "OUTBOUND_DATA_CATEGORIES",
+        "EXCLUDED_DATA_CATEGORIES",
+    }
+    missing_guards = sorted(
+        guard for guard in required_guards if guard not in market_service_text
+    )
+    if missing_guards:
+        raise CheckFailure(f"5B external-call guards are missing: {missing_guards}")
+    required_adapter_guards = {
+        "class DeepSeekV4FlashMarketAdapter",
+        '"https://api.deepseek.com/chat/completions"',
+        '"deepseek-v4-flash"',
+        '"api.deepseek.com"',
+        '"stream": False',
+        '"thinking": {"type": "disabled"}',
+        "conservative_input_token_bound",
+    }
+    missing_adapter_guards = sorted(
+        guard for guard in required_adapter_guards if guard not in market_adapter_text
+    )
+    if missing_adapter_guards:
+        raise CheckFailure(
+            f"5B DeepSeek adapter guards are missing: {missing_adapter_guards}"
+        )
+    forbidden_market_tokens = {
+        "requests.",
+        "httpx.",
+        "time.sleep",
+        "automatic_top_up = true",
+        '"model": "deepseek-chat"',
+        '"model": "deepseek-reasoner"',
+    }
+    found_market_tokens = sorted(
+        token for token in forbidden_market_tokens if token in market_service_text
+    )
+    if found_market_tokens:
+        raise CheckFailure(
+            f"5B external-call boundary contains forbidden tokens: {found_market_tokens}"
+        )
 
 
 def check_contracts(root: Path) -> None:
