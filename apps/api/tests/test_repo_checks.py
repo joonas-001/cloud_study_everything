@@ -1,6 +1,18 @@
 from pathlib import Path
 
 from tools.repo_checks import find_secrets
+from tools.run_pytest import prepare_base_temp
+
+
+def test_pytest_runner_prepares_temp_parent_in_a_clean_checkout(tmp_path: Path) -> None:
+    clean_repository = tmp_path / "clean-repository"
+
+    first = prepare_base_temp(clean_repository)
+    second = prepare_base_temp(clean_repository)
+
+    assert first.parent == clean_repository / ".tmp"
+    assert first.parent.is_dir()
+    assert first != second
 
 
 def test_secret_scanner_detects_a_token_without_storing_one_in_the_repository(

@@ -9,8 +9,14 @@ import pytest
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
+def prepare_base_temp(repository_root: Path = REPOSITORY_ROOT) -> Path:
+    temporary_root = repository_root / ".tmp"
+    temporary_root.mkdir(parents=True, exist_ok=True)
+    return temporary_root / f"pytest-{uuid4().hex}"
+
+
 def main() -> int:
-    base_temp = REPOSITORY_ROOT / ".tmp" / f"pytest-{uuid4().hex}"
+    base_temp = prepare_base_temp()
     return pytest.main([*sys.argv[1:], "--basetemp", str(base_temp)])
 
 
