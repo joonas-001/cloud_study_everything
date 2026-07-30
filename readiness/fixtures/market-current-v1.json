@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "synthetic-market-current",
+  "version": "1.0.0",
+  "mode": "synthetic_fixture",
+  "synthetic": true,
+  "label": "合成市场快照：可比较",
+  "as_of": "2026-07-29T00:00:00Z",
+  "freshness_status": "current",
+  "limitations": [
+    "这是用于验证规则的合成数据，不是当前市场事实。",
+    "不得据此推断岗位、订单、需求、价格或收入。"
+  ],
+  "sources": [
+    {
+      "id": "synthetic-source-a",
+      "locator": "synthetic://market/source-a",
+      "publisher": "云奕学 5A 合成测试夹具",
+      "evidence_kind": "synthetic"
+    },
+    {
+      "id": "synthetic-source-b",
+      "locator": "synthetic://market/source-b",
+      "publisher": "云奕学 5A 合成测试夹具",
+      "evidence_kind": "synthetic"
+    }
+  ],
+  "paths": [
+    {
+      "path": "employment",
+      "factors": [
+        { "dimension": "market_demand", "signal": "medium", "rationale": "仅用于测试并列展示。" },
+        { "dimension": "entry_cost", "signal": "medium", "rationale": "仅用于测试本地比较。" },
+        { "dimension": "uncertainty", "signal": "high", "rationale": "没有真实市场数据。" }
+      ],
+      "source_ids": ["synthetic-source-a", "synthetic-source-b"],
+      "uncertainties": ["岗位、地区和语言范围均未确认。"]
+    },
+    {
+      "path": "freelancing",
+      "factors": [
+        { "dimension": "market_demand", "signal": "unknown", "rationale": "仅用于测试未知状态。" },
+        { "dimension": "delivery_risk", "signal": "high", "rationale": "4B 尚未授权。" },
+        { "dimension": "uncertainty", "signal": "high", "rationale": "没有真实平台或客户数据。" }
+      ],
+      "source_ids": ["synthetic-source-a", "synthetic-source-b"],
+      "uncertainties": ["平台、客户和交付边界均未确认。"]
+    },
+    {
+      "path": "productization",
+      "factors": [
+        { "dimension": "market_demand", "signal": "unknown", "rationale": "仅用于测试未知状态。" },
+        { "dimension": "entry_cost", "signal": "high", "rationale": "仅用于比较维护负担。" },
+        { "dimension": "uncertainty", "signal": "high", "rationale": "没有真实受众数据。" }
+      ],
+      "source_ids": ["synthetic-source-a", "synthetic-source-b"],
+      "uncertainties": ["受众、问题和发布范围均未确认。"]
+    }
+  ]
+}

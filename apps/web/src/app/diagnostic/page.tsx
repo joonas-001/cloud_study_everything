@@ -14,6 +14,7 @@ export default function DiagnosticPage() {
             诊断
           </Link>
           <Link href="/learning">学习面板</Link>
+          <Link href="/readiness">目标与准备度</Link>
           <Link href="/settings">设置</Link>
         </div>
       </nav>

@@ -21,6 +21,9 @@
     "check:assessment": "uv run --project apps/api --locked python tools/repo_checks.py assessment",
     "check:review-policy": "uv run --project apps/api --locked python tools/repo_checks.py review-policy",
     "check:mastery-policy": "uv run --project apps/api --locked python tools/repo_checks.py mastery-policy",
+    "check:market-sources": "uv run --project apps/api --locked python tools/repo_checks.py market-sources",
+    "check:monetization-policy": "uv run --project apps/api --locked python tools/repo_checks.py monetization-policy",
+    "check:external-call-boundary": "uv run --project apps/api --locked python tools/repo_checks.py external-call-boundary",
     "check:contracts": "uv run --project apps/api --locked python tools/repo_checks.py contracts",
     "check:api": "uv run --project apps/api --locked ruff format --check apps/api/src apps/api/tests tools && uv run --project apps/api --locked ruff check apps/api/src apps/api/tests tools && uv run --project apps/api --locked mypy apps/api/src tools && uv run --project apps/api --locked pytest apps/api/tests",
     "check:web": "pnpm --filter @cloud-study/web lint && pnpm --filter @cloud-study/web typecheck && pnpm --filter @cloud-study/web test && pnpm --filter @cloud-study/web build",
@@ -28,6 +31,6 @@
     "check:contract-drift": "uv run --project apps/api --locked python tools/generate_contracts.py --check",
     "check:secrets": "uv run --project apps/api --locked python tools/repo_checks.py secrets",
     "generate:contracts": "uv run --project apps/api --locked python tools/generate_contracts.py",
-    "release-readiness": "pnpm check:markdown && pnpm check:structure && pnpm check:registry && pnpm check:manifest && pnpm check:dependencies && pnpm check:sources && pnpm check:planning && pnpm check:learning-content && pnpm check:assessment && pnpm check:review-policy && pnpm check:mastery-policy && pnpm check:contracts && pnpm check:api && pnpm check:web && pnpm check:e2e && pnpm check:contract-drift && pnpm check:secrets"
+    "release-readiness": "pnpm check:markdown && pnpm check:structure && pnpm check:registry && pnpm check:manifest && pnpm check:dependencies && pnpm check:sources && pnpm check:planning && pnpm check:learning-content && pnpm check:assessment && pnpm check:review-policy && pnpm check:mastery-policy && pnpm check:market-sources && pnpm check:monetization-policy && pnpm check:external-call-boundary && pnpm check:contracts && pnpm check:api && pnpm check:web && pnpm check:e2e && pnpm check:contract-drift && pnpm check:secrets"
   }
 }

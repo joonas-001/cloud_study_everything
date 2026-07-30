@@ -48,6 +48,17 @@ export interface AiProviderResponse {
   status_note: string;
 }
 
+export interface CapabilityScopeResponse {
+  capability_scope_id: string;
+  created_at: string;
+  dimensions: Array<string>;
+  learning_run_id: string;
+  learning_run_status: "active" | "retention_pending" | "completed" | "ended";
+  scope_statement: string;
+  skill_id: string;
+  skill_version: string;
+}
+
 export interface CorrectAnswerRequest {
   content?: string | null;
   response_kind: "answered" | "skipped" | "uncertain";
@@ -81,6 +92,10 @@ export interface CreateLearningRunRequest {
   reuse_from_run_id?: string | null;
 }
 
+export interface CreatePathComparisonRequest {
+  evaluation_id: string;
+}
+
 export interface CreatePlanningProposalRequest {
   diagnostic_session_id: string;
   model_id: string;
@@ -88,10 +103,21 @@ export interface CreatePlanningProposalRequest {
   provider_id: string;
 }
 
+export interface CreateReadinessEvaluationRequest {
+  goal_selection_id: string;
+  learning_run_id?: string | null;
+  market_snapshot_id?: string | null;
+}
+
 export interface CreateSourceCheckRequest {
   manual?: boolean;
   skill_id: string;
   skill_version: string;
+}
+
+export interface DecidePathComparisonRequest {
+  decision: "accepted" | "rejected" | "deferred";
+  reason?: string | null;
 }
 
 export interface DiagnosticAnswerResponse {
@@ -207,6 +233,19 @@ export interface LearningRunResponse {
   updated_at: string;
 }
 
+export interface MarketSnapshotResponse {
+  as_of: string;
+  created_at: string;
+  fixture_id: string;
+  fixture_version: string;
+  freshness_status: "current" | "stale" | "conflicted" | "indeterminate";
+  id: string;
+  label: string;
+  limitations: Array<string>;
+  source_count: number;
+  synthetic: boolean;
+}
+
 export interface MasteryDimensionResponse {
   dimension: "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction";
   evidence_count: number;
@@ -256,6 +295,28 @@ export interface NotificationResponse {
   related_type: string | null;
   severity: "required" | "action_required" | "warning" | "info";
   title: string;
+}
+
+export interface PathComparisonDecisionResponse {
+  comparison_id: string;
+  created_at: string;
+  decision: "accepted" | "rejected" | "deferred";
+  id: string;
+  reason: string | null;
+  revision: number;
+}
+
+export interface PathComparisonResponse {
+  created_at: string;
+  decisions: Array<PathComparisonDecisionResponse>;
+  evaluation_id: string;
+  id: string;
+  limitations: Array<string>;
+  market_snapshot_id: string;
+  paths: Array<Record<string, unknown>>;
+  payload_sha256: string;
+  schema_version: string;
+  synthetic: boolean;
 }
 
 export interface PlanningOptionResponse {
@@ -315,6 +376,29 @@ export interface PrivacySettingsResponse {
   updated_at: string;
 }
 
+export interface ReadinessEvaluationResponse {
+  created_at: string;
+  evidence_snapshot: Record<string, unknown>;
+  goal_selection_id: string;
+  id: string;
+  input_sha256: string;
+  learning_run_id: string | null;
+  limitations: Array<string>;
+  market_snapshot_id: string | null;
+  policy_id: string;
+  policy_version: string;
+  reason_codes: Array<string>;
+  schema_version: string;
+  status: "not_applicable" | "not_ready" | "review_required" | "comparison_ready" | "experiment_ready";
+}
+
+export interface ReadinessHistoryResponse {
+  comparisons: Array<PathComparisonResponse>;
+  evaluations: Array<ReadinessEvaluationResponse>;
+  events: Array<Record<string, unknown>>;
+  goal: UserGoalResponse;
+}
+
 export interface ResolveSourceChangeRequest {
   decision: "dismissed" | "accepted";
 }
@@ -331,6 +415,14 @@ export interface ReviewTaskResponse {
   policy_id: string;
   policy_version: string;
   status: "scheduled" | "available" | "passed" | "failed";
+}
+
+export interface SelectUserGoalRequest {
+  capability_scope_id: string;
+  custom_label?: string | null;
+  goal_kind: "learning" | "exam" | "employment" | "freelancing" | "productization" | "other";
+  skill_id: string;
+  skill_version: string;
 }
 
 export interface SelfReviewAttemptRequest {
@@ -452,6 +544,19 @@ export interface UpdatePlanningUnitRequest {
 
 export interface UpdatePrivacySettingsRequest {
   external_ai_enabled: boolean;
+}
+
+export interface UserGoalResponse {
+  capability_scope_id: string;
+  created_at: string;
+  custom_label: string | null;
+  goal_kind: "learning" | "exam" | "employment" | "freelancing" | "productization" | "other";
+  id: string;
+  market_comparison_applicable: boolean;
+  schema_version: string;
+  skill_id: string;
+  skill_version: string;
+  superseded_at: string | null;
 }
 
 export interface ValidationError {
