@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,12 @@ const completionFile = path.join(
   ".playwright-data",
   `completion-${Date.now()}.json`,
 );
+const webRoot = path.join(repositoryRoot, "apps", "web");
+const e2eNextDistName = ".next-e2e";
+const e2eNextDist = path.join(webRoot, e2eNextDistName);
+const nextEnvPath = path.join(webRoot, "next-env.d.ts");
+const nextEnvExisted = existsSync(nextEnvPath);
+const nextEnvOriginal = nextEnvExisted ? readFileSync(nextEnvPath) : null;
 const trackedChildren = new Set();
 
 function start(command, args, environment = {}) {
@@ -113,6 +119,41 @@ function stopAll() {
   }
 }
 
+function restoreNextEnv() {
+  if (nextEnvOriginal !== null) {
+    writeFileSync(nextEnvPath, nextEnvOriginal);
+  } else if (!nextEnvExisted) {
+    rmSync(nextEnvPath, { force: true });
+  }
+}
+
+async function removeE2eNextDist() {
+  const resolvedWebRoot = path.resolve(webRoot);
+  const resolvedTarget = path.resolve(e2eNextDist);
+  if (
+    path.dirname(resolvedTarget) !== resolvedWebRoot ||
+    path.basename(resolvedTarget) !== ".next-e2e"
+  ) {
+    throw new Error(`Refusing to remove unsafe E2E build directory: ${resolvedTarget}`);
+  }
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      rmSync(resolvedTarget, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (
+        !(error instanceof Error) ||
+        !("code" in error) ||
+        !["EBUSY", "EPERM", "ENOTEMPTY"].includes(String(error.code)) ||
+        attempt === 19
+      ) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
+}
+
 function isPortListening(port) {
   return new Promise((resolve) => {
     const socket = net.createConnection({ host: "127.0.0.1", port });
@@ -144,13 +185,18 @@ async function waitForPortRelease(port, timeoutMs = 5_000) {
 
 process.once("SIGINT", () => {
   stopAll();
+  restoreNextEnv();
   process.exit(130);
 });
 process.once("SIGTERM", () => {
   stopAll();
+  restoreNextEnv();
   process.exit(143);
 });
-process.once("exit", stopAll);
+process.once("exit", () => {
+  stopAll();
+  restoreNextEnv();
+});
 
 async function waitForCompletionFile(child, timeoutMs = 120_000) {
   const deadline = Date.now() + timeoutMs;
@@ -188,14 +234,16 @@ if (!existsSync(apiPython)) {
   );
 }
 
+await removeE2eNextDist();
+
 const api = start(
   apiPython,
   [
     "-m",
     "uvicorn",
-    "cloud_study_api.main:app",
+    "e2e_app:app",
     "--app-dir",
-    "apps/api/src",
+    "apps/api/tests",
     "--host",
     "127.0.0.1",
     "--port",
@@ -203,6 +251,7 @@ const api = start(
   ],
   {
     CLOUD_STUDY_DATABASE_PATH: runDatabase,
+    PYTHONPATH: path.join(repositoryRoot, "apps", "api", "src"),
   },
 );
 const web = start(
@@ -226,6 +275,7 @@ const web = start(
     String(webPort),
   ],
   {
+    CLOUD_STUDY_E2E_NEXT_DIST_DIR: e2eNextDistName,
     NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
     NEXT_TELEMETRY_DISABLED: "1",
   },
@@ -257,6 +307,7 @@ try {
       PLAYWRIGHT_COMPLETION_FILE: completionFile,
       PLAYWRIGHT_EXTERNAL_SERVERS: "1",
       PLAYWRIGHT_BASE_URL: webBaseUrl,
+      PLAYWRIGHT_API_BASE_URL: apiBaseUrl,
     },
   );
   try {
@@ -271,6 +322,8 @@ try {
     waitForPortRelease(webPort),
     waitForPortRelease(apiPort),
   ]);
+  await removeE2eNextDist();
+  restoreNextEnv();
 }
 
 process.exitCode = exitCode;

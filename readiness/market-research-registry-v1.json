@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "registrations": [
+    {
+      "catalog_id": "official-cn-algorithm-market",
+      "catalog_version": "1.2.0",
+      "catalog_path": "readiness/sources/official-cn-market-v1.json",
+      "budget_policy_id": "deepseek-v4-flash-budget",
+      "budget_policy_version": "1.1.0",
+      "budget_policy_path": "readiness/policies/deepseek-v4-flash-budget-v1.json"
+    }
+  ]
+}

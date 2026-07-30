@@ -20,6 +20,9 @@ import type {
   PlanningOptionResponse,
   LearningEvidenceResponse,
   LearningRunResponse,
+  MarketResearchOverviewResponse,
+  MarketResearchHistoryResponse,
+  MarketResearchRunResponse,
   MarketSnapshotResponse,
   PathComparisonDecisionResponse,
   PathComparisonResponse,
@@ -34,6 +37,12 @@ import type {
   SelfReviewAttemptRequest,
   SelfReviewAttemptResponse,
   SelectUserGoalRequest,
+  CreateMarketResearchRunRequest,
+  RecoverPreDispatchMarketResearchRequest,
+  SynthesizeMarketResearchRequest,
+  ReviewMarketResearchRequest,
+  ReconcileMarketResearchRequest,
+  RedactMarketSourceRequest,
   StartReviewResponse,
   TodayLearningRequest,
   TodayLearningResponse,
@@ -486,6 +495,95 @@ export function createAiProviderProfile(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getMarketResearchOverview(
+  goalSelectionId?: string,
+): Promise<MarketResearchOverviewResponse> {
+  const query = new URLSearchParams();
+  if (goalSelectionId) {
+    query.set("goal_selection_id", goalSelectionId);
+  }
+  const suffix = query.size ? `?${query.toString()}` : "";
+  return request(`/market-research/overview${suffix}`);
+}
+
+export function getMarketResearchHistory(
+  limit = 20,
+): Promise<MarketResearchHistoryResponse> {
+  const query = new URLSearchParams({ limit: String(limit) });
+  return request(`/market-research/history?${query.toString()}`);
+}
+
+export function createMarketResearchRun(
+  payload: CreateMarketResearchRunRequest,
+): Promise<MarketResearchRunResponse> {
+  return request("/market-research/runs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function synthesizeMarketResearch(
+  runId: string,
+  payload: SynthesizeMarketResearchRequest,
+): Promise<MarketResearchRunResponse> {
+  return request(`/market-research/runs/${runId}/synthesis`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function recoverPreDispatchMarketResearch(
+  runId: string,
+  payload: RecoverPreDispatchMarketResearchRequest,
+): Promise<MarketResearchRunResponse> {
+  return request(`/market-research/runs/${runId}/recover-pre-dispatch`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function completeMarketResearchMetadataOnly(
+  runId: string,
+): Promise<MarketResearchRunResponse> {
+  return request(`/market-research/runs/${runId}/complete-metadata-only`, {
+    method: "POST",
+  });
+}
+
+export function reviewMarketResearch(
+  runId: string,
+  payload: ReviewMarketResearchRequest,
+): Promise<MarketResearchRunResponse> {
+  return request(`/market-research/runs/${runId}/review`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function reconcileMarketResearchRecovery(
+  runId: string,
+  payload: ReconcileMarketResearchRequest,
+): Promise<MarketResearchRunResponse> {
+  return request(`/market-research/runs/${runId}/reconcile-recovery`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function redactMarketResearchSource(
+  runId: string,
+  sourceId: string,
+  payload: RedactMarketSourceRequest,
+): Promise<MarketResearchRunResponse> {
+  return request(
+    `/market-research/runs/${encodeURIComponent(runId)}/sources/${encodeURIComponent(sourceId)}/redact`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export function messageForError(error: unknown): string {

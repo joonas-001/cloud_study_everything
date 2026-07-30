@@ -179,6 +179,17 @@
             "title": "Id",
             "type": "string"
           },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
           "provider_id": {
             "title": "Provider Id",
             "type": "string"
@@ -197,6 +208,7 @@
           "id",
           "provider_id",
           "display_name",
+          "model_id",
           "base_url",
           "credential_reference",
           "enabled",
@@ -395,6 +407,19 @@
             "title": "Enabled",
             "type": "boolean"
           },
+          "model_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
           "provider_id": {
             "maxLength": 100,
             "minLength": 1,
@@ -518,6 +543,60 @@
           "planning_proposal_id"
         ],
         "title": "CreateLearningRunRequest",
+        "type": "object"
+      },
+      "CreateMarketResearchRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Catalog Id",
+            "type": "string"
+          },
+          "catalog_version": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Catalog Version",
+            "type": "string"
+          },
+          "confirm_external_sources": {
+            "title": "Confirm External Sources",
+            "type": "boolean"
+          },
+          "goal_selection_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Goal Selection Id",
+            "type": "string"
+          },
+          "provider_profile_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Provider Profile Id",
+            "type": "string"
+          },
+          "readiness_evaluation_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Readiness Evaluation Id"
+          }
+        },
+        "required": [
+          "provider_profile_id",
+          "goal_selection_id",
+          "catalog_id",
+          "catalog_version",
+          "confirm_external_sources"
+        ],
+        "title": "CreateMarketResearchRunRequest",
         "type": "object"
       },
       "CreatePathComparisonRequest": {
@@ -1360,6 +1439,392 @@
           "end_reason"
         ],
         "title": "LearningRunResponse",
+        "type": "object"
+      },
+      "MarketResearchEventResponse": {
+        "properties": {
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "event_type",
+          "payload",
+          "occurred_at"
+        ],
+        "title": "MarketResearchEventResponse",
+        "type": "object"
+      },
+      "MarketResearchHistoryResponse": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/MarketResearchEventResponse"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/MarketResearchRunResponse"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "runs",
+          "events"
+        ],
+        "title": "MarketResearchHistoryResponse",
+        "type": "object"
+      },
+      "MarketResearchOverviewResponse": {
+        "properties": {
+          "available_contexts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Available Contexts",
+            "type": "array"
+          },
+          "budget": {
+            "additionalProperties": true,
+            "title": "Budget",
+            "type": "object"
+          },
+          "catalog": {
+            "additionalProperties": true,
+            "title": "Catalog",
+            "type": "object"
+          },
+          "latest_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketResearchRunResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_access_policy": {
+            "$ref": "#/components/schemas/SourceAccessPolicyResponse"
+          }
+        },
+        "required": [
+          "catalog",
+          "budget",
+          "source_access_policy",
+          "available_contexts",
+          "latest_run"
+        ],
+        "title": "MarketResearchOverviewResponse",
+        "type": "object"
+      },
+      "MarketResearchRunResponse": {
+        "properties": {
+          "accounted_cost_micros": {
+            "title": "Accounted Cost Micros",
+            "type": "integer"
+          },
+          "actual_cost_micros": {
+            "title": "Actual Cost Micros",
+            "type": "integer"
+          },
+          "budget_policy_id": {
+            "title": "Budget Policy Id",
+            "type": "string"
+          },
+          "budget_policy_sha256": {
+            "title": "Budget Policy Sha256",
+            "type": "string"
+          },
+          "budget_policy_version": {
+            "title": "Budget Policy Version",
+            "type": "string"
+          },
+          "cached_input_tokens": {
+            "title": "Cached Input Tokens",
+            "type": "integer"
+          },
+          "capability_scope_id": {
+            "title": "Capability Scope Id",
+            "type": "string"
+          },
+          "catalog_id": {
+            "title": "Catalog Id",
+            "type": "string"
+          },
+          "catalog_sha256": {
+            "title": "Catalog Sha256",
+            "type": "string"
+          },
+          "catalog_version": {
+            "title": "Catalog Version",
+            "type": "string"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "estimated_cost_micros": {
+            "title": "Estimated Cost Micros",
+            "type": "integer"
+          },
+          "external_ai_consent": {
+            "title": "External Ai Consent",
+            "type": "boolean"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "goal_kind": {
+            "enum": [
+              "employment",
+              "freelancing",
+              "productization"
+            ],
+            "title": "Goal Kind",
+            "type": "string"
+          },
+          "goal_selection_id": {
+            "title": "Goal Selection Id",
+            "type": "string"
+          },
+          "goal_snapshot": {
+            "additionalProperties": true,
+            "title": "Goal Snapshot",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "model_id": {
+            "const": "deepseek-v4-flash",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "outbound_material_preview": {
+            "additionalProperties": true,
+            "title": "Outbound Material Preview",
+            "type": "object"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "provider_id": {
+            "const": "deepseek",
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "provider_profile_id": {
+            "title": "Provider Profile Id",
+            "type": "string"
+          },
+          "readiness_evaluation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Readiness Evaluation Id"
+          },
+          "response_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Model Id"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "review_status": {
+            "enum": [
+              "not_ready",
+              "not_requested",
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Review Status",
+            "type": "string"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "title": "Scope",
+            "type": "object"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "source_pending",
+              "synthesis_pending",
+              "synthesis_in_progress",
+              "recovery_required",
+              "review_pending",
+              "completed",
+              "blocked",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "synthesis": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synthesis"
+          },
+          "synthesis_invalidated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synthesis Invalidated At"
+          },
+          "synthesis_valid": {
+            "title": "Synthesis Valid",
+            "type": "boolean"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "catalog_id",
+          "catalog_version",
+          "catalog_sha256",
+          "skill_id",
+          "skill_version",
+          "capability_scope_id",
+          "goal_selection_id",
+          "goal_kind",
+          "goal_snapshot",
+          "readiness_evaluation_id",
+          "budget_policy_id",
+          "budget_policy_version",
+          "budget_policy_sha256",
+          "scope",
+          "status",
+          "provider_profile_id",
+          "provider_id",
+          "model_id",
+          "response_model_id",
+          "external_ai_consent",
+          "sources",
+          "outbound_material_preview",
+          "synthesis",
+          "synthesis_valid",
+          "synthesis_invalidated_at",
+          "review_status",
+          "review_note",
+          "estimated_cost_micros",
+          "actual_cost_micros",
+          "accounted_cost_micros",
+          "input_tokens",
+          "cached_input_tokens",
+          "output_tokens",
+          "failure_code",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "title": "MarketResearchRunResponse",
         "type": "object"
       },
       "MarketSnapshotResponse": {
@@ -2337,6 +2802,67 @@
         "title": "ReadinessHistoryResponse",
         "type": "object"
       },
+      "ReconcileMarketResearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_end": {
+            "title": "Confirm End",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "confirm_end"
+        ],
+        "title": "ReconcileMarketResearchRequest",
+        "type": "object"
+      },
+      "RecoverPreDispatchMarketResearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_recovery": {
+            "title": "Confirm Recovery",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm_recovery"
+        ],
+        "title": "RecoverPreDispatchMarketResearchRequest",
+        "type": "object"
+      },
+      "RedactMarketSourceRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_redaction": {
+            "title": "Confirm Redaction",
+            "type": "boolean"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirm_redaction",
+          "reason"
+        ],
+        "title": "RedactMarketSourceRequest",
+        "type": "object"
+      },
       "ResolveSourceChangeRequest": {
         "properties": {
           "decision": {
@@ -2352,6 +2878,36 @@
           "decision"
         ],
         "title": "ResolveSourceChangeRequest",
+        "type": "object"
+      },
+      "ReviewMarketResearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "ReviewMarketResearchRequest",
         "type": "object"
       },
       "ReviewTaskResponse": {
@@ -2539,6 +3095,254 @@
           "run"
         ],
         "title": "SelfReviewAttemptResponse",
+        "type": "object"
+      },
+      "SourceAccessPolicyResponse": {
+        "properties": {
+          "blocked": {
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "blocked_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocked Source Ids",
+            "type": "array"
+          },
+          "blocking_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "successful_refresh_interval",
+                  "failed_access_cooldown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocking Reason"
+          },
+          "eligible_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Eligible Source Ids",
+            "type": "array"
+          },
+          "failure_cooldown_hours": {
+            "title": "Failure Cooldown Hours",
+            "type": "integer"
+          },
+          "latest_research_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Research Attempt At"
+          },
+          "latest_research_attempt_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Research Attempt Run Id"
+          },
+          "latest_research_attempt_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Research Attempt Status"
+          },
+          "manual_bypass_allowed": {
+            "title": "Manual Bypass Allowed",
+            "type": "boolean"
+          },
+          "next_allowed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Allowed At"
+          },
+          "remaining_seconds": {
+            "title": "Remaining Seconds",
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceAccessStateResponse"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "success_refresh_interval_days": {
+            "title": "Success Refresh Interval Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success_refresh_interval_days",
+          "failure_cooldown_hours",
+          "manual_bypass_allowed",
+          "blocked",
+          "blocking_reason",
+          "next_allowed_at",
+          "remaining_seconds",
+          "eligible_source_ids",
+          "blocked_source_ids",
+          "latest_research_attempt_at",
+          "latest_research_attempt_run_id",
+          "latest_research_attempt_status",
+          "sources"
+        ],
+        "title": "SourceAccessPolicyResponse",
+        "type": "object"
+      },
+      "SourceAccessStateResponse": {
+        "properties": {
+          "cooldown_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "successful_refresh_interval",
+                  "failed_access_cooldown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cooldown Kind"
+          },
+          "cooling_down": {
+            "title": "Cooling Down",
+            "type": "boolean"
+          },
+          "latest_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attempt At"
+          },
+          "latest_attempt_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attempt Error Code"
+          },
+          "latest_attempt_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attempt Run Id"
+          },
+          "latest_attempt_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "succeeded",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Attempt Status"
+          },
+          "latest_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Success At"
+          },
+          "latest_success_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Success Run Id"
+          },
+          "next_allowed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Allowed At"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "latest_attempt_at",
+          "latest_attempt_run_id",
+          "latest_attempt_status",
+          "latest_attempt_error_code",
+          "latest_success_at",
+          "latest_success_run_id",
+          "next_allowed_at",
+          "cooldown_kind",
+          "cooling_down"
+        ],
+        "title": "SourceAccessStateResponse",
         "type": "object"
       },
       "SourceChangeCandidateResponse": {
@@ -2930,6 +3734,20 @@
           "response_kind"
         ],
         "title": "SubmitAnswerRequest",
+        "type": "object"
+      },
+      "SynthesizeMarketResearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_external_ai": {
+            "title": "Confirm External Ai",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm_external_ai"
+        ],
+        "title": "SynthesizeMarketResearchRequest",
         "type": "object"
       },
       "TodayLearningRequest": {
@@ -4363,6 +5181,495 @@
         "summary": "Generate Today Learning",
         "tags": [
           "learning-execution"
+        ]
+      }
+    },
+    "/market-research/history": {
+      "get": {
+        "operationId": "get_market_research_history_market_research_history_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchHistoryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Market Research History",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/overview": {
+      "get": {
+        "operationId": "get_market_research_overview_market_research_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "goal_selection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Goal Selection Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Market Research Overview",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs": {
+      "post": {
+        "operationId": "create_market_research_run_market_research_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMarketResearchRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Market Research Run",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}": {
+      "get": {
+        "operationId": "get_market_research_run_market_research_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Market Research Run",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}/complete-metadata-only": {
+      "post": {
+        "operationId": "complete_market_research_metadata_only_market_research_runs__run_id__complete_metadata_only_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Market Research Metadata Only",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}/reconcile-recovery": {
+      "post": {
+        "operationId": "reconcile_market_research_recovery_market_research_runs__run_id__reconcile_recovery_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcileMarketResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reconcile Market Research Recovery",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}/recover-pre-dispatch": {
+      "post": {
+        "operationId": "recover_pre_dispatch_market_research_run_market_research_runs__run_id__recover_pre_dispatch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoverPreDispatchMarketResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recover Pre Dispatch Market Research Run",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}/review": {
+      "post": {
+        "operationId": "review_market_research_run_market_research_runs__run_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewMarketResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Market Research Run",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}/sources/{source_id}/redact": {
+      "post": {
+        "operationId": "redact_market_research_source_market_research_runs__run_id__sources__source_id__redact_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedactMarketSourceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Redact Market Research Source",
+        "tags": [
+          "market-research-5b"
+        ]
+      }
+    },
+    "/market-research/runs/{run_id}/synthesis": {
+      "post": {
+        "operationId": "synthesize_market_research_run_market_research_runs__run_id__synthesis_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynthesizeMarketResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResearchRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Synthesize Market Research Run",
+        "tags": [
+          "market-research-5b"
         ]
       }
     },

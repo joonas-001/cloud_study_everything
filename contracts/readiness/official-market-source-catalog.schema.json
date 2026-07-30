@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloud-study.local/contracts/readiness/official-market-source-catalog.schema.json",
+  "title": "Official market source catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "catalog_id",
+    "version",
+    "research_context",
+    "scope",
+    "path_evidence_capabilities",
+    "refresh_policy",
+    "content_removal_policy",
+    "sources"
+  ],
+  "properties": {
+    "catalog_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "research_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill_id",
+        "skill_version",
+        "capability_scope_id",
+        "research_topic",
+        "allowed_goal_kinds",
+        "allowed_paths"
+      ],
+      "properties": {
+        "skill_id": { "type": "string", "minLength": 1 },
+        "skill_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "capability_scope_id": { "type": "string", "minLength": 1 },
+        "research_topic": { "type": "string", "minLength": 1 },
+        "allowed_goal_kinds": {
+          "type": "array",
+          "items": {
+            "enum": ["employment", "freelancing", "productization"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "allowed_paths": {
+          "type": "array",
+          "items": {
+            "enum": ["employment", "freelancing", "productization"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "primary_language", "employment", "freelancing", "productization"],
+      "properties": {
+        "region": { "const": "CN-mainland" },
+        "primary_language": { "const": "zh-CN" },
+        "employment": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "freelancing": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "productization": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "path_evidence_capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["employment", "freelancing", "productization"],
+      "properties": {
+        "employment": { "$ref": "#/$defs/pathEvidenceCapability" },
+        "freelancing": { "$ref": "#/$defs/pathEvidenceCapability" },
+        "productization": { "$ref": "#/$defs/pathEvidenceCapability" }
+      }
+    },
+    "refresh_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metadata_interval_days",
+        "failure_cooldown_hours",
+        "manual_bypass_allowed",
+        "synthesis_interval_days",
+        "unavailable_is_unchanged"
+      ],
+      "properties": {
+        "metadata_interval_days": { "const": 7 },
+        "failure_cooldown_hours": { "const": 24 },
+        "manual_bypass_allowed": { "const": false },
+        "synthesis_interval_days": { "const": 30 },
+        "unavailable_is_unchanged": { "const": false }
+      }
+    },
+    "content_removal_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "explicit_confirmation_required",
+        "remove_saved_excerpt",
+        "retain_hash_and_audit"
+      ],
+      "properties": {
+        "explicit_confirmation_required": { "const": true },
+        "remove_saved_excerpt": { "const": true },
+        "retain_hash_and_audit": { "const": true }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id", "owner", "independence_group", "authority_kind", "url", "allowed_hosts", "paths",
+          "evidence_role", "limitations", "acquisition", "content_storage",
+          "access_basis", "reviewed_at"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "owner": { "type": "string", "minLength": 1 },
+          "independence_group": { "type": "string", "minLength": 1 },
+          "authority_kind": {
+            "enum": ["government", "regulator", "standards_body", "data_owner"]
+          },
+          "url": { "type": "string", "pattern": "^https://" },
+          "allowed_hosts": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "paths": {
+            "type": "array",
+            "items": { "enum": ["employment", "freelancing", "productization"] },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "evidence_role": {
+            "enum": ["direct_signal", "background_context"]
+          },
+          "observable_signals": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "employment": { "$ref": "#/$defs/signalTerms" },
+              "freelancing": { "$ref": "#/$defs/signalTerms" },
+              "productization": { "$ref": "#/$defs/signalTerms" }
+            },
+            "minProperties": 1
+          },
+          "limitations": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1
+          },
+          "acquisition": { "enum": ["public_official_page", "official_api", "official_rss"] },
+          "content_storage": { "const": "metadata_hash_and_short_excerpt" },
+          "access_basis": { "type": "string", "minLength": 1 },
+          "reviewed_at": { "type": "string", "format": "date" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "pathEvidenceCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coverage", "reason"],
+      "properties": {
+        "coverage": { "enum": ["conclusive_supported", "context_only"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "signalTerms": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 2 },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  }
+}

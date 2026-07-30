@@ -20,6 +20,7 @@ from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionService
 from cloud_study_api.governance import validate_repository
 from cloud_study_api.learning import LearningService
+from cloud_study_api.market_research import MarketResearchService
 from cloud_study_api.notifications import NotificationService
 from cloud_study_api.providers import ProviderRegistry
 from cloud_study_api.readiness import ReadinessService
@@ -71,6 +72,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         session_factory=session_factory,
     )
     app.state.ai_configuration_service = AiConfigurationService(
+        session_factory=session_factory,
+        credential_store=credential_store,
+    )
+    app.state.market_research_service = MarketResearchService(
+        repository_root=settings.repository_root,
         session_factory=session_factory,
         credential_store=credential_store,
     )

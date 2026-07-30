@@ -1,0 +1,28 @@
+{
+  "policy_id": "deepseek-v4-flash-budget",
+  "version": "1.1.0",
+  "provider_id": "deepseek",
+  "model_id": "deepseek-v4-flash",
+  "currency": "CNY",
+  "pricing_source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+  "pricing_verified_at": "2026-07-29",
+  "pricing_per_million_tokens": {
+    "cached_input": 0.02,
+    "uncached_input": 1.0,
+    "output": 2.0
+  },
+  "limits": {
+    "monthly": 5.0,
+    "daily": 0.5,
+    "research_run": 0.2,
+    "max_input_tokens_per_call": 50000,
+    "max_output_tokens_per_call": 5000
+  },
+  "monthly_warning_ratios": [0.5, 0.8],
+  "automatic_top_up": false,
+  "unknown_price_action": "stop",
+  "price_change_action": "stop",
+  "metadata_refresh_interval_days": 7,
+  "synthesis_interval_days": 30,
+  "synthesis_lease_minutes": 5
+}

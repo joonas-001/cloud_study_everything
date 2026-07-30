@@ -55,6 +55,7 @@ export function SystemSettings() {
   >([]);
   const [emailForm, setEmailForm] = useState<EmailForm>(emptyEmailForm);
   const [providerId, setProviderId] = useState("local-deterministic");
+  const [modelId, setModelId] = useState("");
   const [profileName, setProfileName] = useState("本地规划预览");
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -156,6 +157,7 @@ export function SystemSettings() {
     const provider = providers.find((item) => item.id === nextProviderId);
     setBaseUrl(provider?.default_base_url ?? "");
     setProfileName(provider?.display_name ?? "");
+    setModelId(provider?.models[0] ?? "");
     setApiKey("");
   }
 
@@ -165,6 +167,7 @@ export function SystemSettings() {
       const created = await createAiProviderProfile({
         provider_id: providerId,
         display_name: profileName,
+        model_id: modelId || null,
         base_url: baseUrl || null,
         api_key: apiKey || null,
         enabled: true,
@@ -173,7 +176,9 @@ export function SystemSettings() {
       setApiKey("");
       setStatus(
         created.executable
-          ? "本地供应商档案已创建。"
+          ? created.provider_id === "deepseek"
+            ? "DeepSeek 档案已创建。只有逐次确认并通过费用门禁后才会调用。"
+            : "本地供应商档案已创建。"
           : "真实供应商档案已保存，但接口仍被禁用，不会产生 API 请求。",
       );
     });
@@ -390,7 +395,8 @@ export function SystemSettings() {
           <span className="eyebrow">Provider profiles</span>
           <h2>AI 供应商档案</h2>
           <p>
-            配置方式借鉴 CC Switch 的档案管理，但每家供应商保持独立适配器。当前只有本地确定性供应商可执行。
+            每家供应商保持独立适配器。5B 只启用 DeepSeek 官方
+            deepseek-v4-flash；其他外部供应商仍不可执行。
           </p>
         </header>
 
@@ -436,10 +442,32 @@ export function SystemSettings() {
               />
             </label>
             <label>
+              模型
+              <select
+                value={modelId}
+                disabled={
+                  busy ||
+                  !providers.find((provider) => provider.id === providerId)
+                    ?.models.length
+                }
+                onChange={(event) => setModelId(event.target.value)}
+              >
+                <option value="">不锁定远程模型</option>
+                {(
+                  providers.find((provider) => provider.id === providerId)
+                    ?.models ?? []
+                ).map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               Base URL
               <input
                 value={baseUrl}
-                disabled={busy}
+                disabled={busy || providerId === "deepseek"}
                 onChange={(event) => setBaseUrl(event.target.value)}
               />
             </label>
@@ -449,6 +477,7 @@ export function SystemSettings() {
                 type="password"
                 value={apiKey}
                 disabled={busy || providerId === "local-deterministic"}
+                required={providerId === "deepseek"}
                 placeholder="保存到 Windows 凭据管理器"
                 onChange={(event) => setApiKey(event.target.value)}
               />
@@ -470,6 +499,7 @@ export function SystemSettings() {
                 </div>
                 <p>{profile.status_note}</p>
                 <small>
+                  {profile.model_id ? `模型：${profile.model_id} · ` : ""}
                   凭据：
                   {profile.credential_reference ? "已保存引用" : "不需要或未配置"}
                 </small>
