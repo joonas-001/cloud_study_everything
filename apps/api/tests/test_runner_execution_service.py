@@ -6,10 +6,18 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import select
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import select, text
 
 from cloud_study_api.credentials import MemoryCredentialStore
-from cloud_study_api.database import create_session_factory, upgrade_database
+from cloud_study_api.database import (
+    create_database_engine,
+    create_database_url,
+    create_session_factory,
+    read_schema_version,
+    upgrade_database,
+)
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionError, LearningExecutionService
 from cloud_study_api.governance import validate_repository
@@ -112,7 +120,9 @@ class FakeRunnerBackend:
                 "version": invocation["runtime"]["version"],
                 "image": invocation["runtime"]["image"],
                 "observed_image_id": (
-                    "sha256:" + "1" * 64 if status != "infrastructure_error" else None
+                    "sha256:" + invocation["runtime"]["image"].rsplit("@sha256:", maxsplit=1)[1]
+                    if status != "infrastructure_error"
+                    else None
                 ),
             },
             "tests": tests,
@@ -130,6 +140,39 @@ class FakeRunnerBackend:
             "started_at": now,
             "finished_at": now,
         }
+
+
+class TamperedRunnerBackend(FakeRunnerBackend):
+    def __init__(self, tamper: str) -> None:
+        super().__init__("passed")
+        self.tamper = tamper
+
+    def execute(self, invocation: dict[str, Any]) -> dict[str, Any]:
+        result = super().execute(invocation)
+        if self.tamper == "wrong-digest":
+            result["runtime"]["observed_image_id"] = "sha256:" + "0" * 64
+        elif self.tamper == "missing-test":
+            result["tests"].pop()
+        elif self.tamper == "wrong-output":
+            result["tests"][0]["stdout"] = "wrong\n"
+        elif self.tamper == "unsafe-security":
+            result["security"]["network"] = "bridge"
+        else:
+            raise AssertionError(f"unsupported tamper mode: {self.tamper}")
+        return result
+
+
+def _migration_config(database_path: Path) -> Config:
+    config = Config(str(REPOSITORY_ROOT / "apps" / "api" / "alembic.ini"))
+    config.set_main_option(
+        "script_location",
+        str(REPOSITORY_ROOT / "apps" / "api" / "migrations"),
+    )
+    config.set_main_option(
+        "sqlalchemy.url",
+        create_database_url(database_path).replace("%", "%%"),
+    )
+    return config
 
 
 def _services(
@@ -276,6 +319,34 @@ def test_runner_pass_creates_only_scoped_verified_evidence(tmp_path: Path) -> No
     assert backend.invocations[0]["limits"]["run_wall_seconds"] == 3
     assert "scope_criteria_met" not in result["run"]
     assert "mastered" not in result["run"]
+    assert all("代码文本未执行" not in item for item in evidence["limitations"])
+    assert any("锁定 Runner" in item for item in evidence["limitations"])
+    assert any("5C 门禁解除" in item for item in evidence["limitations"])
+
+
+@pytest.mark.parametrize(
+    "tamper",
+    ["wrong-digest", "missing-test", "wrong-output", "unsafe-security"],
+)
+def test_untrusted_runner_pass_is_cross_checked_before_evidence(
+    tmp_path: Path,
+    tamper: str,
+) -> None:
+    backend = TamperedRunnerBackend(tamper)
+    clock = [datetime(2026, 8, 1, 8, 0, tzinfo=UTC)]
+    diagnostics, learning, execution = _services(tmp_path, clock, backend)
+    run = _create_run(diagnostics, learning, execution)
+    activity = _advance_to_runner(execution, run["id"], "max-index-cpp-v1")
+
+    result = _submit_and_execute(execution, activity)
+    evidence = execution.get_evidence(run["id"])
+
+    assert result["invocation"]["status"] == "infrastructure_error"
+    assert result["invocation"]["failure_code"] == "protocol_invalid"
+    assert result["activity"]["status"] == "available"
+    assert all(
+        item["evidence_level"] not in {"verified", "retained"} for item in evidence["dimensions"]
+    )
 
 
 @pytest.mark.parametrize(
@@ -438,3 +509,67 @@ def test_stale_invocation_remains_active_until_container_cleanup_succeeds(
         assert record is not None
         assert record.status == "infrastructure_error"
         assert record.failure_code == "cleanup_failed"
+
+
+def test_runner_migration_downgrade_removes_strong_evidence_without_inventing_support(
+    tmp_path: Path,
+) -> None:
+    backend = FakeRunnerBackend("passed")
+    clock = [datetime(2026, 8, 1, 8, 0, tzinfo=UTC)]
+    diagnostics, learning, execution = _services(tmp_path, clock, backend)
+    run = _create_run(diagnostics, learning, execution)
+    activity = _advance_to_runner(execution, run["id"], "max-index-cpp-v1")
+    _submit_and_execute(execution, activity)
+    before = execution.get_evidence(run["id"])
+    operation_before = next(
+        item for item in before["dimensions"] if item["dimension"] == "operation"
+    )
+    assert operation_before["evidence_level"] == "verified"
+
+    database_path = tmp_path / "runner-execution.db"
+    bind = execution._session_factory.kw["bind"]
+    bind.dispose()
+    config = _migration_config(database_path)
+    command.downgrade(config, "0008")
+
+    assert read_schema_version(database_path) == "0008"
+    engine = create_database_engine(database_path)
+    try:
+        with engine.connect() as connection:
+            assert (
+                connection.execute(
+                    text(
+                        "SELECT COUNT(*) FROM sqlite_master "
+                        "WHERE type = 'table' AND name = 'runner_invocations'"
+                    )
+                ).scalar_one()
+                == 0
+            )
+            assert (
+                connection.execute(
+                    text("SELECT COUNT(*) FROM activity_evaluations WHERE method = 'runner'")
+                ).scalar_one()
+                == 0
+            )
+            assert (
+                connection.execute(
+                    text(
+                        "SELECT COUNT(*) FROM mastery_evidence "
+                        "WHERE strength IN ('verified', 'retained')"
+                    )
+                ).scalar_one()
+                == 0
+            )
+            snapshot = connection.execute(
+                text(
+                    "SELECT evidence_level, evidence_count FROM mastery_snapshots "
+                    "WHERE run_id = :run_id AND dimension = 'operation'"
+                ),
+                {"run_id": run["id"]},
+            ).one()
+            assert snapshot == ("none", 0)
+    finally:
+        engine.dispose()
+
+    command.upgrade(config, "head")
+    assert read_schema_version(database_path) == "0009"

@@ -112,6 +112,18 @@ def test_runner_rejects_multibyte_source_over_byte_limit_before_docker() -> None
         backend.execute(_invocation(source))
 
 
+@pytest.mark.parametrize("field", ["stdin", "expected_stdout"])
+def test_runner_rejects_multibyte_test_text_over_byte_limit_before_docker(
+    field: str,
+) -> None:
+    invocation = _invocation()
+    invocation["tests"][0][field] = "学" * 22000
+    backend = DockerRunnerBackend(REPOSITORY_ROOT)
+
+    with pytest.raises(RunnerProtocolError, match=f"test {field} exceeds"):
+        backend.execute(invocation)
+
+
 def test_submission_streams_into_running_tmpfs_without_docker_cp() -> None:
     captured: dict[str, Any] = {}
 
