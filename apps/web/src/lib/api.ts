@@ -46,6 +46,18 @@ import type {
   RedactMarketSourceRequest,
   StartReviewResponse,
   ExecuteRunnerAttemptResponse,
+  CreateExperimentRequest,
+  ExperimentResponse,
+  ExperimentReviewRequest,
+  ExperimentTransitionRequest,
+  ExperimentActionRequest,
+  ExperimentOutcomeRequest,
+  CreateIncomeRequest,
+  ReviseIncomeRequest,
+  RedactIncomeRequest,
+  CreateFeedbackRequest,
+  DecideFeedbackRequest,
+  ExportExperimentRequest,
   TodayLearningRequest,
   TodayLearningResponse,
   UpdateNotificationPreferenceRequest,
@@ -429,6 +441,171 @@ export function getReadinessHistory(
   goalSelectionId: string,
 ): Promise<ReadinessHistoryResponse> {
   return request(`/readiness/goals/${goalSelectionId}/history`);
+}
+
+export function listExperiments(
+  goalSelectionId?: string,
+): Promise<Array<ExperimentResponse>> {
+  const query = new URLSearchParams();
+  if (goalSelectionId) query.set("goal_selection_id", goalSelectionId);
+  const suffix = query.size ? `?${query.toString()}` : "";
+  return request(`/experiments${suffix}`);
+}
+
+export function createExperiment(
+  payload: CreateExperimentRequest,
+): Promise<ExperimentResponse> {
+  return request("/experiments", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getExperiment(
+  experimentId: string,
+  revealIncome = false,
+): Promise<ExperimentResponse> {
+  const query = new URLSearchParams({ reveal_income: String(revealIncome) });
+  return request(
+    `/experiments/${encodeURIComponent(experimentId)}?${query.toString()}`,
+  );
+}
+
+export function addExperimentReview(
+  experimentId: string,
+  payload: ExperimentReviewRequest,
+): Promise<ExperimentResponse> {
+  return request(`/experiments/${encodeURIComponent(experimentId)}/reviews`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function reevaluateExperimentGate(
+  experimentId: string,
+): Promise<ExperimentResponse> {
+  return request(
+    `/experiments/${encodeURIComponent(experimentId)}/gate-evaluations`,
+    { method: "POST" },
+  );
+}
+
+export function transitionExperiment(
+  experimentId: string,
+  payload: ExperimentTransitionRequest,
+): Promise<ExperimentResponse> {
+  return request(
+    `/experiments/${encodeURIComponent(experimentId)}/transitions`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function recordExperimentAction(
+  experimentId: string,
+  payload: ExperimentActionRequest,
+): Promise<ExperimentResponse> {
+  return request(`/experiments/${encodeURIComponent(experimentId)}/actions`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function recordExperimentOutcome(
+  experimentId: string,
+  payload: ExperimentOutcomeRequest,
+): Promise<ExperimentResponse> {
+  return request(`/experiments/${encodeURIComponent(experimentId)}/outcomes`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createExperimentIncome(
+  experimentId: string,
+  payload: CreateIncomeRequest,
+): Promise<ExperimentResponse> {
+  return request(`/experiments/${encodeURIComponent(experimentId)}/income`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function reviseExperimentIncome(
+  experimentId: string,
+  incomeRecordId: string,
+  payload: ReviseIncomeRequest,
+): Promise<ExperimentResponse> {
+  return request(
+    `/experiments/${encodeURIComponent(experimentId)}/income/${encodeURIComponent(incomeRecordId)}/revisions`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function redactExperimentIncome(
+  experimentId: string,
+  incomeRecordId: string,
+  payload: RedactIncomeRequest,
+): Promise<ExperimentResponse> {
+  return request(
+    `/experiments/${encodeURIComponent(experimentId)}/income/${encodeURIComponent(incomeRecordId)}/redact`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function createExperimentFeedback(
+  experimentId: string,
+  payload: CreateFeedbackRequest,
+): Promise<ExperimentResponse> {
+  return request(`/experiments/${encodeURIComponent(experimentId)}/feedback`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function decideExperimentFeedback(
+  experimentId: string,
+  feedbackId: string,
+  payload: DecideFeedbackRequest,
+): Promise<ExperimentResponse> {
+  return request(
+    `/experiments/${encodeURIComponent(experimentId)}/feedback/${encodeURIComponent(feedbackId)}/decisions`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function exportExperiment(
+  experimentId: string,
+  payload: ExportExperimentRequest,
+): Promise<Blob> {
+  const response = await fetch(
+    `${API_BASE_URL}/experiments/${encodeURIComponent(experimentId)}/exports`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    throw new ApiError(
+      response.status,
+      body.detail?.code ?? "request_failed",
+      body.detail?.message ?? `请求失败（HTTP ${response.status}）`,
+    );
+  }
+  return response.blob();
 }
 
 export function createSourceCheck(
