@@ -116,7 +116,9 @@ def check_structure(root: Path) -> None:
         "apps/api/migrations/versions/0005_add_learning_execution.py",
         "apps/api/migrations/versions/0006_add_readiness_5a.py",
         "apps/api/migrations/versions/0009_add_isolated_runner_4b.py",
+        "apps/api/migrations/versions/0010_add_experiments_5c.py",
         "apps/api/src/cloud_study_api/main.py",
+        "apps/api/src/cloud_study_api/experiments.py",
         "apps/api/src/cloud_study_api/readiness.py",
         "apps/api/src/cloud_study_api/runner.py",
         "apps/web/package.json",
@@ -128,6 +130,11 @@ def check_structure(root: Path) -> None:
         "contracts/readiness/market-evidence-snapshot.schema.json",
         "contracts/readiness/readiness-evaluation.schema.json",
         "contracts/readiness/path-comparison.schema.json",
+        "contracts/readiness/experiment-policy.schema.json",
+        "contracts/readiness/experiment-plan.schema.json",
+        "contracts/readiness/independent-review.schema.json",
+        "contracts/readiness/income-revision.schema.json",
+        "contracts/readiness/learning-feedback.schema.json",
         "contracts/skill-pack/planning-template.schema.json",
         "contracts/skill-pack/learning-definition.schema.json",
         "docs/architecture/monetization-and-continuous-update.md",
@@ -153,6 +160,7 @@ def check_structure(root: Path) -> None:
         "pnpm-workspace.yaml",
         "skill-packs/registry.yaml",
         "readiness/policies/local-comparison-v1.json",
+        "readiness/policies/employment-experiment-v1.json",
         "readiness/fixtures/market-current-v1.json",
         "readiness/fixtures/market-stale-v1.json",
         "readiness/fixtures/market-conflicted-v1.json",
@@ -820,6 +828,47 @@ def check_monetization_policy(root: Path) -> None:
         raise CheckFailure("5B must stop on unknown or changed prices")
     if budget["synthesis_lease_minutes"] != 5:
         raise CheckFailure("5B synthesis lease must remain the approved five minutes")
+    experiment_policy = _validate_json_instance(
+        root / "readiness" / "policies" / "employment-experiment-v1.json",
+        root / "contracts" / "readiness" / "experiment-policy.schema.json",
+    )
+    if experiment_policy["enabled_paths"] != ["employment"]:
+        raise CheckFailure("5C v1 must enable only the confirmed employment path")
+    if set(experiment_policy["required_dimensions"]) != {
+        "understanding",
+        "operation",
+        "transfer",
+        "artifact",
+        "retention",
+        "correction",
+    }:
+        raise CheckFailure(
+            "5C local approval must preserve all six evidence dimensions"
+        )
+    action_gate = experiment_policy["external_action_gate"]
+    if action_gate["minimum_levels"] != {
+        "operation": "verified",
+        "retention": "retained",
+    }:
+        raise CheckFailure(
+            "5C external action gate must require verified/retained evidence"
+        )
+    if action_gate["independent_review_dimensions"] != ["transfer", "artifact"]:
+        raise CheckFailure(
+            "5C must independently review transfer and artifact evidence"
+        )
+    if experiment_policy["external_action_mode"] != "manual_record_only":
+        raise CheckFailure("5C must never execute external actions")
+    income_policy = experiment_policy["income_policy"]
+    if (
+        income_policy["attachments_allowed"]
+        or income_policy["default_visibility"] != "hidden"
+        or income_policy["correction_mode"] != "append_revision"
+        or income_policy["redaction_mode"] != "clear_sensitive_keep_tombstone"
+    ):
+        raise CheckFailure(
+            "5C income privacy and append-only correction policy changed"
+        )
 
 
 def check_external_call_boundary(root: Path) -> None:
@@ -927,6 +976,50 @@ def check_external_call_boundary(root: Path) -> None:
         raise CheckFailure(
             f"5B external-call boundary contains forbidden tokens: {found_market_tokens}"
         )
+
+    experiment_text = (
+        (root / "apps" / "api" / "src" / "cloud_study_api" / "experiments.py")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    forbidden_experiment_tokens = {
+        "import httpx",
+        "import requests",
+        "import urllib",
+        "import socket",
+        "import subprocess",
+        "import smtplib",
+        "webbrowser.",
+        "selenium",
+        "playwright",
+        "credential_reference",
+        "file_upload",
+    }
+    found_experiment_tokens = sorted(
+        token for token in forbidden_experiment_tokens if token in experiment_text
+    )
+    if found_experiment_tokens:
+        raise CheckFailure(
+            f"5C external-action boundary contains forbidden tokens: "
+            f"{found_experiment_tokens}"
+        )
+    required_experiment_guards = {
+        '"manual_record_only"',
+        '"completed_outside_product"',
+        '"external_action_gate_not_ready"',
+        '"income_action_record_required"',
+        '"sensitive_export_confirmation_required"',
+        '"learning_plan_modified": false',
+    }
+    missing_experiment_guards = sorted(
+        guard for guard in required_experiment_guards if guard not in experiment_text
+    )
+    if missing_experiment_guards:
+        raise CheckFailure(
+            f"5C local-only or privacy guards are missing: {missing_experiment_guards}"
+        )
+    if '"/experiments"' not in route_text:
+        raise CheckFailure("5C experiment routes are missing")
 
 
 def check_contracts(root: Path) -> None:

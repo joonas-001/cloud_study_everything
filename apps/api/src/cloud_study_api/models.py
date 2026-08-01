@@ -1094,3 +1094,296 @@ class MarketResearchEvent(Base):
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ExperimentPolicySnapshot(Base):
+    __tablename__ = "experiment_policy_snapshots"
+    __table_args__ = (
+        UniqueConstraint(
+            "policy_id",
+            "policy_version",
+            name="uq_experiment_policy_snapshot",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    policy_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    policy_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    payload_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class MonetizationExperiment(Base):
+    __tablename__ = "monetization_experiments"
+    __table_args__ = (
+        CheckConstraint(
+            "path IN ('employment', 'freelancing', 'productization')",
+            name="ck_monetization_experiments_path",
+        ),
+        CheckConstraint(
+            "status IN ('draft', 'rejected', 'blocked', 'approved', 'active', "
+            "'paused', 'ended', 'completed')",
+            name="ck_monetization_experiments_status",
+        ),
+        CheckConstraint(
+            "gate_level IN ('draft_only', 'local_ready', 'action_ready', 'blocked')",
+            name="ck_monetization_experiments_gate",
+        ),
+        CheckConstraint(
+            "time_budget_minutes > 0 AND cost_cap_minor >= 0",
+            name="ck_monetization_experiments_budgets",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    goal_selection_id: Mapped[str] = mapped_column(
+        ForeignKey("user_goal_selections.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    learning_run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    market_research_run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("market_research_runs.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    policy_snapshot_id: Mapped[str] = mapped_column(
+        ForeignKey("experiment_policy_snapshots.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    skill_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    skill_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    skill_manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    capability_scope_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    path: Mapped[str] = mapped_column(String(32), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    target_audience: Mapped[str] = mapped_column(String(500), nullable=False)
+    hypothesis: Mapped[str] = mapped_column(Text, nullable=False)
+    planned_action: Mapped[str] = mapped_column(Text, nullable=False)
+    success_metric: Mapped[str] = mapped_column(Text, nullable=False)
+    time_budget_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    cost_cap_minor: Mapped[int] = mapped_column(Integer, nullable=False)
+    plan_json: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    gate_level: Mapped[str] = mapped_column(String(32), nullable=False)
+    gate_reasons_json: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ExperimentIndependentReview(Base):
+    __tablename__ = "experiment_independent_reviews"
+    __table_args__ = (
+        CheckConstraint(
+            "dimension IN ('transfer', 'artifact')",
+            name="ck_experiment_reviews_dimension",
+        ),
+        CheckConstraint(
+            "reviewer_relationship IN "
+            "('peer', 'mentor', 'instructor', 'employer', 'client', 'other')",
+            name="ck_experiment_reviews_relationship",
+        ),
+        CheckConstraint(
+            "conclusion IN ('passed', 'needs_work')",
+            name="ck_experiment_reviews_conclusion",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("monetization_experiments.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    reviewer_relationship: Mapped[str] = mapped_column(String(32), nullable=False)
+    review_scope: Mapped[str] = mapped_column(Text, nullable=False)
+    rubric_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    rubric_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    conclusion: Mapped[str] = mapped_column(String(32), nullable=False)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ExperimentActionRecord(Base):
+    __tablename__ = "experiment_action_records"
+    __table_args__ = (
+        CheckConstraint(
+            "action_kind IN ('application', 'interview', 'networking', 'portfolio_share', 'other')",
+            name="ck_experiment_actions_kind",
+        ),
+        CheckConstraint(
+            "result IN "
+            "('pending', 'response', 'no_response', 'interview', 'rejected', "
+            "'offer', 'withdrawn', 'other')",
+            name="ck_experiment_actions_result",
+        ),
+        CheckConstraint(
+            "user_confirmed_external = 1",
+            name="ck_experiment_actions_user_confirmed",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("monetization_experiments.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    action_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    result: Mapped[str] = mapped_column(String(32), nullable=False)
+    user_confirmed_external: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ExperimentOutcome(Base):
+    __tablename__ = "experiment_outcomes"
+    __table_args__ = (
+        CheckConstraint(
+            "hypothesis_result IN ('supported', 'not_supported', 'inconclusive')",
+            name="ck_experiment_outcomes_result",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("monetization_experiments.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    hypothesis_result: Mapped[str] = mapped_column(String(32), nullable=False)
+    observable_result: Mapped[str] = mapped_column(Text, nullable=False)
+    learning_gap_dimension: Mapped[str | None] = mapped_column(String(32))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ExperimentIncomeRecord(Base):
+    __tablename__ = "experiment_income_records"
+    __table_args__ = (
+        CheckConstraint(
+            "current_revision >= 1",
+            name="ck_experiment_income_current_revision",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("monetization_experiments.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    current_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    redacted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    redacted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ExperimentIncomeRevision(Base):
+    __tablename__ = "experiment_income_revisions"
+    __table_args__ = (
+        UniqueConstraint(
+            "income_record_id",
+            "revision",
+            name="uq_experiment_income_revision",
+        ),
+        CheckConstraint(
+            "amount_basis IS NULL OR amount_basis IN ('tax_inclusive', 'pre_tax')",
+            name="ck_experiment_income_basis",
+        ),
+        CheckConstraint(
+            "verification_level IS NULL OR verification_level IN "
+            "('self_reported', 'platform_record', 'received')",
+            name="ck_experiment_income_verification",
+        ),
+        CheckConstraint(
+            "(gross_amount_minor IS NULL OR gross_amount_minor >= 0) AND "
+            "(platform_fee_minor IS NULL OR platform_fee_minor >= 0) AND "
+            "(direct_cost_minor IS NULL OR direct_cost_minor >= 0) AND "
+            "(received_amount_minor IS NULL OR received_amount_minor >= 0)",
+            name="ck_experiment_income_nonnegative",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    income_record_id: Mapped[str] = mapped_column(
+        ForeignKey("experiment_income_records.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    currency: Mapped[str | None] = mapped_column(String(3))
+    amount_basis: Mapped[str | None] = mapped_column(String(32))
+    gross_amount_minor: Mapped[int | None] = mapped_column(Integer)
+    platform_fee_minor: Mapped[int | None] = mapped_column(Integer)
+    direct_cost_minor: Mapped[int | None] = mapped_column(Integer)
+    received_amount_minor: Mapped[int | None] = mapped_column(Integer)
+    verification_level: Mapped[str | None] = mapped_column(String(32))
+    note: Mapped[str | None] = mapped_column(Text)
+    occurred_on: Mapped[str | None] = mapped_column(String(10))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ExperimentFeedbackSuggestion(Base):
+    __tablename__ = "experiment_feedback_suggestions"
+    __table_args__ = (
+        CheckConstraint(
+            "suggestion_type IN "
+            "('diagnostic_question', 'correction', 'review', 'project', "
+            "'supplemental_unit', 'replanning', 'source_review', 'pause_path')",
+            name="ck_experiment_feedback_type",
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'accepted', 'rejected', 'withdrawn')",
+            name="ck_experiment_feedback_status",
+        ),
+        CheckConstraint(
+            "estimated_minutes >= 0",
+            name="ck_experiment_feedback_minutes",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("monetization_experiments.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    outcome_id: Mapped[str | None] = mapped_column(
+        ForeignKey("experiment_outcomes.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    suggestion_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_refs_json: Mapped[str] = mapped_column(Text, nullable=False)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    plan_impact: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    decision_note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ExperimentEvent(Base):
+    __tablename__ = "experiment_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("monetization_experiments.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

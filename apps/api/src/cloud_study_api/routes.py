@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from cloud_study_api.ai_configuration import (
@@ -15,6 +15,7 @@ from cloud_study_api.execution import (
     LearningExecutionError,
     LearningExecutionService,
 )
+from cloud_study_api.experiments import ExperimentError, ExperimentService
 from cloud_study_api.learning import LearningError, LearningService
 from cloud_study_api.market_research import MarketResearchError, MarketResearchService
 from cloud_study_api.notifications import NotificationError, NotificationService
@@ -860,6 +861,296 @@ class MarketResearchHistoryResponse(BaseModel):
     events: list[MarketResearchEventResponse]
 
 
+ExperimentStatus = Literal[
+    "draft",
+    "rejected",
+    "blocked",
+    "approved",
+    "active",
+    "paused",
+    "ended",
+    "completed",
+]
+ExperimentGateLevel = Literal["draft_only", "local_ready", "action_ready", "blocked"]
+
+
+class ExperimentPlanRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["1.0.0"] = "1.0.0"
+    path: Literal["employment", "freelancing", "productization"]
+    title: str = Field(min_length=1, max_length=200)
+    target_audience: str = Field(min_length=1, max_length=500)
+    hypothesis: str = Field(min_length=1, max_length=3000)
+    planned_action: str = Field(min_length=1, max_length=3000)
+    success_metric: str = Field(min_length=1, max_length=2000)
+    time_budget_minutes: int = Field(ge=1, le=100_000)
+    cost_cap_minor: int = Field(ge=0, le=100_000_000)
+    stop_conditions: list[str] = Field(min_length=1, max_length=20)
+    non_offerings: list[str] = Field(min_length=1, max_length=20)
+    compliance_todos: list[str] = Field(default_factory=list, max_length=20)
+    review_on: date
+
+
+class CreateExperimentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    goal_selection_id: str = Field(min_length=1, max_length=36)
+    learning_run_id: str = Field(min_length=1, max_length=36)
+    market_research_run_id: str | None = Field(default=None, max_length=36)
+    plan: ExperimentPlanRequest
+
+
+class ExperimentReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dimension: Literal["transfer", "artifact"]
+    reviewer_relationship: Literal[
+        "peer",
+        "mentor",
+        "instructor",
+        "employer",
+        "client",
+        "other",
+    ]
+    review_scope: str = Field(min_length=1, max_length=2000)
+    rubric_id: str = Field(min_length=1, max_length=100)
+    rubric_version: str = Field(pattern=r"^[0-9]+\.[0-9]+\.[0-9]+$")
+    conclusion: Literal["passed", "needs_work"]
+    reviewed_at: datetime
+
+
+class ExperimentTransitionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action: Literal["approve", "start", "pause", "resume", "complete", "end", "reject"]
+    confirm: bool
+
+
+class ExperimentActionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action_kind: Literal[
+        "application",
+        "interview",
+        "networking",
+        "portfolio_share",
+        "other",
+    ]
+    description: str = Field(min_length=1, max_length=3000)
+    result: Literal[
+        "pending",
+        "response",
+        "no_response",
+        "interview",
+        "rejected",
+        "offer",
+        "withdrawn",
+        "other",
+    ]
+    occurred_at: datetime
+    confirm_completed_outside_product: bool
+
+
+class ExperimentOutcomeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    hypothesis_result: Literal["supported", "not_supported", "inconclusive"]
+    observable_result: str = Field(min_length=1, max_length=5000)
+    learning_gap_dimension: (
+        Literal[
+            "understanding",
+            "operation",
+            "transfer",
+            "artifact",
+            "retention",
+            "correction",
+        ]
+        | None
+    ) = None
+
+
+class IncomeValuesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    currency: str = Field(pattern=r"^[A-Z]{3}$")
+    amount_basis: Literal["tax_inclusive", "pre_tax"]
+    gross_amount_minor: int = Field(ge=0, le=100_000_000_000)
+    platform_fee_minor: int = Field(ge=0, le=100_000_000_000)
+    direct_cost_minor: int = Field(ge=0, le=100_000_000_000)
+    received_amount_minor: int = Field(ge=0, le=100_000_000_000)
+    verification_level: Literal["self_reported", "platform_record", "received"]
+    note: str | None = Field(default=None, max_length=2000)
+    occurred_on: date
+
+
+class CreateIncomeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    values: IncomeValuesRequest
+    confirm_manual_record: bool
+
+
+class ReviseIncomeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    values: IncomeValuesRequest
+    confirm_revision: bool
+
+
+class RedactIncomeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm_redaction: bool
+
+
+class CreateFeedbackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    outcome_id: str | None = Field(default=None, max_length=36)
+    suggestion_type: Literal[
+        "diagnostic_question",
+        "correction",
+        "review",
+        "project",
+        "supplemental_unit",
+        "replanning",
+        "source_review",
+        "pause_path",
+    ]
+    reason: str = Field(min_length=1, max_length=3000)
+    evidence_refs: list[str] = Field(min_length=1, max_length=20)
+    estimated_minutes: int = Field(ge=0, le=100_000)
+    plan_impact: str = Field(min_length=1, max_length=3000)
+
+
+class DecideFeedbackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["accepted", "rejected", "withdrawn"]
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class ExportExperimentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    export_format: Literal["json", "csv"]
+    confirm_sensitive_export: bool
+
+
+class ExperimentReviewResponse(BaseModel):
+    id: str
+    dimension: Literal["transfer", "artifact"]
+    reviewer_relationship: str
+    review_scope: str
+    rubric_id: str
+    rubric_version: str
+    conclusion: Literal["passed", "needs_work"]
+    reviewed_at: datetime
+    created_at: datetime
+
+
+class ExperimentActionResponse(BaseModel):
+    id: str
+    action_kind: str
+    description: str
+    result: str
+    occurred_at: datetime
+    created_at: datetime
+    execution_mode: Literal["completed_outside_product"]
+
+
+class ExperimentOutcomeResponse(BaseModel):
+    id: str
+    hypothesis_result: Literal["supported", "not_supported", "inconclusive"]
+    observable_result: str
+    learning_gap_dimension: str | None
+    recorded_at: datetime
+
+
+class IncomeRevisionResponse(BaseModel):
+    id: str
+    revision: int
+    currency: str | None
+    amount_basis: str | None
+    gross_amount_minor: int | None
+    platform_fee_minor: int | None
+    direct_cost_minor: int | None
+    received_amount_minor: int | None
+    verification_level: str | None
+    note: str | None
+    occurred_on: str | None
+    created_at: datetime
+
+
+class IncomeRecordResponse(BaseModel):
+    id: str
+    current_revision: int
+    redacted: bool
+    amounts_hidden: bool
+    revisions: list[IncomeRevisionResponse]
+    created_at: datetime
+    updated_at: datetime
+    redacted_at: datetime | None
+
+
+class FeedbackSuggestionResponse(BaseModel):
+    id: str
+    outcome_id: str | None
+    suggestion_type: str
+    reason: str
+    evidence_refs: list[str]
+    estimated_minutes: int
+    plan_impact: str
+    status: Literal["pending", "accepted", "rejected", "withdrawn"]
+    decision_note: str | None
+    created_at: datetime
+    decided_at: datetime | None
+    auto_applied: Literal[False]
+
+
+class ExperimentEventResponse(BaseModel):
+    id: int
+    event_type: str
+    payload: dict[str, object]
+    occurred_at: datetime
+
+
+class ExperimentResponse(BaseModel):
+    schema_version: Literal["1.0.0"]
+    id: str
+    goal_selection_id: str
+    learning_run_id: str
+    market_research_run_id: str | None
+    policy_id: str
+    policy_version: str
+    skill_id: str
+    skill_version: str
+    skill_manifest_sha256: str
+    capability_scope_id: str
+    path: Literal["employment", "freelancing", "productization"]
+    plan: dict[str, object]
+    status: ExperimentStatus
+    gate_level: ExperimentGateLevel
+    gate_reason_codes: list[str]
+    evidence_snapshot: dict[str, object]
+    evidence_sha256: str
+    external_action_mode: Literal["manual_record_only"]
+    reviews: list[ExperimentReviewResponse]
+    actions: list[ExperimentActionResponse]
+    outcomes: list[ExperimentOutcomeResponse]
+    income_records: list[IncomeRecordResponse]
+    income_amounts_visible: bool
+    feedback_suggestions: list[FeedbackSuggestionResponse]
+    events: list[ExperimentEventResponse]
+    limitations: list[str]
+    created_at: datetime
+    updated_at: datetime
+    approved_at: datetime | None
+    started_at: datetime | None
+    ended_at: datetime | None
+
+
 router = APIRouter()
 
 
@@ -940,6 +1231,17 @@ MarketResearchServiceDependency = Annotated[
 ]
 
 
+def get_experiment_service(request: Request) -> ExperimentService:
+    service: ExperimentService = request.app.state.experiment_service
+    return service
+
+
+ExperimentServiceDependency = Annotated[
+    ExperimentService,
+    Depends(get_experiment_service),
+]
+
+
 def _raise_http(error: DiagnosticError) -> None:
     raise HTTPException(
         status_code=error.status_code,
@@ -959,6 +1261,7 @@ def _raise_service_http(
         | AiConfigurationError
         | ReadinessError
         | MarketResearchError
+        | ExperimentError
     ),
 ) -> None:
     context = (
@@ -970,6 +1273,7 @@ def _raise_service_http(
                 LearningExecutionError,
                 ReadinessError,
                 MarketResearchError,
+                ExperimentError,
             ),
         )
         else {}
@@ -1952,3 +2256,275 @@ def reconcile_market_research_recovery(
     except MarketResearchError as error:
         _raise_service_http(error)
     return MarketResearchRunResponse.model_validate(result)
+
+
+@router.get(
+    "/experiments",
+    response_model=list[ExperimentResponse],
+    tags=["experiments-5c"],
+)
+def list_experiments(
+    service: ExperimentServiceDependency,
+    goal_selection_id: str | None = Query(default=None, max_length=36),
+) -> list[ExperimentResponse]:
+    return [
+        ExperimentResponse.model_validate(item)
+        for item in service.list_experiments(goal_selection_id)
+    ]
+
+
+@router.post(
+    "/experiments",
+    response_model=ExperimentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["experiments-5c"],
+)
+def create_experiment(
+    payload: CreateExperimentRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.create_experiment(
+            goal_selection_id=payload.goal_selection_id,
+            learning_run_id=payload.learning_run_id,
+            market_research_run_id=payload.market_research_run_id,
+            plan=payload.plan.model_dump(mode="json"),
+        )
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.get(
+    "/experiments/{experiment_id}",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def get_experiment(
+    experiment_id: str,
+    service: ExperimentServiceDependency,
+    reveal_income: bool = Query(default=False),
+) -> ExperimentResponse:
+    try:
+        result = service.get_experiment(experiment_id, reveal_income=reveal_income)
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/reviews",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def add_experiment_review(
+    experiment_id: str,
+    payload: ExperimentReviewRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.add_independent_review(experiment_id, **payload.model_dump())
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/gate-evaluations",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def reevaluate_experiment_gate(
+    experiment_id: str,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.reevaluate_gate(experiment_id)
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/transitions",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def transition_experiment(
+    experiment_id: str,
+    payload: ExperimentTransitionRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.transition(experiment_id, **payload.model_dump())
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/actions",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def record_experiment_action(
+    experiment_id: str,
+    payload: ExperimentActionRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.record_external_action(experiment_id, **payload.model_dump())
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/outcomes",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def record_experiment_outcome(
+    experiment_id: str,
+    payload: ExperimentOutcomeRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.record_outcome(experiment_id, **payload.model_dump())
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/income",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def create_experiment_income(
+    experiment_id: str,
+    payload: CreateIncomeRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.create_income(
+            experiment_id,
+            values=payload.values.model_dump(mode="json"),
+            confirm_manual_record=payload.confirm_manual_record,
+        )
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/income/{income_record_id}/revisions",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def revise_experiment_income(
+    experiment_id: str,
+    income_record_id: str,
+    payload: ReviseIncomeRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.revise_income(
+            experiment_id,
+            income_record_id,
+            values=payload.values.model_dump(mode="json"),
+            confirm_revision=payload.confirm_revision,
+        )
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/income/{income_record_id}/redact",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def redact_experiment_income(
+    experiment_id: str,
+    income_record_id: str,
+    payload: RedactIncomeRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.redact_income(
+            experiment_id,
+            income_record_id,
+            **payload.model_dump(),
+        )
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/feedback",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def create_experiment_feedback(
+    experiment_id: str,
+    payload: CreateFeedbackRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.create_feedback(experiment_id, **payload.model_dump())
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/feedback/{feedback_id}/decisions",
+    response_model=ExperimentResponse,
+    tags=["experiments-5c"],
+)
+def decide_experiment_feedback(
+    experiment_id: str,
+    feedback_id: str,
+    payload: DecideFeedbackRequest,
+    service: ExperimentServiceDependency,
+) -> ExperimentResponse:
+    try:
+        result = service.decide_feedback(
+            experiment_id,
+            feedback_id,
+            **payload.model_dump(),
+        )
+    except ExperimentError as error:
+        _raise_service_http(error)
+    return ExperimentResponse.model_validate(result)
+
+
+@router.post(
+    "/experiments/{experiment_id}/exports",
+    response_class=Response,
+    tags=["experiments-5c"],
+)
+def export_experiment(
+    experiment_id: str,
+    payload: ExportExperimentRequest,
+    service: ExperimentServiceDependency,
+) -> Response:
+    try:
+        media_type, content = service.export_experiment(
+            experiment_id,
+            **payload.model_dump(),
+        )
+    except ExperimentError as error:
+        _raise_service_http(error)
+    extension = "json" if payload.export_format == "json" else "csv"
+    return Response(
+        content=content.encode("utf-8-sig") if extension == "csv" else content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="cloud-study-experiment-{experiment_id}.{extension}"'
+            )
+        },
+    )

@@ -1,6 +1,6 @@
 # ruff: noqa: RUF001
 
-"""Offline-only FastAPI host for Playwright market-research flows."""
+"""Offline-only FastAPI host for Playwright learning, market, and experiment flows."""
 
 from __future__ import annotations
 

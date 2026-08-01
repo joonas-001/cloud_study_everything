@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "id": "employment-experiment-policy",
+  "version": "1.0.0",
+  "enabled_paths": [
+    "employment"
+  ],
+  "target_markets": [
+    "cn-zh-entry-cpp-backend",
+    "cn-zh-algorithm-application"
+  ],
+  "required_dimensions": [
+    "understanding",
+    "operation",
+    "transfer",
+    "artifact",
+    "retention",
+    "correction"
+  ],
+  "blocking_review_flags": [
+    "manual_review_pending",
+    "retention_due",
+    "source_review_pending"
+  ],
+  "local_gate": {
+    "minimum_evidence_count_per_dimension": 1
+  },
+  "external_action_gate": {
+    "minimum_levels": {
+      "operation": "verified",
+      "retention": "retained"
+    },
+    "independent_review_dimensions": [
+      "transfer",
+      "artifact"
+    ],
+    "accepted_market_status": "completed",
+    "accepted_market_review_status": "accepted"
+  },
+  "state_transitions": {
+    "draft": [
+      "approved",
+      "blocked",
+      "rejected",
+      "ended"
+    ],
+    "blocked": [
+      "approved",
+      "ended"
+    ],
+    "approved": [
+      "active",
+      "paused",
+      "ended"
+    ],
+    "active": [
+      "paused",
+      "ended",
+      "completed"
+    ],
+    "paused": [
+      "active",
+      "ended",
+      "completed"
+    ]
+  },
+  "external_action_mode": "manual_record_only",
+  "income_policy": {
+    "optional": true,
+    "attachments_allowed": false,
+    "default_visibility": "hidden",
+    "correction_mode": "append_revision",
+    "redaction_mode": "clear_sensitive_keep_tombstone",
+    "exports": [
+      "json",
+      "csv"
+    ]
+  },
+  "reason_codes": [
+    "local_gate_satisfied",
+    "action_gate_satisfied",
+    "goal_not_employment",
+    "goal_superseded",
+    "skill_version_mismatch",
+    "skill_manifest_mismatch",
+    "evidence_dimension_missing",
+    "review_flag_blocking",
+    "operation_verified_required",
+    "retention_retained_required",
+    "independent_transfer_review_required",
+    "independent_artifact_review_required",
+    "market_review_missing",
+    "market_review_not_accepted",
+    "market_research_context_mismatch",
+    "path_not_enabled"
+  ],
+  "limitations": [
+    "5C 首版只启用就业路径；接单和产品化保留契约但不得启动。",
+    "本产品只记录用户在外部手动完成的动作，不自动投递、联系、发布、登录、签约或交易。",
+    "verified 与 retained 只适用于锁定 Runner 的对应能力范围，不表示掌握整门算法。",
+    "外部真人评审不保存身份证明或敏感附件；用户自评和 AI 自评不算独立验证。",
+    "收入记录是可选的本地自述，不证明能力，也不保证未来收入。"
+  ]
+}

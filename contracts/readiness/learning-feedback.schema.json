@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/learning-feedback.schema.json",
+  "title": "Experiment learning feedback suggestion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "suggestion_type",
+    "reason",
+    "evidence_refs",
+    "estimated_minutes",
+    "plan_impact"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "suggestion_type": {
+      "enum": [
+        "diagnostic_question",
+        "correction",
+        "review",
+        "project",
+        "supplemental_unit",
+        "replanning",
+        "source_review",
+        "pause_path"
+      ]
+    },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 3000 },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+    },
+    "estimated_minutes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "plan_impact": { "type": "string", "minLength": 1, "maxLength": 3000 }
+  }
+}

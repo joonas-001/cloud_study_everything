@@ -14,6 +14,7 @@ export default function Home() {
           <Link href="/learning">学习面板</Link>
           <Link href="/readiness">目标与准备度</Link>
           <Link href="/market-research">市场研究</Link>
+          <Link href="/experiments">就业实验</Link>
           <Link href="/settings">设置</Link>
         </div>
       </nav>
@@ -35,9 +36,12 @@ export default function Home() {
         <Link className="secondary-link" href="/market-research">
           检查官方市场来源
         </Link>
+        <Link className="secondary-link" href="/experiments">
+          规划证据门禁的就业实验
+        </Link>
       </header>
       <div className="status">
-        开发状态：4A、5A、5B 已合并 · 4B 代码实现中，真实容器验收等待固件虚拟化
+        开发状态：4A、4B、5A、5B 已合并 · 5C 本地就业实验实现中
       </div>
 
       <section className="grid" aria-label="当前基础能力">
@@ -53,6 +57,7 @@ export default function Home() {
         算法技能包 0.2.1 目前仍是草稿。诊断与规划不调用外部 AI；代码只在本机锁定的
         Docker 隔离 Runner 中运行。Runner 证据严格限定到对应测试范围，不生成整体掌握结论。
         5A 只提供显著标记的合成比较；5B 的真实外发必须逐次确认并受费用硬门禁约束。
+        5C 只记录用户亲自在产品外完成的动作，不执行自动投递、联系或交易。
       </aside>
     </main>
   );

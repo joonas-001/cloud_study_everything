@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/experiment-policy.schema.json",
+  "title": "Governed local experiment policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "enabled_paths",
+    "target_markets",
+    "required_dimensions",
+    "blocking_review_flags",
+    "local_gate",
+    "external_action_gate",
+    "state_transitions",
+    "external_action_mode",
+    "income_policy",
+    "reason_codes",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "enabled_paths": {
+      "type": "array",
+      "const": ["employment"]
+    },
+    "target_markets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "required_dimensions": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "understanding",
+          "operation",
+          "transfer",
+          "artifact",
+          "retention",
+          "correction"
+        ]
+      }
+    },
+    "blocking_review_flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "manual_review_pending",
+          "retention_due",
+          "source_review_pending"
+        ]
+      }
+    },
+    "local_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_evidence_count_per_dimension"],
+      "properties": {
+        "minimum_evidence_count_per_dimension": {
+          "type": "integer",
+          "const": 1
+        }
+      }
+    },
+    "external_action_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_levels",
+        "independent_review_dimensions",
+        "accepted_market_status",
+        "accepted_market_review_status"
+      ],
+      "properties": {
+        "minimum_levels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "retention"],
+          "properties": {
+            "operation": { "const": "verified" },
+            "retention": { "const": "retained" }
+          }
+        },
+        "independent_review_dimensions": {
+          "type": "array",
+          "const": ["transfer", "artifact"]
+        },
+        "accepted_market_status": { "const": "completed" },
+        "accepted_market_review_status": { "const": "accepted" }
+      }
+    },
+    "state_transitions": {
+      "type": "object",
+      "minProperties": 5,
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {
+          "enum": [
+            "draft",
+            "rejected",
+            "blocked",
+            "approved",
+            "active",
+            "paused",
+            "ended",
+            "completed"
+          ]
+        }
+      }
+    },
+    "external_action_mode": { "const": "manual_record_only" },
+    "income_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "optional",
+        "attachments_allowed",
+        "default_visibility",
+        "correction_mode",
+        "redaction_mode",
+        "exports"
+      ],
+      "properties": {
+        "optional": { "const": true },
+        "attachments_allowed": { "const": false },
+        "default_visibility": { "const": "hidden" },
+        "correction_mode": { "const": "append_revision" },
+        "redaction_mode": { "const": "clear_sensitive_keep_tombstone" },
+        "exports": {
+          "type": "array",
+          "const": ["json", "csv"]
+        }
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  }
+}
