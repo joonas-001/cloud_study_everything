@@ -14,6 +14,7 @@ export default function SettingsPage() {
           <Link href="/learning">学习面板</Link>
           <Link href="/readiness">目标与准备度</Link>
           <Link href="/market-research">市场研究</Link>
+          <Link href="/experiments">就业实验</Link>
           <Link aria-current="page" href="/settings">
             设置
           </Link>

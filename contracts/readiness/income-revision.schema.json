@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/readiness/income-revision.schema.json",
+  "title": "Optional local income revision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "currency",
+    "amount_basis",
+    "gross_amount_minor",
+    "platform_fee_minor",
+    "direct_cost_minor",
+    "received_amount_minor",
+    "verification_level",
+    "occurred_on"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "amount_basis": { "enum": ["tax_inclusive", "pre_tax"] },
+    "gross_amount_minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000000000
+    },
+    "platform_fee_minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000000000
+    },
+    "direct_cost_minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000000000
+    },
+    "received_amount_minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000000000
+    },
+    "verification_level": {
+      "enum": ["self_reported", "platform_record", "received"]
+    },
+    "note": {
+      "type": ["string", "null"],
+      "maxLength": 2000
+    },
+    "occurred_on": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

@@ -135,6 +135,28 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(page.getByText("已保存：就业")).toBeVisible();
   await page.getByRole("button", { name: "生成准备度评估" }).click();
 
+  await page.goto("/experiments");
+  await expect(
+    page.getByRole("heading", {
+      name: "把求职假设变成可停止、可复盘的本地实验。",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("就业准备", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/没有可关联记录；真实动作会保持阻断/),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "保存草稿并评估门禁" }).click();
+  await expect(page.getByText("仅可保存草稿")).toBeVisible();
+  await expect(page.getByText(/操作能力尚未达到对应范围的 verified/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "记录已在产品外完成的求职动作" }),
+  ).toHaveCount(0);
+  await expect(page.getByText("不自动执行外部动作")).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("employment-experiment-draft.png"),
+    fullPage: true,
+  });
+
   await page.goto("/diagnostic");
   await page.getByRole("switch", { name: "允许外部 AI" }).click();
   await expect(page.getByRole("switch", { name: "允许外部 AI" })).toHaveAttribute(
