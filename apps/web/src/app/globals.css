@@ -1800,6 +1800,162 @@ textarea::placeholder {
   overflow-wrap: anywhere;
 }
 
+.experiment-shell {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--surface) 94%, var(--accent) 6%);
+  box-shadow: var(--shadow);
+}
+
+.experiment-context,
+.experiment-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.experiment-context > *,
+.experiment-create,
+.experiment-picker,
+.experiment-record,
+.experiment-subsection,
+.experiment-reasons {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.experiment-context > * {
+  padding: 16px;
+}
+
+.experiment-context p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.experiment-create,
+.experiment-record {
+  padding: 24px;
+}
+
+.experiment-create summary,
+.experiment-audit summary {
+  cursor: pointer;
+  color: var(--deep);
+  font-weight: 700;
+}
+
+.experiment-form-grid {
+  margin: 20px 0;
+}
+
+.experiment-form-grid label,
+.experiment-context label,
+.experiment-picker {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.experiment-form-grid textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.experiment-picker {
+  padding: 16px;
+}
+
+.experiment-record {
+  display: grid;
+  gap: 20px;
+}
+
+.experiment-record > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.5fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.experiment-record h3,
+.experiment-record h4,
+.experiment-record p {
+  margin-top: 0;
+}
+
+.gate-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.gate-card p {
+  margin: 8px 0 0;
+}
+
+.gate-draft_only {
+  background: #fff8e7;
+}
+
+.gate-local_ready {
+  background: #eef7f2;
+}
+
+.gate-action_ready {
+  background: #e4f5ef;
+  border-color: #82bda9;
+}
+
+.gate-blocked {
+  background: #fff0ed;
+}
+
+.experiment-reasons,
+.experiment-subsection {
+  padding: 20px;
+}
+
+.experiment-reasons ul,
+.experiment-subsection ul,
+.experiment-audit ol {
+  margin: 12px 0;
+  padding-left: 22px;
+}
+
+.inline-form {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.35fr) minmax(220px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin: 14px 0;
+}
+
+.feedback-card,
+.income-card {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.feedback-card p,
+.income-card p {
+  margin: 8px 0;
+}
+
+.experiment-audit {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
 @keyframes breathe {
   from {
     opacity: 0.35;
@@ -1858,7 +2014,14 @@ textarea::placeholder {
   .evidence-grid,
   .comparison-grid,
   .research-metrics,
-  .source-allowlist {
+  .source-allowlist,
+  .experiment-context,
+  .experiment-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .experiment-record > header,
+  .inline-form {
     grid-template-columns: 1fr;
   }
 }
@@ -1870,6 +2033,11 @@ textarea::placeholder {
   .readiness-page,
   .settings-page,
   .market-research-page {
+    width: min(100% - 24px, 1240px);
+    padding-top: 18px;
+  }
+
+  .experiments-page {
     width: min(100% - 24px, 1240px);
     padding-top: 18px;
   }
@@ -1993,7 +2161,8 @@ textarea::placeholder {
 
   .research-governance,
   .research-sources,
-  .research-control {
+  .research-control,
+  .experiment-shell {
     padding: 22px;
   }
 

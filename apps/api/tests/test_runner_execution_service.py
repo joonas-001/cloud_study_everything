@@ -572,4 +572,4 @@ def test_runner_migration_downgrade_removes_strong_evidence_without_inventing_su
         engine.dispose()
 
     command.upgrade(config, "head")
-    assert read_schema_version(database_path) == "0009"
+    assert read_schema_version(database_path) == "0010"

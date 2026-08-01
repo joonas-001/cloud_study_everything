@@ -451,7 +451,8 @@ export function ReadinessPanel() {
 
       <aside className="notice">
         5B 的真实市场研究已独立接入，但不会自动改写本页的 5A
-        合成比较。5C 与 4B 仍未授权，因此代码文本不会被执行，真实算法交付资格不会被推断。
+        合成比较。4B Runner 与 5C 本地就业实验已实现；真实动作仍必须逐项满足
+        verified、retained、外部真人评审和同范围市场复核，基础设施验证不会被当成个人能力。
       </aside>
     </section>
   );

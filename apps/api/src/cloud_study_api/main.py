@@ -18,6 +18,7 @@ from cloud_study_api.database import (
 )
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionService
+from cloud_study_api.experiments import ExperimentService
 from cloud_study_api.governance import validate_repository
 from cloud_study_api.learning import LearningService
 from cloud_study_api.market_research import MarketResearchService
@@ -81,6 +82,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         repository_root=settings.repository_root,
         session_factory=session_factory,
         credential_store=credential_store,
+    )
+    app.state.experiment_service = ExperimentService(
+        repository_root=settings.repository_root,
+        packages=packages,
+        session_factory=session_factory,
     )
     try:
         yield

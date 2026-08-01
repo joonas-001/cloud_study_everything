@@ -85,6 +85,27 @@ export interface CreateDiagnosticSessionRequest {
   skill_version: string;
 }
 
+export interface CreateExperimentRequest {
+  goal_selection_id: string;
+  learning_run_id: string;
+  market_research_run_id?: string | null;
+  plan: ExperimentPlanRequest;
+}
+
+export interface CreateFeedbackRequest {
+  estimated_minutes: number;
+  evidence_refs: Array<string>;
+  outcome_id?: string | null;
+  plan_impact: string;
+  reason: string;
+  suggestion_type: "diagnostic_question" | "correction" | "review" | "project" | "supplemental_unit" | "replanning" | "source_review" | "pause_path";
+}
+
+export interface CreateIncomeRequest {
+  confirm_manual_record: boolean;
+  values: IncomeValuesRequest;
+}
+
 export interface CreateLearningRunRequest {
   code_execution?: boolean;
   confirm_historical_plan?: boolean;
@@ -125,6 +146,11 @@ export interface CreateSourceCheckRequest {
   manual?: boolean;
   skill_id: string;
   skill_version: string;
+}
+
+export interface DecideFeedbackRequest {
+  decision: "accepted" | "rejected" | "withdrawn";
+  note?: string | null;
 }
 
 export interface DecidePathComparisonRequest {
@@ -186,6 +212,143 @@ export interface ExecuteRunnerAttemptResponse {
   run: LearningRunResponse;
 }
 
+export interface ExperimentActionRequest {
+  action_kind: "application" | "interview" | "networking" | "portfolio_share" | "other";
+  confirm_completed_outside_product: boolean;
+  description: string;
+  occurred_at: string;
+  result: "pending" | "response" | "no_response" | "interview" | "rejected" | "offer" | "withdrawn" | "other";
+}
+
+export interface ExperimentActionResponse {
+  action_kind: string;
+  created_at: string;
+  description: string;
+  execution_mode: string;
+  id: string;
+  occurred_at: string;
+  result: string;
+}
+
+export interface ExperimentEventResponse {
+  event_type: string;
+  id: number;
+  occurred_at: string;
+  payload: Record<string, unknown>;
+}
+
+export interface ExperimentOutcomeRequest {
+  hypothesis_result: "supported" | "not_supported" | "inconclusive";
+  learning_gap_dimension?: "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction" | null;
+  observable_result: string;
+}
+
+export interface ExperimentOutcomeResponse {
+  hypothesis_result: "supported" | "not_supported" | "inconclusive";
+  id: string;
+  learning_gap_dimension: string | null;
+  observable_result: string;
+  recorded_at: string;
+}
+
+export interface ExperimentPlanRequest {
+  compliance_todos?: Array<string>;
+  cost_cap_minor: number;
+  hypothesis: string;
+  non_offerings: Array<string>;
+  path: "employment" | "freelancing" | "productization";
+  planned_action: string;
+  review_on: string;
+  schema_version?: string;
+  stop_conditions: Array<string>;
+  success_metric: string;
+  target_audience: string;
+  time_budget_minutes: number;
+  title: string;
+}
+
+export interface ExperimentResponse {
+  actions: Array<ExperimentActionResponse>;
+  approved_at: string | null;
+  capability_scope_id: string;
+  created_at: string;
+  ended_at: string | null;
+  events: Array<ExperimentEventResponse>;
+  evidence_sha256: string;
+  evidence_snapshot: Record<string, unknown>;
+  external_action_mode: string;
+  feedback_suggestions: Array<FeedbackSuggestionResponse>;
+  gate_level: "draft_only" | "local_ready" | "action_ready" | "blocked";
+  gate_reason_codes: Array<string>;
+  goal_selection_id: string;
+  id: string;
+  income_amounts_visible: boolean;
+  income_records: Array<IncomeRecordResponse>;
+  learning_run_id: string;
+  limitations: Array<string>;
+  market_research_run_id: string | null;
+  outcomes: Array<ExperimentOutcomeResponse>;
+  path: "employment" | "freelancing" | "productization";
+  plan: Record<string, unknown>;
+  policy_id: string;
+  policy_version: string;
+  reviews: Array<ExperimentReviewResponse>;
+  schema_version: string;
+  skill_id: string;
+  skill_manifest_sha256: string;
+  skill_version: string;
+  started_at: string | null;
+  status: "draft" | "rejected" | "blocked" | "approved" | "active" | "paused" | "ended" | "completed";
+  updated_at: string;
+}
+
+export interface ExperimentReviewRequest {
+  conclusion: "passed" | "needs_work";
+  dimension: "transfer" | "artifact";
+  review_scope: string;
+  reviewed_at: string;
+  reviewer_relationship: "peer" | "mentor" | "instructor" | "employer" | "client" | "other";
+  rubric_id: string;
+  rubric_version: string;
+}
+
+export interface ExperimentReviewResponse {
+  conclusion: "passed" | "needs_work";
+  created_at: string;
+  dimension: "transfer" | "artifact";
+  id: string;
+  review_scope: string;
+  reviewed_at: string;
+  reviewer_relationship: string;
+  rubric_id: string;
+  rubric_version: string;
+}
+
+export interface ExperimentTransitionRequest {
+  action: "approve" | "start" | "pause" | "resume" | "complete" | "end" | "reject";
+  confirm: boolean;
+}
+
+export interface ExportExperimentRequest {
+  confirm_sensitive_export: boolean;
+  export_format: "json" | "csv";
+}
+
+export interface FeedbackSuggestionResponse {
+  auto_applied: boolean;
+  created_at: string;
+  decided_at: string | null;
+  decision_note: string | null;
+  estimated_minutes: number;
+  evidence_refs: Array<string>;
+  id: string;
+  outcome_id: string | null;
+  plan_impact: string;
+  reason: string;
+  status: "pending" | "accepted" | "rejected" | "withdrawn";
+  suggestion_type: string;
+}
+
 export interface HTTPValidationError {
   detail?: Array<ValidationError>;
 }
@@ -195,6 +358,44 @@ export interface HealthResponse {
   registered_skill_packages: number;
   service: string;
   status: string;
+}
+
+export interface IncomeRecordResponse {
+  amounts_hidden: boolean;
+  created_at: string;
+  current_revision: number;
+  id: string;
+  redacted: boolean;
+  redacted_at: string | null;
+  revisions: Array<IncomeRevisionResponse>;
+  updated_at: string;
+}
+
+export interface IncomeRevisionResponse {
+  amount_basis: string | null;
+  created_at: string;
+  currency: string | null;
+  direct_cost_minor: number | null;
+  gross_amount_minor: number | null;
+  id: string;
+  note: string | null;
+  occurred_on: string | null;
+  platform_fee_minor: number | null;
+  received_amount_minor: number | null;
+  revision: number;
+  verification_level: string | null;
+}
+
+export interface IncomeValuesRequest {
+  amount_basis: "tax_inclusive" | "pre_tax";
+  currency: string;
+  direct_cost_minor: number;
+  gross_amount_minor: number;
+  note?: string | null;
+  occurred_on: string;
+  platform_fee_minor: number;
+  received_amount_minor: number;
+  verification_level: "self_reported" | "platform_record" | "received";
 }
 
 export interface LearningActivityResponse {
@@ -490,6 +691,10 @@ export interface RecoverPreDispatchMarketResearchRequest {
   confirm_recovery: boolean;
 }
 
+export interface RedactIncomeRequest {
+  confirm_redaction: boolean;
+}
+
 export interface RedactMarketSourceRequest {
   confirm_redaction: boolean;
   reason: string;
@@ -516,6 +721,11 @@ export interface ReviewTaskResponse {
   policy_id: string;
   policy_version: string;
   status: "scheduled" | "available" | "passed" | "failed";
+}
+
+export interface ReviseIncomeRequest {
+  confirm_revision: boolean;
+  values: IncomeValuesRequest;
 }
 
 export interface RunnerAvailabilityResponse {

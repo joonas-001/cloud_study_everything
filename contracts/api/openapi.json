@@ -501,6 +501,130 @@
         "title": "CreateDiagnosticSessionRequest",
         "type": "object"
       },
+      "CreateExperimentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "goal_selection_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Goal Selection Id",
+            "type": "string"
+          },
+          "learning_run_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Learning Run Id",
+            "type": "string"
+          },
+          "market_research_run_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Research Run Id"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/ExperimentPlanRequest"
+          }
+        },
+        "required": [
+          "goal_selection_id",
+          "learning_run_id",
+          "plan"
+        ],
+        "title": "CreateExperimentRequest",
+        "type": "object"
+      },
+      "CreateFeedbackRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "estimated_minutes": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "outcome_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Id"
+          },
+          "plan_impact": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Plan Impact",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "suggestion_type": {
+            "enum": [
+              "diagnostic_question",
+              "correction",
+              "review",
+              "project",
+              "supplemental_unit",
+              "replanning",
+              "source_review",
+              "pause_path"
+            ],
+            "title": "Suggestion Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "suggestion_type",
+          "reason",
+          "evidence_refs",
+          "estimated_minutes",
+          "plan_impact"
+        ],
+        "title": "CreateFeedbackRequest",
+        "type": "object"
+      },
+      "CreateIncomeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_manual_record": {
+            "title": "Confirm Manual Record",
+            "type": "boolean"
+          },
+          "values": {
+            "$ref": "#/components/schemas/IncomeValuesRequest"
+          }
+        },
+        "required": [
+          "values",
+          "confirm_manual_record"
+        ],
+        "title": "CreateIncomeRequest",
+        "type": "object"
+      },
       "CreateLearningRunRequest": {
         "additionalProperties": false,
         "properties": {
@@ -723,6 +847,37 @@
           "skill_version"
         ],
         "title": "CreateSourceCheckRequest",
+        "type": "object"
+      },
+      "DecideFeedbackRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted",
+              "rejected",
+              "withdrawn"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "DecideFeedbackRequest",
         "type": "object"
       },
       "DecidePathComparisonRequest": {
@@ -1061,6 +1216,866 @@
         "title": "ExecuteRunnerAttemptResponse",
         "type": "object"
       },
+      "ExperimentActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action_kind": {
+            "enum": [
+              "application",
+              "interview",
+              "networking",
+              "portfolio_share",
+              "other"
+            ],
+            "title": "Action Kind",
+            "type": "string"
+          },
+          "confirm_completed_outside_product": {
+            "title": "Confirm Completed Outside Product",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "pending",
+              "response",
+              "no_response",
+              "interview",
+              "rejected",
+              "offer",
+              "withdrawn",
+              "other"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_kind",
+          "description",
+          "result",
+          "occurred_at",
+          "confirm_completed_outside_product"
+        ],
+        "title": "ExperimentActionRequest",
+        "type": "object"
+      },
+      "ExperimentActionResponse": {
+        "properties": {
+          "action_kind": {
+            "title": "Action Kind",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "execution_mode": {
+            "const": "completed_outside_product",
+            "title": "Execution Mode",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action_kind",
+          "description",
+          "result",
+          "occurred_at",
+          "created_at",
+          "execution_mode"
+        ],
+        "title": "ExperimentActionResponse",
+        "type": "object"
+      },
+      "ExperimentEventResponse": {
+        "properties": {
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "event_type",
+          "payload",
+          "occurred_at"
+        ],
+        "title": "ExperimentEventResponse",
+        "type": "object"
+      },
+      "ExperimentOutcomeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "hypothesis_result": {
+            "enum": [
+              "supported",
+              "not_supported",
+              "inconclusive"
+            ],
+            "title": "Hypothesis Result",
+            "type": "string"
+          },
+          "learning_gap_dimension": {
+            "anyOf": [
+              {
+                "enum": [
+                  "understanding",
+                  "operation",
+                  "transfer",
+                  "artifact",
+                  "retention",
+                  "correction"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Gap Dimension"
+          },
+          "observable_result": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Observable Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hypothesis_result",
+          "observable_result"
+        ],
+        "title": "ExperimentOutcomeRequest",
+        "type": "object"
+      },
+      "ExperimentOutcomeResponse": {
+        "properties": {
+          "hypothesis_result": {
+            "enum": [
+              "supported",
+              "not_supported",
+              "inconclusive"
+            ],
+            "title": "Hypothesis Result",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "learning_gap_dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Gap Dimension"
+          },
+          "observable_result": {
+            "title": "Observable Result",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "hypothesis_result",
+          "observable_result",
+          "learning_gap_dimension",
+          "recorded_at"
+        ],
+        "title": "ExperimentOutcomeResponse",
+        "type": "object"
+      },
+      "ExperimentPlanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "compliance_todos": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Compliance Todos",
+            "type": "array"
+          },
+          "cost_cap_minor": {
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Cost Cap Minor",
+            "type": "integer"
+          },
+          "hypothesis": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Hypothesis",
+            "type": "string"
+          },
+          "non_offerings": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Non Offerings",
+            "type": "array"
+          },
+          "path": {
+            "enum": [
+              "employment",
+              "freelancing",
+              "productization"
+            ],
+            "title": "Path",
+            "type": "string"
+          },
+          "planned_action": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Planned Action",
+            "type": "string"
+          },
+          "review_on": {
+            "format": "date",
+            "title": "Review On",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "default": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "stop_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Stop Conditions",
+            "type": "array"
+          },
+          "success_metric": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Success Metric",
+            "type": "string"
+          },
+          "target_audience": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Target Audience",
+            "type": "string"
+          },
+          "time_budget_minutes": {
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Time Budget Minutes",
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "title",
+          "target_audience",
+          "hypothesis",
+          "planned_action",
+          "success_metric",
+          "time_budget_minutes",
+          "cost_cap_minor",
+          "stop_conditions",
+          "non_offerings",
+          "review_on"
+        ],
+        "title": "ExperimentPlanRequest",
+        "type": "object"
+      },
+      "ExperimentResponse": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ExperimentActionResponse"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "capability_scope_id": {
+            "title": "Capability Scope Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ExperimentEventResponse"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "evidence_sha256": {
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "evidence_snapshot": {
+            "additionalProperties": true,
+            "title": "Evidence Snapshot",
+            "type": "object"
+          },
+          "external_action_mode": {
+            "const": "manual_record_only",
+            "title": "External Action Mode",
+            "type": "string"
+          },
+          "feedback_suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackSuggestionResponse"
+            },
+            "title": "Feedback Suggestions",
+            "type": "array"
+          },
+          "gate_level": {
+            "enum": [
+              "draft_only",
+              "local_ready",
+              "action_ready",
+              "blocked"
+            ],
+            "title": "Gate Level",
+            "type": "string"
+          },
+          "gate_reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gate Reason Codes",
+            "type": "array"
+          },
+          "goal_selection_id": {
+            "title": "Goal Selection Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "income_amounts_visible": {
+            "title": "Income Amounts Visible",
+            "type": "boolean"
+          },
+          "income_records": {
+            "items": {
+              "$ref": "#/components/schemas/IncomeRecordResponse"
+            },
+            "title": "Income Records",
+            "type": "array"
+          },
+          "learning_run_id": {
+            "title": "Learning Run Id",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "market_research_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Research Run Id"
+          },
+          "outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/ExperimentOutcomeResponse"
+            },
+            "title": "Outcomes",
+            "type": "array"
+          },
+          "path": {
+            "enum": [
+              "employment",
+              "freelancing",
+              "productization"
+            ],
+            "title": "Path",
+            "type": "string"
+          },
+          "plan": {
+            "additionalProperties": true,
+            "title": "Plan",
+            "type": "object"
+          },
+          "policy_id": {
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ExperimentReviewResponse"
+            },
+            "title": "Reviews",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_manifest_sha256": {
+            "title": "Skill Manifest Sha256",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "rejected",
+              "blocked",
+              "approved",
+              "active",
+              "paused",
+              "ended",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "goal_selection_id",
+          "learning_run_id",
+          "market_research_run_id",
+          "policy_id",
+          "policy_version",
+          "skill_id",
+          "skill_version",
+          "skill_manifest_sha256",
+          "capability_scope_id",
+          "path",
+          "plan",
+          "status",
+          "gate_level",
+          "gate_reason_codes",
+          "evidence_snapshot",
+          "evidence_sha256",
+          "external_action_mode",
+          "reviews",
+          "actions",
+          "outcomes",
+          "income_records",
+          "income_amounts_visible",
+          "feedback_suggestions",
+          "events",
+          "limitations",
+          "created_at",
+          "updated_at",
+          "approved_at",
+          "started_at",
+          "ended_at"
+        ],
+        "title": "ExperimentResponse",
+        "type": "object"
+      },
+      "ExperimentReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "conclusion": {
+            "enum": [
+              "passed",
+              "needs_work"
+            ],
+            "title": "Conclusion",
+            "type": "string"
+          },
+          "dimension": {
+            "enum": [
+              "transfer",
+              "artifact"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          },
+          "review_scope": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Review Scope",
+            "type": "string"
+          },
+          "reviewed_at": {
+            "format": "date-time",
+            "title": "Reviewed At",
+            "type": "string"
+          },
+          "reviewer_relationship": {
+            "enum": [
+              "peer",
+              "mentor",
+              "instructor",
+              "employer",
+              "client",
+              "other"
+            ],
+            "title": "Reviewer Relationship",
+            "type": "string"
+          },
+          "rubric_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Rubric Id",
+            "type": "string"
+          },
+          "rubric_version": {
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "title": "Rubric Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dimension",
+          "reviewer_relationship",
+          "review_scope",
+          "rubric_id",
+          "rubric_version",
+          "conclusion",
+          "reviewed_at"
+        ],
+        "title": "ExperimentReviewRequest",
+        "type": "object"
+      },
+      "ExperimentReviewResponse": {
+        "properties": {
+          "conclusion": {
+            "enum": [
+              "passed",
+              "needs_work"
+            ],
+            "title": "Conclusion",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dimension": {
+            "enum": [
+              "transfer",
+              "artifact"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "review_scope": {
+            "title": "Review Scope",
+            "type": "string"
+          },
+          "reviewed_at": {
+            "format": "date-time",
+            "title": "Reviewed At",
+            "type": "string"
+          },
+          "reviewer_relationship": {
+            "title": "Reviewer Relationship",
+            "type": "string"
+          },
+          "rubric_id": {
+            "title": "Rubric Id",
+            "type": "string"
+          },
+          "rubric_version": {
+            "title": "Rubric Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "dimension",
+          "reviewer_relationship",
+          "review_scope",
+          "rubric_id",
+          "rubric_version",
+          "conclusion",
+          "reviewed_at",
+          "created_at"
+        ],
+        "title": "ExperimentReviewResponse",
+        "type": "object"
+      },
+      "ExperimentTransitionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "approve",
+              "start",
+              "pause",
+              "resume",
+              "complete",
+              "end",
+              "reject"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "confirm": {
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action",
+          "confirm"
+        ],
+        "title": "ExperimentTransitionRequest",
+        "type": "object"
+      },
+      "ExportExperimentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_sensitive_export": {
+            "title": "Confirm Sensitive Export",
+            "type": "boolean"
+          },
+          "export_format": {
+            "enum": [
+              "json",
+              "csv"
+            ],
+            "title": "Export Format",
+            "type": "string"
+          }
+        },
+        "required": [
+          "export_format",
+          "confirm_sensitive_export"
+        ],
+        "title": "ExportExperimentRequest",
+        "type": "object"
+      },
+      "FeedbackSuggestionResponse": {
+        "properties": {
+          "auto_applied": {
+            "const": false,
+            "title": "Auto Applied",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          },
+          "estimated_minutes": {
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "outcome_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Id"
+          },
+          "plan_impact": {
+            "title": "Plan Impact",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggestion_type": {
+            "title": "Suggestion Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "outcome_id",
+          "suggestion_type",
+          "reason",
+          "evidence_refs",
+          "estimated_minutes",
+          "plan_impact",
+          "status",
+          "decision_note",
+          "created_at",
+          "decided_at",
+          "auto_applied"
+        ],
+        "title": "FeedbackSuggestionResponse",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1100,6 +2115,279 @@
           "registered_skill_packages"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "IncomeRecordResponse": {
+        "properties": {
+          "amounts_hidden": {
+            "title": "Amounts Hidden",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "redacted": {
+            "title": "Redacted",
+            "type": "boolean"
+          },
+          "redacted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redacted At"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/IncomeRevisionResponse"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "current_revision",
+          "redacted",
+          "amounts_hidden",
+          "revisions",
+          "created_at",
+          "updated_at",
+          "redacted_at"
+        ],
+        "title": "IncomeRecordResponse",
+        "type": "object"
+      },
+      "IncomeRevisionResponse": {
+        "properties": {
+          "amount_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Basis"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "direct_cost_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direct Cost Minor"
+          },
+          "gross_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Amount Minor"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "occurred_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred On"
+          },
+          "platform_fee_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Fee Minor"
+          },
+          "received_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received Amount Minor"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "verification_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Level"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "currency",
+          "amount_basis",
+          "gross_amount_minor",
+          "platform_fee_minor",
+          "direct_cost_minor",
+          "received_amount_minor",
+          "verification_level",
+          "note",
+          "occurred_on",
+          "created_at"
+        ],
+        "title": "IncomeRevisionResponse",
+        "type": "object"
+      },
+      "IncomeValuesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_basis": {
+            "enum": [
+              "tax_inclusive",
+              "pre_tax"
+            ],
+            "title": "Amount Basis",
+            "type": "string"
+          },
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "direct_cost_minor": {
+            "maximum": 100000000000.0,
+            "minimum": 0.0,
+            "title": "Direct Cost Minor",
+            "type": "integer"
+          },
+          "gross_amount_minor": {
+            "maximum": 100000000000.0,
+            "minimum": 0.0,
+            "title": "Gross Amount Minor",
+            "type": "integer"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "occurred_on": {
+            "format": "date",
+            "title": "Occurred On",
+            "type": "string"
+          },
+          "platform_fee_minor": {
+            "maximum": 100000000000.0,
+            "minimum": 0.0,
+            "title": "Platform Fee Minor",
+            "type": "integer"
+          },
+          "received_amount_minor": {
+            "maximum": 100000000000.0,
+            "minimum": 0.0,
+            "title": "Received Amount Minor",
+            "type": "integer"
+          },
+          "verification_level": {
+            "enum": [
+              "self_reported",
+              "platform_record",
+              "received"
+            ],
+            "title": "Verification Level",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "amount_basis",
+          "gross_amount_minor",
+          "platform_fee_minor",
+          "direct_cost_minor",
+          "received_amount_minor",
+          "verification_level",
+          "occurred_on"
+        ],
+        "title": "IncomeValuesRequest",
         "type": "object"
       },
       "LearningActivityResponse": {
@@ -2893,6 +4181,20 @@
         "title": "RecoverPreDispatchMarketResearchRequest",
         "type": "object"
       },
+      "RedactIncomeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_redaction": {
+            "title": "Confirm Redaction",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm_redaction"
+        ],
+        "title": "RedactIncomeRequest",
+        "type": "object"
+      },
       "RedactMarketSourceRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3044,6 +4346,24 @@
           "completed_at"
         ],
         "title": "ReviewTaskResponse",
+        "type": "object"
+      },
+      "ReviseIncomeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm_revision": {
+            "title": "Confirm Revision",
+            "type": "boolean"
+          },
+          "values": {
+            "$ref": "#/components/schemas/IncomeValuesRequest"
+          }
+        },
+        "required": [
+          "values",
+          "confirm_revision"
+        ],
+        "title": "ReviseIncomeRequest",
         "type": "object"
       },
       "RunnerAvailabilityResponse": {
@@ -4902,6 +6222,733 @@
         "summary": "End Diagnostic Session",
         "tags": [
           "diagnostics"
+        ]
+      }
+    },
+    "/experiments": {
+      "get": {
+        "operationId": "list_experiments_experiments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "goal_selection_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Goal Selection Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExperimentResponse"
+                  },
+                  "title": "Response List Experiments Experiments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Experiments",
+        "tags": [
+          "experiments-5c"
+        ]
+      },
+      "post": {
+        "operationId": "create_experiment_experiments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExperimentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Experiment",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}": {
+      "get": {
+        "operationId": "get_experiment_experiments__experiment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reveal_income",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Reveal Income",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Experiment",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/actions": {
+      "post": {
+        "operationId": "record_experiment_action_experiments__experiment_id__actions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Experiment Action",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/exports": {
+      "post": {
+        "operationId": "export_experiment_experiments__experiment_id__exports_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportExperimentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Experiment",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/feedback": {
+      "post": {
+        "operationId": "create_experiment_feedback_experiments__experiment_id__feedback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Experiment Feedback",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/feedback/{feedback_id}/decisions": {
+      "post": {
+        "operationId": "decide_experiment_feedback_experiments__experiment_id__feedback__feedback_id__decisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "title": "Feedback Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Experiment Feedback",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/gate-evaluations": {
+      "post": {
+        "operationId": "reevaluate_experiment_gate_experiments__experiment_id__gate_evaluations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reevaluate Experiment Gate",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/income": {
+      "post": {
+        "operationId": "create_experiment_income_experiments__experiment_id__income_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIncomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Experiment Income",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/income/{income_record_id}/redact": {
+      "post": {
+        "operationId": "redact_experiment_income_experiments__experiment_id__income__income_record_id__redact_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "income_record_id",
+            "required": true,
+            "schema": {
+              "title": "Income Record Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedactIncomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Redact Experiment Income",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/income/{income_record_id}/revisions": {
+      "post": {
+        "operationId": "revise_experiment_income_experiments__experiment_id__income__income_record_id__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "income_record_id",
+            "required": true,
+            "schema": {
+              "title": "Income Record Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviseIncomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revise Experiment Income",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/outcomes": {
+      "post": {
+        "operationId": "record_experiment_outcome_experiments__experiment_id__outcomes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentOutcomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Experiment Outcome",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/reviews": {
+      "post": {
+        "operationId": "add_experiment_review_experiments__experiment_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Experiment Review",
+        "tags": [
+          "experiments-5c"
+        ]
+      }
+    },
+    "/experiments/{experiment_id}/transitions": {
+      "post": {
+        "operationId": "transition_experiment_experiments__experiment_id__transitions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "title": "Experiment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transition Experiment",
+        "tags": [
+          "experiments-5c"
         ]
       }
     },
