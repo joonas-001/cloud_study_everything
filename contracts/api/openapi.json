@@ -34,6 +34,13 @@
             "title": "Revision",
             "type": "integer"
           },
+          "runner_invocations": {
+            "items": {
+              "$ref": "#/components/schemas/RunnerInvocationResponse"
+            },
+            "title": "Runner Invocations",
+            "type": "array"
+          },
           "submission": {
             "additionalProperties": {
               "type": "string"
@@ -48,6 +55,7 @@
           "submission",
           "corrects_attempt_id",
           "evaluations",
+          "runner_invocations",
           "created_at"
         ],
         "title": "ActivityAttemptResponse",
@@ -94,7 +102,8 @@
               "deterministic",
               "self_review",
               "review_pending",
-              "not_executable"
+              "not_executable",
+              "runner"
             ],
             "title": "Method",
             "type": "string"
@@ -1028,6 +1037,30 @@
         "title": "EmailOutboxProcessResponse",
         "type": "object"
       },
+      "ExecuteRunnerAttemptResponse": {
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/LearningActivityResponse"
+          },
+          "attempt": {
+            "$ref": "#/components/schemas/ActivityAttemptResponse"
+          },
+          "invocation": {
+            "$ref": "#/components/schemas/RunnerInvocationResponse"
+          },
+          "run": {
+            "$ref": "#/components/schemas/LearningRunResponse"
+          }
+        },
+        "required": [
+          "invocation",
+          "attempt",
+          "activity",
+          "run"
+        ],
+        "title": "ExecuteRunnerAttemptResponse",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1106,7 +1139,8 @@
             "enum": [
               "confirmation",
               "valid_submission",
-              "deterministic_pass"
+              "deterministic_pass",
+              "runner_pass"
             ],
             "title": "Completion Rule",
             "type": "string"
@@ -1134,6 +1168,17 @@
           "required": {
             "title": "Required",
             "type": "boolean"
+          },
+          "runner_task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner Task Id"
           },
           "sequence": {
             "title": "Sequence",
@@ -1203,7 +1248,8 @@
           "available_at",
           "overdue",
           "attempts",
-          "completed_at"
+          "completed_at",
+          "runner_task_id"
         ],
         "title": "LearningActivityResponse",
         "type": "object"
@@ -1255,7 +1301,10 @@
             "type": "array"
           },
           "code_execution": {
-            "const": "disabled",
+            "enum": [
+              "disabled",
+              "enabled"
+            ],
             "title": "Code Execution",
             "type": "string"
           },
@@ -1919,7 +1968,9 @@
             "enum": [
               "none",
               "limited",
-              "supported"
+              "supported",
+              "verified",
+              "retained"
             ],
             "title": "Evidence Level",
             "type": "string"
@@ -2993,6 +3044,202 @@
           "completed_at"
         ],
         "title": "ReviewTaskResponse",
+        "type": "object"
+      },
+      "RunnerAvailabilityResponse": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "data_root": {
+            "title": "Data Root",
+            "type": "string"
+          },
+          "docker_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Docker Path"
+          },
+          "free_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Gb"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "server_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Server Version"
+          },
+          "used_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used Gb"
+          }
+        },
+        "required": [
+          "available",
+          "reason_code",
+          "docker_path",
+          "data_root",
+          "free_gb",
+          "used_gb"
+        ],
+        "title": "RunnerAvailabilityResponse",
+        "type": "object"
+      },
+      "RunnerInvocationResponse": {
+        "properties": {
+          "artifact_sha256": {
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "request_sha256": {
+            "title": "Request Sha256",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "runtime_image": {
+            "title": "Runtime Image",
+            "type": "string"
+          },
+          "runtime_profile_id": {
+            "title": "Runtime Profile Id",
+            "type": "string"
+          },
+          "runtime_profile_version": {
+            "title": "Runtime Profile Version",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "passed",
+              "failed",
+              "timeout",
+              "output_limit",
+              "infrastructure_error"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "protocol_version",
+          "task_id",
+          "runtime_profile_id",
+          "runtime_profile_version",
+          "runtime_image",
+          "artifact_sha256",
+          "request_sha256",
+          "status",
+          "failure_code",
+          "result",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "RunnerInvocationResponse",
         "type": "object"
       },
       "SelectUserGoalRequest": {
@@ -4127,6 +4374,48 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/activity-attempts/{attempt_id}/execute": {
+      "post": {
+        "operationId": "execute_runner_attempt_activity_attempts__attempt_id__execute_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteRunnerAttemptResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Execute Runner Attempt",
+        "tags": [
+          "runner-4b"
+        ]
+      }
+    },
     "/activity-attempts/{attempt_id}/self-review": {
       "post": {
         "operationId": "self_review_activity_attempt_activity_attempts__attempt_id__self_review_post",
@@ -6456,6 +6745,27 @@
         "summary": "Start Learning Review",
         "tags": [
           "learning-execution"
+        ]
+      }
+    },
+    "/runner/availability": {
+      "get": {
+        "operationId": "get_runner_availability_runner_availability_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunnerAvailabilityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Runner Availability",
+        "tags": [
+          "runner-4b"
         ]
       }
     },

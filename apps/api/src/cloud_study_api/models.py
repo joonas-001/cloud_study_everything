@@ -583,7 +583,8 @@ class ActivityEvaluation(Base):
     __tablename__ = "activity_evaluations"
     __table_args__ = (
         CheckConstraint(
-            "method IN ('deterministic', 'self_review', 'review_pending', 'not_executable')",
+            "method IN "
+            "('deterministic', 'self_review', 'review_pending', 'not_executable', 'runner')",
             name="ck_activity_evaluations_method",
         ),
         CheckConstraint(
@@ -615,7 +616,7 @@ class MasteryEvidence(Base):
             name="ck_mastery_evidence_dimension",
         ),
         CheckConstraint(
-            "strength IN ('limited', 'supported', 'retained_limited')",
+            "strength IN ('limited', 'supported', 'retained_limited', 'verified', 'retained')",
             name="ck_mastery_evidence_strength",
         ),
     )
@@ -661,7 +662,7 @@ class MasterySnapshot(Base):
             name="ck_mastery_snapshots_dimension",
         ),
         CheckConstraint(
-            "evidence_level IN ('none', 'limited', 'supported')",
+            "evidence_level IN ('none', 'limited', 'supported', 'verified', 'retained')",
             name="ck_mastery_snapshots_level",
         ),
         UniqueConstraint("run_id", "dimension", name="uq_mastery_snapshot_dimension"),
@@ -727,6 +728,54 @@ class LearningEvent(Base):
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RunnerInvocation(Base):
+    __tablename__ = "runner_invocations"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('queued', 'running', 'passed', 'failed', 'timeout', "
+            "'output_limit', 'infrastructure_error')",
+            name="ck_runner_invocations_status",
+        ),
+        Index(
+            "uq_active_runner_invocation",
+            "singleton_key",
+            unique=True,
+            sqlite_where=text("status IN ('queued', 'running')"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    singleton_key: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    activity_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_activities.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    attempt_id: Mapped[str] = mapped_column(
+        ForeignKey("activity_attempts.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    protocol_version: Mapped[str] = mapped_column(String(20), nullable=False)
+    task_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    runtime_profile_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    runtime_profile_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    runtime_image: Mapped[str] = mapped_column(Text, nullable=False)
+    artifact_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    request_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    failure_code: Mapped[str | None] = mapped_column(String(100))
+    result_json: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class UserGoalSelection(Base):

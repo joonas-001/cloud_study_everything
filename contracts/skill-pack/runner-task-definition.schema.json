@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/runner-task-definition.schema.json",
+  "title": "Skill package runner task definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "skill_id", "skill_version", "tasks"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "skill_id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "skill_version": {
+      "$ref": "#/$defs/version"
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "activity_id",
+          "runtime_profile_id",
+          "runtime_profile_version",
+          "language",
+          "source_field_id",
+          "tests"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "activity_id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "runtime_profile_id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "runtime_profile_version": {
+            "$ref": "#/$defs/version"
+          },
+          "language": {
+            "enum": ["cpp", "python"]
+          },
+          "source_field_id": {
+            "$ref": "#/$defs/stableId"
+          },
+          "tests": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "stdin", "expected_stdout", "purpose"],
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/stableId"
+                },
+                "stdin": {
+                  "type": "string",
+                  "maxLength": 65536
+                },
+                "expected_stdout": {
+                  "type": "string",
+                  "maxLength": 65536
+                },
+                "purpose": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    }
+  }
+}

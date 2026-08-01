@@ -61,11 +61,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         session_factory=session_factory,
         notification_service=notification_service,
     )
-    app.state.learning_execution_service = LearningExecutionService(
+    learning_execution_service = LearningExecutionService(
         repository_root=settings.repository_root,
         packages=packages,
         session_factory=session_factory,
     )
+    learning_execution_service.recover_stale_runner_invocations()
+    app.state.learning_execution_service = learning_execution_service
     app.state.readiness_service = ReadinessService(
         repository_root=settings.repository_root,
         packages=packages,

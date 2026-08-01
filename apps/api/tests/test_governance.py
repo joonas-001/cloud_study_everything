@@ -8,6 +8,7 @@ def test_repository_skill_packages_are_consistent() -> None:
     assert [(package.package_id, package.version) for package in packages] == [
         ("algorithm", "0.1.0"),
         ("algorithm", "0.2.0"),
+        ("algorithm", "0.2.1"),
     ]
     assert packages[0].state == "draft"
     assert packages[0].availability == "available"
@@ -19,5 +20,10 @@ def test_repository_skill_packages_are_consistent() -> None:
     assert "intake" not in packages[0].manifest
     assert packages[1].state == "draft"
     assert packages[1].availability == "available"
-    assert packages[1].intake == "open"
+    assert packages[1].intake == "closed"
     assert "intake" not in packages[1].manifest
+    assert packages[2].state == "draft"
+    assert packages[2].availability == "available"
+    assert packages[2].intake == "open"
+    assert packages[2].manifest["runner_protocol"]["version"] == "1.1.0"
+    assert "intake" not in packages[2].manifest

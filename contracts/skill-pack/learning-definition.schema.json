@@ -128,7 +128,7 @@
             "type": "boolean"
           },
           "completion_rule": {
-            "enum": ["confirmation", "valid_submission", "deterministic_pass"]
+            "enum": ["confirmation", "valid_submission", "deterministic_pass", "runner_pass"]
           },
           "source_ids": {
             "$ref": "#/$defs/idList"
@@ -195,6 +195,9 @@
                 "$ref": "#/$defs/nonEmpty"
               }
             }
+          },
+          "runner_task_id": {
+            "$ref": "#/$defs/stableId"
           }
         }
       }

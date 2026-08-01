@@ -1,0 +1,69 @@
+schema_version: 1.0.0
+id: algorithm-entry-assessment
+skill_id: algorithm
+skill_version: 0.2.1
+criteria:
+  - id: understanding-explanation
+    activity_id: checkpoint-explanation
+    description: 能结构化解释数组与链表取舍并写出假设。
+    dimension: understanding
+    evaluation_method: self_review
+    self_review_rubric_id: explanation-self-review
+    passing_result: submitted
+    evidence_strength: limited
+    review_flags:
+      - manual_review_pending
+      - retention_due
+  - id: operation-cpp-text
+    activity_id: checkpoint-cpp-code
+    description: C++ 程序在锁定 GCC 15.2.0 运行时通过三项确定性测试。
+    dimension: operation
+    evaluation_method: runner
+    passing_result: passed
+    evidence_strength: verified
+    review_flags: []
+  - id: operation-python-text
+    activity_id: checkpoint-python-code
+    description: Python 程序在锁定 3.14.3 运行时通过三项确定性测试。
+    dimension: operation
+    evaluation_method: runner
+    passing_result: passed
+    evidence_strength: verified
+    review_flags: []
+  - id: transfer-scenario
+    activity_id: checkpoint-transfer
+    description: 针对需求变化提交结构选择与理由。
+    dimension: transfer
+    evaluation_method: self_review
+    self_review_rubric_id: transfer-self-review
+    passing_result: submitted
+    evidence_strength: limited
+    review_flags:
+      - manual_review_pending
+      - retention_due
+  - id: correction-preset
+    activity_id: checkpoint-correction
+    description: 确定性纠正预置的链表随机访问错误。
+    dimension: correction
+    evaluation_method: deterministic
+    passing_result: passed
+    evidence_strength: supported
+    review_flags: []
+  - id: artifact-mini-project
+    activity_id: checkpoint-project
+    description: 提交目标、决策、测试思路、反思和代码文本。
+    dimension: artifact
+    evaluation_method: review_pending
+    self_review_rubric_id: project-self-review
+    passing_result: submitted
+    evidence_strength: limited
+    review_flags:
+      - manual_review_pending
+  - id: retention-delayed-review
+    activity_id: retention-review-template
+    description: 在锁定间隔后重新通过同范围 C++ Runner 任务。
+    dimension: retention
+    evaluation_method: runner
+    passing_result: passed
+    evidence_strength: retained
+    review_flags: []

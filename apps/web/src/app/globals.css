@@ -1331,6 +1331,37 @@ textarea::placeholder {
   margin: 14px 0;
 }
 
+.runner-result {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.runner-result article,
+.runner-result article > div {
+  display: grid;
+  gap: 7px;
+}
+
+.runner-result article {
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--mist);
+}
+
+.runner-result pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .submission-fields {
   display: grid;
   gap: 16px;
