@@ -28,8 +28,7 @@ def upgrade() -> None:
         batch.drop_constraint("ck_mastery_evidence_strength", type_="check")
         batch.create_check_constraint(
             "ck_mastery_evidence_strength",
-            "strength IN "
-            "('limited', 'supported', 'retained_limited', 'verified', 'retained')",
+            "strength IN ('limited', 'supported', 'retained_limited', 'verified', 'retained')",
         )
     with op.batch_alter_table("mastery_snapshots", recreate="always") as batch:
         batch.drop_constraint("ck_mastery_snapshots_level", type_="check")
@@ -105,13 +104,39 @@ def downgrade() -> None:
     op.drop_index("ix_runner_invocations_activity_id", table_name="runner_invocations")
     op.drop_index("ix_runner_invocations_run_id", table_name="runner_invocations")
     op.drop_table("runner_invocations")
-    op.execute(
-        "DELETE FROM mastery_evidence WHERE strength IN ('verified', 'retained')"
-    )
+    op.execute("DELETE FROM mastery_evidence WHERE strength IN ('verified', 'retained')")
     op.execute("DELETE FROM activity_evaluations WHERE method = 'runner'")
     op.execute(
-        "UPDATE mastery_snapshots SET evidence_level = 'supported' "
-        "WHERE evidence_level IN ('verified', 'retained')"
+        """
+        UPDATE mastery_snapshots
+        SET evidence_level = CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM mastery_evidence
+                    WHERE mastery_evidence.run_id = mastery_snapshots.run_id
+                      AND mastery_evidence.dimension = mastery_snapshots.dimension
+                      AND mastery_evidence.superseded_at IS NULL
+                      AND mastery_evidence.strength = 'supported'
+                ) THEN 'supported'
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM mastery_evidence
+                    WHERE mastery_evidence.run_id = mastery_snapshots.run_id
+                      AND mastery_evidence.dimension = mastery_snapshots.dimension
+                      AND mastery_evidence.superseded_at IS NULL
+                      AND mastery_evidence.strength IN ('limited', 'retained_limited')
+                ) THEN 'limited'
+                ELSE 'none'
+            END,
+            evidence_count = (
+                SELECT COUNT(*)
+                FROM mastery_evidence
+                WHERE mastery_evidence.run_id = mastery_snapshots.run_id
+                  AND mastery_evidence.dimension = mastery_snapshots.dimension
+                  AND mastery_evidence.superseded_at IS NULL
+            )
+        WHERE evidence_level IN ('verified', 'retained')
+        """
     )
     with op.batch_alter_table("mastery_snapshots", recreate="always") as batch:
         batch.drop_constraint("ck_mastery_snapshots_level", type_="check")

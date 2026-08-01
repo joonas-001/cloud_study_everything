@@ -12,6 +12,7 @@ from typing import Any, cast
 from uuid import uuid4
 
 import yaml
+from jsonschema import Draft202012Validator, FormatChecker
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
@@ -102,6 +103,14 @@ class LearningExecutionService:
         self._now = now
         self._runner_backend = runner_backend or DockerRunnerBackend(repository_root)
         self._runtime_registry = RuntimeRegistry(repository_root)
+        self._runner_result_validator = Draft202012Validator(
+            json.loads(
+                (repository_root / "contracts" / "runner" / "result-v1.1.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            ),
+            format_checker=FormatChecker(),
+        )
         self._content_cache: dict[tuple[str, str, str], dict[str, Any]] = {}
 
     def list_planning_options(
@@ -903,6 +912,7 @@ class LearningExecutionService:
         execution_failure_code: str | None = None
         try:
             result = self._runner_backend.execute(invocation)
+            self._validate_runner_result(invocation, result)
         except RunnerCleanupError:
             execution_failure_code = "cleanup_failed"
         except OSError, RunnerProtocolError, subprocess.SubprocessError:
@@ -1171,10 +1181,7 @@ class LearningExecutionService:
             ).all()
             return {
                 "run_id": run.id,
-                "limitations": [
-                    "4A 不产生 scope_criteria_met、verified 或不受限 retained。",
-                    "代码文本未执行，用户自评不是独立人工审核。",
-                ],
+                "limitations": self._evidence_limitations(run),
                 "dimensions": [self._snapshot_payload(snapshot) for snapshot in snapshots],
                 "evidence": [
                     {
@@ -1263,6 +1270,79 @@ class LearningExecutionService:
                 "skill_package_not_found",
                 "The requested skill package version is not registered.",
             ) from error
+
+    def _validate_runner_result(
+        self,
+        invocation: dict[str, Any],
+        result: dict[str, Any],
+    ) -> None:
+        errors = sorted(self._runner_result_validator.iter_errors(result), key=str)
+        if errors:
+            raise RunnerProtocolError(errors[0].message)
+        exact_fields = (
+            ("protocol_version", invocation["protocol_version"]),
+            ("audit_id", invocation["audit_id"]),
+            ("artifact_sha256", invocation["artifact_sha256"]),
+        )
+        for field, expected in exact_fields:
+            if result[field] != expected:
+                raise RunnerProtocolError(f"Runner result {field} does not match request")
+        for field in ("id", "version", "image"):
+            if result["runtime"][field] != invocation["runtime"][field]:
+                raise RunnerProtocolError(f"Runner result runtime {field} does not match request")
+        expected_image_id = (
+            "sha256:" + invocation["runtime"]["image"].rsplit("@sha256:", maxsplit=1)[1]
+        )
+        observed_image_id = result["runtime"]["observed_image_id"]
+        if observed_image_id is not None and observed_image_id != expected_image_id:
+            raise RunnerProtocolError(
+                "Runner observed image digest does not match the locked image"
+            )
+        if result["status"] == "passed":
+            if result["failure_code"] is not None:
+                raise RunnerProtocolError("passed Runner result has a failure code")
+            if observed_image_id != expected_image_id:
+                raise RunnerProtocolError(
+                    "passed Runner result lacks the locked observed image digest"
+                )
+            expected_tests = invocation["tests"]
+            actual_tests = result["tests"]
+            if [item["id"] for item in actual_tests] != [item["id"] for item in expected_tests]:
+                raise RunnerProtocolError(
+                    "passed Runner result does not contain the exact requested test set"
+                )
+            for expected, actual in zip(expected_tests, actual_tests, strict=True):
+                if (
+                    actual["status"] != "passed"
+                    or actual["exit_code"] != 0
+                    or actual["output_truncated"]
+                    or self._normalize_runner_output(actual["stdout"])
+                    != self._normalize_runner_output(expected["expected_stdout"])
+                ):
+                    raise RunnerProtocolError("passed Runner result contains an unsuccessful test")
+        elif result["failure_code"] is None:
+            raise RunnerProtocolError("unsuccessful Runner result lacks a failure code")
+
+    @staticmethod
+    def _normalize_runner_output(value: str) -> str:
+        return value.replace("\r\n", "\n").rstrip()
+
+    def _evidence_limitations(self, run: LearningRun) -> list[str]:
+        package = self._package(run.skill_id, run.skill_version)
+        if any(
+            item.get("kind") == "runner_task_definition"
+            for item in package.manifest.get("content_files", [])
+        ):
+            return [
+                "verified 只适用于锁定 Runner、运行时摘要和确定性测试覆盖的对应操作范围。",
+                "retained 只来自延迟的同范围 Runner 复测，不表示永久保持。",
+                "Runner 证据不表示整体掌握、scope_criteria_met、分支自动解锁或 5C 门禁解除。",
+                "用户自评仍不是独立人工审核。",
+            ]
+        return [
+            "4A 不产生 scope_criteria_met、verified 或不受限 retained。",
+            "代码文本未执行，用户自评不是独立人工审核。",
+        ]
 
     def _content(self, package: SkillPackage, kind: str) -> dict[str, Any]:
         key = (package.package_id, package.version, kind)

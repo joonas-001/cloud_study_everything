@@ -218,6 +218,10 @@ class DockerRunnerBackend:
         ).hexdigest()
         if len(invocation["source"]["content"].encode("utf-8")) > OUTPUT_LIMIT_BYTES:
             raise RunnerProtocolError("source exceeds the 64 KiB byte limit")
+        for test in invocation["tests"]:
+            for field in ("stdin", "expected_stdout"):
+                if len(test[field].encode("utf-8")) > OUTPUT_LIMIT_BYTES:
+                    raise RunnerProtocolError(f"test {field} exceeds the 64 KiB byte limit")
         if artifact_sha256 != invocation["artifact_sha256"]:
             raise RunnerProtocolError("source content does not match artifact_sha256")
         if not self._execution_lock.acquire(blocking=False):
@@ -439,12 +443,6 @@ class DockerRunnerBackend:
                 "< /tmp/cloud-study/input.txt",
             ]
         )
-        container_id = self._create_container(
-            docker_path,
-            name,
-            invocation,
-            phase="run",
-        )
         files = {"input.txt": test["stdin"].encode("utf-8")}
         if language == "cpp":
             if compiled is None:
@@ -452,6 +450,12 @@ class DockerRunnerBackend:
             files["main"] = compiled
         else:
             files["main.py"] = invocation["source"]["content"].encode("utf-8")
+        container_id = self._create_container(
+            docker_path,
+            name,
+            invocation,
+            phase="run",
+        )
         started = time.monotonic()
         try:
             self._start_container(docker_path, container_id)
