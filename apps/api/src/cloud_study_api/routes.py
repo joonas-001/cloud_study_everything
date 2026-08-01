@@ -327,7 +327,13 @@ class SubmissionFieldResponse(BaseModel):
 
 class ActivityEvaluationResponse(BaseModel):
     id: str
-    method: Literal["deterministic", "self_review", "review_pending", "not_executable"]
+    method: Literal[
+        "deterministic",
+        "self_review",
+        "review_pending",
+        "not_executable",
+        "runner",
+    ]
     result: Literal[
         "passed",
         "failed",
@@ -341,12 +347,38 @@ class ActivityEvaluationResponse(BaseModel):
     created_at: datetime
 
 
+class RunnerInvocationResponse(BaseModel):
+    id: str
+    protocol_version: str
+    task_id: str
+    runtime_profile_id: str
+    runtime_profile_version: str
+    runtime_image: str
+    artifact_sha256: str
+    request_sha256: str
+    status: Literal[
+        "queued",
+        "running",
+        "passed",
+        "failed",
+        "timeout",
+        "output_limit",
+        "infrastructure_error",
+    ]
+    failure_code: str | None
+    result: dict[str, object] | None
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+
+
 class ActivityAttemptResponse(BaseModel):
     id: str
     revision: int
     submission: dict[str, str]
     corrects_attempt_id: str | None
     evaluations: list[ActivityEvaluationResponse]
+    runner_invocations: list[RunnerInvocationResponse]
     created_at: datetime
 
 
@@ -370,13 +402,19 @@ class LearningActivityResponse(BaseModel):
     estimated_minutes: int
     required: bool
     status: Literal["pending", "available", "completed", "correction_required"]
-    completion_rule: Literal["confirmation", "valid_submission", "deterministic_pass"]
+    completion_rule: Literal[
+        "confirmation",
+        "valid_submission",
+        "deterministic_pass",
+        "runner_pass",
+    ]
     submission_fields: list[SubmissionFieldResponse]
     source_ids: list[str]
     available_at: datetime | None
     overdue: bool
     attempts: list[ActivityAttemptResponse]
     completed_at: datetime | None
+    runner_task_id: str | None
 
 
 class MasteryDimensionResponse(BaseModel):
@@ -388,7 +426,7 @@ class MasteryDimensionResponse(BaseModel):
         "retention",
         "correction",
     ]
-    evidence_level: Literal["none", "limited", "supported"]
+    evidence_level: Literal["none", "limited", "supported", "verified", "retained"]
     review_flags: list[
         Literal[
             "manual_review_pending",
@@ -422,7 +460,7 @@ class LearningRunResponse(BaseModel):
     skill_version: str
     status: Literal["active", "retention_pending", "completed", "ended"]
     is_preview: bool
-    code_execution: Literal["disabled"]
+    code_execution: Literal["disabled", "enabled"]
     external_ai: Literal["disabled"]
     selected_historical_plan: bool
     reused_from_run_id: str | None
@@ -466,6 +504,23 @@ class SubmitActivityAttemptRequest(BaseModel):
 
 
 class ActivityAttemptSubmissionResponse(BaseModel):
+    attempt: ActivityAttemptResponse
+    activity: LearningActivityResponse
+    run: LearningRunResponse
+
+
+class RunnerAvailabilityResponse(BaseModel):
+    available: bool
+    reason_code: str | None
+    docker_path: str | None
+    data_root: str
+    free_gb: float | None
+    used_gb: float | None
+    server_version: str | None = None
+
+
+class ExecuteRunnerAttemptResponse(BaseModel):
+    invocation: RunnerInvocationResponse
     attempt: ActivityAttemptResponse
     activity: LearningActivityResponse
     run: LearningRunResponse
@@ -1471,6 +1526,33 @@ def submit_learning_activity_attempt(
     except LearningExecutionError as error:
         _raise_service_http(error)
     return ActivityAttemptSubmissionResponse.model_validate(result)
+
+
+@router.get(
+    "/runner/availability",
+    response_model=RunnerAvailabilityResponse,
+    tags=["runner-4b"],
+)
+def get_runner_availability(
+    service: LearningExecutionServiceDependency,
+) -> RunnerAvailabilityResponse:
+    return RunnerAvailabilityResponse.model_validate(service.runner_availability())
+
+
+@router.post(
+    "/activity-attempts/{attempt_id}/execute",
+    response_model=ExecuteRunnerAttemptResponse,
+    tags=["runner-4b"],
+)
+def execute_runner_attempt(
+    attempt_id: str,
+    service: LearningExecutionServiceDependency,
+) -> ExecuteRunnerAttemptResponse:
+    try:
+        result = service.execute_attempt(attempt_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return ExecuteRunnerAttemptResponse.model_validate(result)
 
 
 @router.post(

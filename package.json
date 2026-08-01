@@ -24,6 +24,9 @@
     "check:assessment": "uv run --project apps/api --locked python tools/repo_checks.py assessment",
     "check:review-policy": "uv run --project apps/api --locked python tools/repo_checks.py review-policy",
     "check:mastery-policy": "uv run --project apps/api --locked python tools/repo_checks.py mastery-policy",
+    "check:runner-contract": "uv run --project apps/api --locked python tools/repo_checks.py runner-contract",
+    "check:runner-security": "uv run --project apps/api --locked python tools/repo_checks.py runner-security",
+    "check:runner-live": "uv run --project apps/api --locked python tools/verify_runner_live.py",
     "check:market-sources": "uv run --project apps/api --locked python tools/repo_checks.py market-sources",
     "check:monetization-policy": "uv run --project apps/api --locked python tools/repo_checks.py monetization-policy",
     "check:external-call-boundary": "uv run --project apps/api --locked python tools/repo_checks.py external-call-boundary",
@@ -34,6 +37,6 @@
     "check:contract-drift": "uv run --project apps/api --locked python tools/generate_contracts.py --check",
     "check:secrets": "uv run --project apps/api --locked python tools/repo_checks.py secrets",
     "generate:contracts": "uv run --project apps/api --locked python tools/generate_contracts.py",
-    "release-readiness": "pnpm check:markdown && pnpm check:structure && pnpm check:registry && pnpm check:manifest && pnpm check:dependencies && pnpm check:sources && pnpm check:planning && pnpm check:learning-content && pnpm check:assessment && pnpm check:review-policy && pnpm check:mastery-policy && pnpm check:market-sources && pnpm check:monetization-policy && pnpm check:external-call-boundary && pnpm check:contracts && pnpm check:api && pnpm check:web && pnpm check:e2e && pnpm check:contract-drift && pnpm check:secrets"
+    "release-readiness": "pnpm check:markdown && pnpm check:structure && pnpm check:registry && pnpm check:manifest && pnpm check:dependencies && pnpm check:sources && pnpm check:planning && pnpm check:learning-content && pnpm check:assessment && pnpm check:review-policy && pnpm check:mastery-policy && pnpm check:runner-contract && pnpm check:runner-security && pnpm check:market-sources && pnpm check:monetization-policy && pnpm check:external-call-boundary && pnpm check:contracts && pnpm check:api && pnpm check:web && pnpm check:e2e && pnpm check:contract-drift && pnpm check:secrets"
   }
 }

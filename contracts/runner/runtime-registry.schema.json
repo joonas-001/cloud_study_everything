@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/runner/runtime-registry.schema.json",
+  "title": "Managed runner runtime registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_version", "data_root", "disk_budget_gb", "minimum_free_gb", "profiles"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "registry_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "data_root": {
+      "const": "D:\\CloudStudy\\DockerData"
+    },
+    "disk_budget_gb": {
+      "const": 6
+    },
+    "minimum_free_gb": {
+      "const": 8
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "language",
+          "tool_version",
+          "platform",
+          "image",
+          "source",
+          "retrieved_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+          },
+          "language": {
+            "enum": ["cpp", "python"]
+          },
+          "tool_version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platform": {
+            "const": "linux/amd64"
+          },
+          "image": {
+            "type": "string",
+            "pattern": "^[a-z0-9._/-]+@sha256:[a-f0-9]{64}$"
+          },
+          "source": {
+            "type": "string",
+            "format": "uri"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}

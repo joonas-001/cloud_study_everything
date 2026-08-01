@@ -1,0 +1,82 @@
+schema_version: 1.0.0
+id: algorithm-entry-diagnostic
+skill_id: algorithm
+skill_version: 0.2.1
+start_question_id: programming-foundation
+questions:
+  - id: programming-foundation
+    prompt: 你目前能否不依赖逐行示例，独立使用变量、条件、循环、函数和数组完成一个小程序？
+    reason: 这个结构化信号决定是否先安排编程表达补救活动；它只是起点信号，不是能力证明。
+    response_type: single_choice
+    options:
+      - value: needs-foundation
+        label: 还不能，需要系统补基础
+      - value: guided-practice
+        label: 在提示或示例下可以完成
+      - value: independent-small-program
+        label: 可以独立完成简单程序
+    transitions:
+      answered: math-foundation
+      skipped: math-foundation
+      uncertain: math-foundation
+  - id: math-foundation
+    prompt: 对函数增长、对数、逻辑命题和简单求和，你目前最接近哪种状态？
+    reason: 算法分析依赖这些数学语言；结构化回答用于选择补救活动，不能直接证明数学能力。
+    response_type: single_choice
+    options:
+      - value: needs-math-foundation
+        label: 大部分不熟悉
+      - value: partial-math-foundation
+        label: 有印象但不会稳定使用
+      - value: usable-math-foundation
+        label: 能用于简单复杂度解释
+    transitions:
+      answered: complexity-order
+      skipped: complexity-order
+      uncertain: complexity-order
+  - id: complexity-order
+    prompt: 当 n 足够大时，下列从增长较慢到较快的顺序是哪一个？
+    reason: 这是可确定性检查的诊断信号，用于决定是否加入复杂度语言补救，不用于生成掌握证据。
+    response_type: single_choice
+    options:
+      - value: n-nlogn-n2
+        label: O(n)、O(n log n)、O(n²)
+      - value: nlogn-n-n2
+        label: O(n log n)、O(n)、O(n²)
+      - value: n2-nlogn-n
+        label: O(n²)、O(n log n)、O(n)
+    transitions:
+      answered: structure-choice
+      skipped: structure-choice
+      uncertain: structure-choice
+  - id: structure-choice
+    prompt: 如果主要操作是按下标读取第 i 个元素，通常应优先选择哪种结构？
+    reason: 这个确定性信号用于判断是否需要先补连续存储与链式结构的基本取舍。
+    response_type: single_choice
+    options:
+      - value: array
+        label: 数组或动态数组
+      - value: linked-list
+        label: 单向链表
+      - value: no-difference
+        label: 两者没有差别
+    transitions:
+      answered: code-reading
+      skipped: code-reading
+      uncertain: code-reading
+  - id: code-reading
+    prompt: 请写出遍历整数数组并返回最大值的 C++ 或 Python 代码。诊断回答仍只保存文本，不执行。
+    reason: 用低风险代码文本观察语法表达和边界意识；4A 不会自动判断代码是否正确。
+    response_type: code_text
+    transitions:
+      answered: learning-goals
+      skipped: learning-goals
+      uncertain: learning-goals
+  - id: learning-goals
+    prompt: 请说明工程应用、求职面试、算法竞赛和算法理论中你当前最想优先改善的方向及原因。
+    reason: 共同主干入口保持一致，但记录真实目标有助于后续版本选择练习语境。
+    response_type: free_text
+    transitions:
+      answered: null
+      skipped: null
+      uncertain: null

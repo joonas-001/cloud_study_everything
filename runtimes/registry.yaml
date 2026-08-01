@@ -1,0 +1,22 @@
+schema_version: 1.0.0
+registry_version: 1.0.0
+data_root: 'D:\CloudStudy\DockerData'
+disk_budget_gb: 6
+minimum_free_gb: 8
+profiles:
+  - id: cpp-gcc-15-2
+    version: 1.0.0
+    language: cpp
+    tool_version: 15.2.0
+    platform: linux/amd64
+    image: gcc@sha256:c101370f78e4a30be178c11dd18aeee64c65d617908a98157db2392ca73ab04f
+    source: https://hub.docker.com/v2/repositories/library/gcc/tags/15.2.0
+    retrieved_at: "2026-08-01"
+  - id: python-3-14-3
+    version: 1.0.0
+    language: python
+    tool_version: 3.14.3
+    platform: linux/amd64
+    image: python@sha256:843ef86c4efef6d065c1767855730cc974e4998e66d65d6739449f0bc0ae4d93
+    source: https://hub.docker.com/v2/repositories/library/python/tags/3.14.3
+    retrieved_at: "2026-08-01"

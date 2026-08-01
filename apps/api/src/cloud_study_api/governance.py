@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
@@ -150,6 +150,7 @@ def _validate_learning_content(
     package_version: str,
     known_source_ids: set[str],
     diagnostic: dict[str, Any] | None,
+    manifest_runtime_profiles: list[dict[str, str]],
 ) -> None:
     required_kinds = {
         "learning_definition": "learning-definition.schema.json",
@@ -157,6 +158,9 @@ def _validate_learning_content(
         "rubric_definition": "rubric-definition.schema.json",
         "review_policy": "review-policy.schema.json",
         "mastery_scope": "mastery-scope.schema.json",
+    }
+    optional_kinds = {
+        "runner_task_definition": "runner-task-definition.schema.json",
     }
     present = required_kinds.keys() & documents.keys()
     if not present:
@@ -167,6 +171,15 @@ def _validate_learning_content(
             f"{package_id}@{package_version}: learning content is incomplete; missing {missing}"
         )
     for kind, schema_name in required_kinds.items():
+        document = documents[kind]
+        _validate_with_schema(document, schema_root / schema_name, labels[kind])
+        if document["skill_id"] != package_id or document["skill_version"] != package_version:
+            raise RepositoryValidationError(
+                f"{labels[kind]}: skill_id and skill_version must match the package manifest"
+            )
+    for kind, schema_name in optional_kinds.items():
+        if kind not in documents:
+            continue
         document = documents[kind]
         _validate_with_schema(document, schema_root / schema_name, labels[kind])
         if document["skill_id"] != package_id or document["skill_version"] != package_version:
@@ -218,6 +231,47 @@ def _validate_learning_content(
     if len(activity_ids) != len(set(activity_ids)):
         raise RepositoryValidationError(f"{labels['learning_definition']}: duplicate activity id")
     known_activity_ids = set(activity_ids)
+    runner_task_definition = documents.get("runner_task_definition")
+    runner_tasks = runner_task_definition["tasks"] if runner_task_definition else []
+    runner_task_ids = [task["id"] for task in runner_tasks]
+    if len(runner_task_ids) != len(set(runner_task_ids)):
+        raise RepositoryValidationError(
+            f"{labels.get('runner_task_definition', package_id)}: duplicate Runner task id"
+        )
+    runner_tasks_by_activity = {task["activity_id"]: task for task in runner_tasks}
+    if len(runner_tasks_by_activity) != len(runner_tasks):
+        raise RepositoryValidationError(
+            f"{labels.get('runner_task_definition', package_id)}: only one Runner task may govern "
+            "an activity"
+        )
+    manifest_profiles = {
+        (profile["id"], profile["version"]) for profile in manifest_runtime_profiles
+    }
+    for task in runner_tasks:
+        test_ids = [test["id"] for test in task["tests"]]
+        if len(test_ids) != len(set(test_ids)):
+            raise RepositoryValidationError(
+                f"{labels['runner_task_definition']}: task {task['id']} has duplicate test ids"
+            )
+        if (
+            task["runtime_profile_id"],
+            task["runtime_profile_version"],
+        ) not in manifest_profiles:
+            raise RepositoryValidationError(
+                f"{labels['runner_task_definition']}: task {task['id']} references a runtime "
+                "not locked by the package manifest"
+            )
+        for test in task["tests"]:
+            if len(test["stdin"].encode("utf-8")) > 65536:
+                raise RepositoryValidationError(
+                    f"{labels['runner_task_definition']}: test {test['id']} input exceeds "
+                    "the 64 KiB byte limit"
+                )
+            if len(test["expected_stdout"].encode("utf-8")) > 65536:
+                raise RepositoryValidationError(
+                    f"{labels['runner_task_definition']}: test {test['id']} expected output "
+                    "exceeds the 64 KiB byte limit"
+                )
     for activity in learning["activities"]:
         if activity["unit_id"] not in known_unit_ids:
             raise RepositoryValidationError(
@@ -251,6 +305,30 @@ def _validate_learning_content(
                 f"{labels['learning_definition']}: non-deterministic activity "
                 f"{activity['id']} declares a check"
             )
+        runner_task_id = activity.get("runner_task_id")
+        if activity["completion_rule"] == "runner_pass":
+            task = runner_tasks_by_activity.get(activity["id"])
+            if task is None or runner_task_id != task["id"]:
+                raise RepositoryValidationError(
+                    f"{labels['learning_definition']}: Runner activity {activity['id']} must "
+                    "reference its governed task"
+                )
+            if task["source_field_id"] not in set(field_ids):
+                raise RepositoryValidationError(
+                    f"{labels['runner_task_definition']}: task {task['id']} source field does "
+                    "not exist"
+                )
+        elif runner_task_id is not None:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: non-Runner activity {activity['id']} "
+                "declares runner_task_id"
+            )
+    unknown_runner_activities = set(runner_tasks_by_activity) - known_activity_ids
+    if unknown_runner_activities:
+        raise RepositoryValidationError(
+            f"{labels['runner_task_definition']}: tasks reference unknown activities "
+            f"{sorted(unknown_runner_activities)}"
+        )
 
     known_question_ids = (
         {question["id"] for question in diagnostic["questions"]} if diagnostic else set()
@@ -304,6 +382,25 @@ def _validate_learning_content(
                 f"{labels['assessment_definition']}: criterion {criterion['id']} references "
                 f"unknown rubric {self_review_rubric_id}"
             )
+        if criterion["evaluation_method"] == "runner":
+            activity = next(
+                item for item in learning["activities"] if item["id"] == criterion["activity_id"]
+            )
+            if activity["completion_rule"] != "runner_pass":
+                raise RepositoryValidationError(
+                    f"{labels['assessment_definition']}: Runner criterion {criterion['id']} "
+                    "must reference a Runner activity"
+                )
+            if criterion["evidence_strength"] not in {"verified", "retained"}:
+                raise RepositoryValidationError(
+                    f"{labels['assessment_definition']}: Runner criterion {criterion['id']} "
+                    "must use scoped Runner evidence"
+                )
+        elif criterion["evidence_strength"] in {"verified", "retained"}:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: scoped Runner evidence requires Runner "
+                f"evaluation for {criterion['id']}"
+            )
 
     review = documents["review_policy"]
     intervals = review["interval_days"]
@@ -337,11 +434,22 @@ def _validate_learning_content(
         raise RepositoryValidationError(
             f"{labels['mastery_scope']}: all six mastery dimensions are required"
         )
-    if {"verified", "retained", "mastered", "scope_criteria_met"} - set(
-        mastery["prohibited_claims"]
-    ):
+    required_prohibitions = {"mastered", "scope_criteria_met"}
+    if not runner_tasks:
+        required_prohibitions |= {"verified", "retained"}
+    if required_prohibitions - set(mastery["prohibited_claims"]):
         raise RepositoryValidationError(
-            f"{labels['mastery_scope']}: 4A prohibited claims are incomplete"
+            f"{labels['mastery_scope']}: required prohibited claims are incomplete"
+        )
+    runner_levels = {"verified", "retained"}
+    allowed_levels = set(mastery["allowed_evidence_levels"])
+    if runner_tasks and not runner_levels <= allowed_levels:
+        raise RepositoryValidationError(
+            f"{labels['mastery_scope']}: Runner packages must declare scoped Runner evidence"
+        )
+    if not runner_tasks and runner_levels & allowed_levels:
+        raise RepositoryValidationError(
+            f"{labels['mastery_scope']}: non-Runner packages cannot allow Runner evidence"
         )
 
 
@@ -447,6 +555,7 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 "rubric_definition",
                 "review_policy",
                 "mastery_scope",
+                "runner_task_definition",
             }:
                 learning_documents[content["kind"]] = _load_yaml(content_path)
                 learning_labels[content["kind"]] = str(content_path)
@@ -475,6 +584,7 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
             entry["version"],
             known_source_ids,
             diagnostic_definition,
+            cast(list[dict[str, str]], manifest.get("runtime_profiles", [])),
         )
 
         packages.append(
