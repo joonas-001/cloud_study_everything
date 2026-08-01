@@ -93,6 +93,22 @@ jobs:
       - uses: ./.github/actions/setup-project
       - run: pnpm check:mastery-policy
 
+  runner_contract:
+    name: runner-contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:runner-contract
+
+  runner_security:
+    name: runner-security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:runner-security
+
   market_sources:
     name: market-sources
     runs-on: ubuntu-latest
@@ -172,6 +188,8 @@ jobs:
       - assessment_contract
       - review_policy
       - mastery_policy
+      - runner_contract
+      - runner_security
       - market_sources
       - monetization_policy
       - external_call_boundary
@@ -195,6 +213,8 @@ jobs:
           test "${{ needs.assessment_contract.result }}" = "success"
           test "${{ needs.review_policy.result }}" = "success"
           test "${{ needs.mastery_policy.result }}" = "success"
+          test "${{ needs.runner_contract.result }}" = "success"
+          test "${{ needs.runner_security.result }}" = "success"
           test "${{ needs.market_sources.result }}" = "success"
           test "${{ needs.monetization_policy.result }}" = "success"
           test "${{ needs.external_call_boundary.result }}" = "success"

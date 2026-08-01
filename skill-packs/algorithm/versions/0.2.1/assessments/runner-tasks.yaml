@@ -1,0 +1,62 @@
+schema_version: 1.0.0
+id: algorithm-entry-runner-tasks
+skill_id: algorithm
+skill_version: 0.2.1
+tasks:
+  - id: max-index-cpp-v1
+    activity_id: checkpoint-cpp-code
+    runtime_profile_id: cpp-gcc-15-2
+    runtime_profile_version: 1.0.0
+    language: cpp
+    source_field_id: code
+    tests:
+      - id: empty-input
+        stdin: "0\n"
+        expected_stdout: "EMPTY\n"
+        purpose: 验证空输入约定。
+      - id: duplicate-maximum
+        stdin: "5\n1 4 4 -2 3\n"
+        expected_stdout: "4 1\n"
+        purpose: 验证重复最大值时返回首次出现的下标。
+      - id: single-negative
+        stdin: "1\n-7\n"
+        expected_stdout: "-7 0\n"
+        purpose: 验证单元素负数输入。
+  - id: max-index-python-v1
+    activity_id: checkpoint-python-code
+    runtime_profile_id: python-3-14-3
+    runtime_profile_version: 1.0.0
+    language: python
+    source_field_id: code
+    tests:
+      - id: empty-input
+        stdin: "0\n"
+        expected_stdout: "EMPTY\n"
+        purpose: 验证空输入约定。
+      - id: duplicate-maximum
+        stdin: "5\n1 4 4 -2 3\n"
+        expected_stdout: "4 1\n"
+        purpose: 验证重复最大值时返回首次出现的下标。
+      - id: single-negative
+        stdin: "1\n-7\n"
+        expected_stdout: "-7 0\n"
+        purpose: 验证单元素负数输入。
+  - id: max-index-retention-cpp-v1
+    activity_id: retention-review-template
+    runtime_profile_id: cpp-gcc-15-2
+    runtime_profile_version: 1.0.0
+    language: cpp
+    source_field_id: code
+    tests:
+      - id: empty-input
+        stdin: "0\n"
+        expected_stdout: "EMPTY\n"
+        purpose: 延迟复测空输入约定。
+      - id: duplicate-maximum
+        stdin: "5\n1 4 4 -2 3\n"
+        expected_stdout: "4 1\n"
+        purpose: 延迟复测重复最大值的首次下标。
+      - id: single-negative
+        stdin: "1\n-7\n"
+        expected_stdout: "-7 0\n"
+        purpose: 延迟复测单元素负数输入。

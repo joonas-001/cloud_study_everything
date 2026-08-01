@@ -7,16 +7,20 @@ import type {
   LearningEvidenceResponse,
   LearningRunResponse,
   PlanningOptionResponse,
+  RunnerAvailabilityResponse,
+  RunnerInvocationResponse,
   TodayLearningResponse,
 } from "@/generated/api-schema";
 import {
   correctLearningActivityAttempt,
   createLearningRun,
   endLearningRun,
+  executeRunnerAttempt,
   generateTodayLearning,
   getLearningEvidence,
   getLearningPlanOptions,
   getLatestLearningRun,
+  getRunnerAvailability,
   messageForError,
   selfReviewActivityAttempt,
   submitLearningActivityAttempt,
@@ -40,6 +44,8 @@ const evidenceLabels: Record<string, string> = {
   none: "尚无证据",
   limited: "有限证据",
   supported: "确定性支持",
+  verified: "Runner 范围验证",
+  retained: "延迟 Runner 保持证据",
 };
 
 const flagLabels: Record<string, string> = {
@@ -47,6 +53,26 @@ const flagLabels: Record<string, string> = {
   retention_due: "待延迟复习",
   source_review_pending: "来源待复核",
 };
+
+const runnerReasonLabels: Record<string, string> = {
+  docker_unavailable: "尚未安装 Docker Desktop",
+  docker_daemon_unavailable: "Docker Desktop 服务未就绪",
+  runner_disk_budget_unavailable: "D 盘剩余空间低于安全门槛",
+  runner_disk_budget_exceeded: "Runner 数据已超过 6 GB 预算",
+};
+
+function runnerTests(
+  invocation: RunnerInvocationResponse,
+): Array<Record<string, unknown>> {
+  const tests = invocation.result?.tests;
+  if (!Array.isArray(tests)) {
+    return [];
+  }
+  return tests.filter(
+    (item): item is Record<string, unknown> =>
+      typeof item === "object" && item !== null,
+  );
+}
 
 function selfReviewRubric(activity: LearningActivityResponse): string | null {
   if (activity.template_activity_id === "checkpoint-explanation") {
@@ -69,11 +95,14 @@ export function LearningExecutionPanel({
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [confirmHistorical, setConfirmHistorical] = useState(false);
   const [confirmReuse, setConfirmReuse] = useState(false);
+  const [confirmCodeExecution, setConfirmCodeExecution] = useState(false);
   const [run, setRun] = useState<LearningRunResponse | null>(null);
   const [today, setToday] = useState<TodayLearningResponse | null>(null);
   const [evidence, setEvidence] = useState<LearningEvidenceResponse | null>(
     null,
   );
+  const [runnerAvailability, setRunnerAvailability] =
+    useState<RunnerAvailabilityResponse | null>(null);
   const [availableMinutes, setAvailableMinutes] = useState(120);
   const [selectedActivityId, setSelectedActivityId] = useState("");
   const [submission, setSubmission] = useState<Record<string, string>>({});
@@ -85,8 +114,9 @@ export function LearningExecutionPanel({
     Promise.all([
       getLearningPlanOptions(skillId, skillVersion),
       getLatestLearningRun(skillId, skillVersion),
+      getRunnerAvailability(),
     ])
-      .then(([nextPlans, nextRun]) => {
+      .then(([nextPlans, nextRun, nextRunnerAvailability]) => {
         if (!active) {
           return;
         }
@@ -98,6 +128,7 @@ export function LearningExecutionPanel({
             : nextPlans[0]?.id ?? "",
         );
         setRun(nextRun);
+        setRunnerAvailability(nextRunnerAvailability);
         if (nextRun) {
           return getLearningEvidence(nextRun.id).then((nextEvidence) => {
             if (active) {
@@ -136,6 +167,8 @@ export function LearningExecutionPanel({
     availableActivities.find((item) => item.id === selectedActivityId) ??
     availableActivities[0] ??
     null;
+  const latestAttempt =
+    selectedActivity?.attempts[selectedActivity.attempts.length - 1] ?? null;
 
   async function execute(action: () => Promise<void>) {
     setBusy(true);
@@ -163,7 +196,7 @@ export function LearningExecutionPanel({
       const created = await createLearningRun({
         planning_proposal_id: selectedPlan.id,
         preview: true,
-        code_execution: false,
+        code_execution: confirmCodeExecution,
         external_ai: false,
         confirm_historical_plan: !selectedPlan.is_historical || confirmHistorical,
         reuse_from_run_id: reusable?.id ?? null,
@@ -173,6 +206,18 @@ export function LearningExecutionPanel({
       setToday(null);
       setEvidence(await getLearningEvidence(created.id));
       setConfirmReuse(false);
+    });
+  }
+
+  function runLatestAttempt() {
+    if (!run || !latestAttempt) {
+      return;
+    }
+    void execute(async () => {
+      const result = await executeRunnerAttempt(latestAttempt.id);
+      setRun(result.run);
+      setToday(null);
+      setEvidence(await getLearningEvidence(result.run.id));
     });
   }
 
@@ -257,15 +302,21 @@ export function LearningExecutionPanel({
       <header className="execution-header">
         <div>
           <span className="preview-badge">
-            algorithm@{skillVersion} · 4A 受限执行
+            algorithm@{skillVersion} · 4B 隔离运行
           </span>
           <h2>学习执行与证据</h2>
           <p>
-            所有提交只保存在本地。代码文本不执行，完成活动不等于内容正确或已经掌握。
+            代码仅在锁定镜像的本地隔离容器中按确定性测试运行。通过只证明对应任务范围，不等于整体掌握。
           </p>
         </div>
         <div className="execution-guardrails">
-          <span>代码执行：关闭</span>
+          <span>
+            Runner：
+            {runnerAvailability?.available
+              ? "本地可用"
+              : runnerReasonLabels[runnerAvailability?.reason_code ?? ""] ??
+                "不可用"}
+          </span>
           <span>外部 AI：关闭</span>
           <span>文件上传：关闭</span>
         </div>
@@ -326,6 +377,22 @@ export function LearningExecutionPanel({
               我理解这份规划早于最新诊断或规划，仍明确选择它。
             </label>
           ) : null}
+          <label className="confirmation-row">
+            <input
+              type="checkbox"
+              checked={confirmCodeExecution}
+              disabled={busy}
+              onChange={(event) =>
+                setConfirmCodeExecution(event.target.checked)
+              }
+            />
+            我确认本次执行会把代码发送到本机 Docker 隔离 Runner；不上传文件、不读取任意本地路径、不访问网络。
+          </label>
+          <p className="muted">
+            数据根目录：{runnerAvailability?.data_root ?? "正在读取"}；占用{" "}
+            {runnerAvailability?.used_gb ?? "未知"} GB；D 盘剩余{" "}
+            {runnerAvailability?.free_gb ?? "未知"} GB。
+          </p>
           {run &&
           ["completed", "ended"].includes(run.status) &&
           run.planning_proposal_id === selectedPlanId ? (
@@ -345,6 +412,7 @@ export function LearningExecutionPanel({
             disabled={
               busy ||
               !selectedPlan ||
+              !confirmCodeExecution ||
               (selectedPlan.is_historical && !confirmHistorical) ||
               Boolean(
                 run &&
@@ -456,7 +524,9 @@ export function LearningExecutionPanel({
                   {selectedActivity.type === "code_text" ||
                   selectedActivity.type === "project_evidence" ? (
                     <div className="code-warning">
-                      代码仅作为不可信文本保存，不会编译、运行或发送给外部 AI。
+                      {selectedActivity.runner_task_id
+                        ? "代码先作为不可信文本保存；只有点击隔离运行后才会进入断网、非 root、只读根文件系统的本地容器。"
+                        : "这段代码仅作为不可信作品文本保存，不会执行或发送给外部 AI。"}
                     </div>
                   ) : null}
                   <div className="submission-fields">
@@ -526,7 +596,9 @@ export function LearningExecutionPanel({
                     >
                       {selectedActivity.status === "correction_required"
                         ? "提交追加修正"
-                        : "提交并继续"}
+                        : selectedActivity.runner_task_id
+                          ? "保存代码提交"
+                          : "提交并继续"}
                     </button>
                     {selectedActivity.completion_rule ===
                     "deterministic_pass" ? (
@@ -540,6 +612,54 @@ export function LearningExecutionPanel({
                       </button>
                     ) : null}
                   </div>
+                  {selectedActivity.runner_task_id && latestAttempt ? (
+                    <section className="runner-result" aria-live="polite">
+                      <div className="answer-actions">
+                        <button
+                          className="primary-button"
+                          type="button"
+                          disabled={busy || !runnerAvailability?.available}
+                          onClick={runLatestAttempt}
+                        >
+                          在隔离容器中运行最新提交
+                        </button>
+                        {!runnerAvailability?.available ? (
+                          <span>
+                            {runnerReasonLabels[
+                              runnerAvailability?.reason_code ?? ""
+                            ] ?? "Runner 当前不可用"}
+                          </span>
+                        ) : null}
+                      </div>
+                      {latestAttempt.runner_invocations.map((invocation) => (
+                        <article key={invocation.id}>
+                          <strong>
+                            {invocation.task_id} · {invocation.status}
+                          </strong>
+                          <small>
+                            {invocation.runtime_profile_id}@
+                            {invocation.runtime_profile_version} · 制品摘要{" "}
+                            {invocation.artifact_sha256.slice(0, 16)}…
+                          </small>
+                          {invocation.failure_code ? (
+                            <p>失败码：{invocation.failure_code}</p>
+                          ) : null}
+                          {runnerTests(invocation).map((test, index) => (
+                            <div key={`${invocation.id}:${String(test.id ?? index)}`}>
+                              <strong>
+                                {String(test.id ?? "test")} ·{" "}
+                                {String(test.status ?? "unknown")}
+                              </strong>
+                              <span>标准输出</span>
+                              <pre>{String(test.stdout ?? "")}</pre>
+                              <span>标准错误</span>
+                              <pre>{String(test.stderr ?? "")}</pre>
+                            </div>
+                          ))}
+                        </article>
+                      ))}
+                    </section>
+                  ) : null}
                 </article>
               ) : null}
             </section>
@@ -581,8 +701,8 @@ export function LearningExecutionPanel({
               ))}
             </div>
             <p>
-              4A 不会生成 scope_criteria_met、verified、不受限 retained
-              或“已经掌握”状态。
+              verified 只来自锁定 Runner 任务；retained 只来自延迟后的同范围 Runner
+              复测。两者都不会生成 scope_criteria_met、“已经掌握”或自动解锁 5C。
             </p>
           </section>
 

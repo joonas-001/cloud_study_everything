@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import subprocess
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -35,12 +37,20 @@ from cloud_study_api.models import (
     PlanningProposal,
     PlanningUnit,
     ReviewTask,
+    RunnerInvocation,
     SourceChangeCandidate,
     utc_now,
 )
+from cloud_study_api.runner import (
+    RUNNER_PROTOCOL_VERSION,
+    DockerRunnerBackend,
+    RunnerBackend,
+    RunnerCleanupError,
+    RunnerProtocolError,
+    RuntimeRegistry,
+)
 
-ENGINE_PROTOCOL_VERSION = "0.2.0"
-RUNNER_PROTOCOL_VERSION = "1.0.0"
+ENGINE_PROTOCOL_VERSION = "0.3.0"
 MASTERY_DIMENSIONS = (
     "understanding",
     "operation",
@@ -49,7 +59,13 @@ MASTERY_DIMENSIONS = (
     "retention",
     "correction",
 )
-EVIDENCE_RANK = {"limited": 1, "supported": 2, "retained_limited": 1}
+EVIDENCE_RANK = {
+    "limited": 1,
+    "retained_limited": 1,
+    "supported": 2,
+    "verified": 3,
+    "retained": 4,
+}
 
 
 class LearningExecutionError(RuntimeError):
@@ -76,6 +92,7 @@ class LearningExecutionService:
         repository_root: Path,
         packages: list[SkillPackage],
         session_factory: sessionmaker[Session],
+        runner_backend: RunnerBackend | None = None,
         now: Callable[[], datetime] = utc_now,
     ) -> None:
         self._repository_root = repository_root
@@ -83,6 +100,8 @@ class LearningExecutionService:
         self._packages = {(package.package_id, package.version): package for package in packages}
         self._session_factory = session_factory
         self._now = now
+        self._runner_backend = runner_backend or DockerRunnerBackend(repository_root)
+        self._runtime_registry = RuntimeRegistry(repository_root)
         self._content_cache: dict[tuple[str, str, str], dict[str, Any]] = {}
 
     def list_planning_options(
@@ -143,12 +162,6 @@ class LearningExecutionService:
                 "learning_requires_preview",
                 "The draft package only supports local preview learning runs.",
             )
-        if code_execution:
-            raise LearningExecutionError(
-                409,
-                "code_execution_disabled",
-                "Code execution is disabled in milestone 4A.",
-            )
         if external_ai:
             raise LearningExecutionError(
                 409,
@@ -171,6 +184,19 @@ class LearningExecutionService:
                     "Only a saved planning preview can create a learning run.",
                 )
             package = self._package(proposal.skill_id, proposal.skill_version)
+            runner_enabled = bool(package.manifest["runtime_profiles"])
+            if runner_enabled and not code_execution:
+                raise LearningExecutionError(
+                    409,
+                    "code_execution_confirmation_required",
+                    "Explicitly confirm isolated code execution for this 4B learning run.",
+                )
+            if code_execution and not runner_enabled:
+                raise LearningExecutionError(
+                    409,
+                    "code_execution_not_supported",
+                    "The selected immutable package version does not declare Runner runtimes.",
+                )
             if package.availability != "available":
                 raise LearningExecutionError(
                     409,
@@ -305,8 +331,13 @@ class LearningExecutionService:
                 "mastery_scope_sha256": sha256_json(mastery_scope),
                 "engine_protocol_version": ENGINE_PROTOCOL_VERSION,
                 "runner_protocol_version": RUNNER_PROTOCOL_VERSION,
+                "runtime_registry_version": self._runtime_registry.registry["registry_version"],
+                "runtime_profiles": [
+                    self._runtime_registry.get(item["id"], item["version"])
+                    for item in package.manifest["runtime_profiles"]
+                ],
                 "capabilities": {
-                    "code_execution": "disabled",
+                    "code_execution": "enabled" if runner_enabled else "disabled",
                     "external_ai": "disabled",
                     "file_upload": "disabled",
                     "local_path_access": "disabled",
@@ -377,7 +408,7 @@ class LearningExecutionService:
                     "diagnostic_session_id": diagnostic.id,
                     "historical_plan_selected": historical,
                     "reused_from_run_id": reused_from.id if reused_from else None,
-                    "code_execution": "disabled",
+                    "code_execution": "enabled" if runner_enabled else "disabled",
                     "external_ai": "disabled",
                 },
                 now,
@@ -623,7 +654,14 @@ class LearningExecutionService:
                 "review_pending",
                 "not_executable",
             }
-            if activity.activity_type == "review" and review_task is not None:
+            if (
+                activity.activity_type == "review"
+                and review_task is not None
+                and definition["completion_rule"] == "runner_pass"
+            ):
+                activity.status = "available"
+                activity.completed_at = None
+            elif activity.activity_type == "review" and review_task is not None:
                 activity.status = "completed"
                 activity.completed_at = now
                 if successful and result == "passed":
@@ -646,6 +684,8 @@ class LearningExecutionService:
                     activity.status = "correction_required"
             elif definition["completion_rule"] == "deterministic_pass" and result != "passed":
                 activity.status = "correction_required"
+            elif definition["completion_rule"] == "runner_pass":
+                activity.status = "available"
             else:
                 activity.status = "completed"
                 activity.completed_at = now
@@ -670,6 +710,309 @@ class LearningExecutionService:
             return {
                 "attempt": self._attempt_payload(database, attempt),
                 "activity": self._activity_payload(database, activity, now),
+                "run": self._run_payload(database, run),
+            }
+
+    def runner_availability(self) -> dict[str, Any]:
+        return self._runner_backend.availability()
+
+    def recover_stale_runner_invocations(self) -> int:
+        now = self._now()
+        with self._session_factory() as database:
+            stale = database.scalars(
+                select(RunnerInvocation).where(RunnerInvocation.status.in_(["queued", "running"]))
+            ).all()
+            if stale:
+                self._runner_backend.cleanup_stale()
+            for item in stale:
+                item.status = "infrastructure_error"
+                item.failure_code = "cleanup_failed"
+                item.finished_at = now
+                item.result_json = None
+                self._event(
+                    database,
+                    item.run_id,
+                    "runner_invocation_recovered",
+                    {
+                        "invocation_id": item.id,
+                        "reason": "api_restart_before_terminal_result",
+                    },
+                    now,
+                )
+            database.commit()
+        return len(stale)
+
+    def execute_attempt(self, attempt_id: str) -> dict[str, Any]:
+        now = self._now()
+        with self._session_factory() as database:
+            attempt = database.get(ActivityAttempt, attempt_id)
+            if attempt is None:
+                raise LearningExecutionError(
+                    404,
+                    "activity_attempt_not_found",
+                    "Activity attempt not found.",
+                )
+            activity = database.get(LearningActivity, attempt.activity_id)
+            if activity is None:
+                raise LearningExecutionError(
+                    409,
+                    "learning_activity_not_found",
+                    "Learning activity not found.",
+                )
+            run = self._run(database, activity.run_id)
+            if run.status not in {"active", "retention_pending"}:
+                raise LearningExecutionError(
+                    409,
+                    "learning_run_read_only",
+                    "Terminal learning runs are read-only.",
+                )
+            definition = cast(dict[str, Any], json.loads(activity.definition_json))
+            task_id = definition.get("runner_task_id")
+            if not isinstance(task_id, str):
+                raise LearningExecutionError(
+                    409,
+                    "runner_task_unavailable",
+                    "This activity does not declare a governed Runner task.",
+                )
+            latest = database.scalar(
+                select(ActivityAttempt)
+                .where(ActivityAttempt.activity_id == activity.id)
+                .order_by(ActivityAttempt.revision.desc())
+            )
+            if latest is None or latest.id != attempt.id:
+                raise LearningExecutionError(
+                    409,
+                    "runner_requires_latest_attempt",
+                    "Only the latest append-only attempt can be executed.",
+                )
+            existing = database.scalar(
+                select(RunnerInvocation).where(RunnerInvocation.status.in_(["queued", "running"]))
+            )
+            if existing is not None:
+                raise LearningExecutionError(
+                    409,
+                    "runner_busy",
+                    "Another isolated Runner task is active.",
+                    {"invocation_id": existing.id},
+                )
+            package = self._package(run.skill_id, run.skill_version)
+            tasks = self._content(package, "runner_task_definition")
+            task = next(
+                (item for item in tasks["tasks"] if item["id"] == task_id),
+                None,
+            )
+            if task is None:
+                raise LearningExecutionError(
+                    409,
+                    "runner_task_not_governed",
+                    "The Runner task is not present in the immutable package content.",
+                )
+            profile = self._runtime_registry.get(
+                task["runtime_profile_id"],
+                task["runtime_profile_version"],
+            )
+            submission = cast(dict[str, str], json.loads(attempt.submission_json))
+            source = submission[task["source_field_id"]]
+            artifact_sha256 = hashlib.sha256(source.encode("utf-8")).hexdigest()
+            invocation_id = str(uuid4())
+            invocation = {
+                "protocol_version": RUNNER_PROTOCOL_VERSION,
+                "audit_id": invocation_id,
+                "artifact_sha256": artifact_sha256,
+                "runtime": {
+                    "id": profile["id"],
+                    "version": profile["version"],
+                    "language": profile["language"],
+                    "platform": profile["platform"],
+                    "image": profile["image"],
+                },
+                "source": {
+                    "filename": "main.cpp" if profile["language"] == "cpp" else "main.py",
+                    "content": source,
+                },
+                "tests": [
+                    {
+                        "id": item["id"],
+                        "stdin": item["stdin"],
+                        "expected_stdout": item["expected_stdout"],
+                    }
+                    for item in task["tests"]
+                ],
+                "limits": {
+                    "compile_wall_seconds": 15,
+                    "run_wall_seconds": 3,
+                    "compile_memory_mb": 768,
+                    "run_memory_mb": 256,
+                    "cpus": 1,
+                    "compile_pids": 64,
+                    "run_pids": 32,
+                    "output_bytes": 65536,
+                    "tmpfs_mb": 128,
+                },
+            }
+            request_sha256 = hashlib.sha256(canonical_json(invocation).encode("utf-8")).hexdigest()
+            record = RunnerInvocation(
+                id=invocation_id,
+                singleton_key=1,
+                run_id=run.id,
+                activity_id=activity.id,
+                attempt_id=attempt.id,
+                protocol_version=RUNNER_PROTOCOL_VERSION,
+                task_id=task_id,
+                runtime_profile_id=profile["id"],
+                runtime_profile_version=profile["version"],
+                runtime_image=profile["image"],
+                artifact_sha256=artifact_sha256,
+                request_sha256=request_sha256,
+                status="running",
+                created_at=now,
+                started_at=now,
+            )
+            database.add(record)
+            self._event(
+                database,
+                run.id,
+                "runner_invocation_started",
+                {
+                    "invocation_id": invocation_id,
+                    "attempt_id": attempt.id,
+                    "task_id": task_id,
+                    "artifact_sha256": artifact_sha256,
+                    "request_sha256": request_sha256,
+                    "runtime_profile": f"{profile['id']}@{profile['version']}",
+                },
+                now,
+            )
+            try:
+                database.commit()
+            except IntegrityError as error:
+                database.rollback()
+                active = database.scalar(
+                    select(RunnerInvocation).where(
+                        RunnerInvocation.status.in_(["queued", "running"])
+                    )
+                )
+                raise LearningExecutionError(
+                    409,
+                    "runner_busy",
+                    "Another isolated Runner task is active.",
+                    {
+                        "invocation_id": None if active is None else active.id,
+                    },
+                ) from error
+        execution_failure_code: str | None = None
+        try:
+            result = self._runner_backend.execute(invocation)
+        except RunnerCleanupError:
+            execution_failure_code = "cleanup_failed"
+        except OSError, RunnerProtocolError, subprocess.SubprocessError:
+            execution_failure_code = "protocol_invalid"
+        except Exception:
+            execution_failure_code = "protocol_invalid"
+        if execution_failure_code is not None:
+            result = {
+                "protocol_version": RUNNER_PROTOCOL_VERSION,
+                "audit_id": invocation_id,
+                "artifact_sha256": artifact_sha256,
+                "status": "infrastructure_error",
+                "failure_code": execution_failure_code,
+                "runtime": {
+                    "id": profile["id"],
+                    "version": profile["version"],
+                    "image": profile["image"],
+                    "observed_image_id": None,
+                },
+                "tests": [],
+                "security": {
+                    "network": "none",
+                    "root_filesystem": "read_only",
+                    "user": "65534:65534",
+                    "capabilities": "dropped_all",
+                    "no_new_privileges": True,
+                    "seccomp": "builtin",
+                    "host_mounts": "none",
+                    "docker_socket": "not_mounted",
+                    "pull_policy": "never",
+                },
+                "started_at": now.isoformat(),
+                "finished_at": self._now().isoformat(),
+            }
+        finished_at = self._now()
+        with self._session_factory() as database:
+            record = cast(RunnerInvocation, database.get(RunnerInvocation, invocation_id))
+            attempt = cast(ActivityAttempt, database.get(ActivityAttempt, attempt_id))
+            activity = cast(LearningActivity, database.get(LearningActivity, record.activity_id))
+            run = self._run(database, record.run_id)
+            record.status = result["status"]
+            record.failure_code = result["failure_code"]
+            record.result_json = canonical_json(result)
+            record.finished_at = finished_at
+            evaluation = ActivityEvaluation(
+                id=str(uuid4()),
+                attempt_id=attempt.id,
+                method="runner",
+                result="passed" if result["status"] == "passed" else "failed",
+                rubric_id=None,
+                detail_json=canonical_json(
+                    {
+                        "invocation_id": invocation_id,
+                        "status": result["status"],
+                        "failure_code": result["failure_code"],
+                        "tests": result["tests"],
+                        "runtime": result["runtime"],
+                        "security": result["security"],
+                    }
+                ),
+                created_at=finished_at,
+            )
+            database.add(evaluation)
+            database.flush()
+            review_task = database.scalar(
+                select(ReviewTask).where(ReviewTask.activity_id == activity.id)
+            )
+            definition = cast(dict[str, Any], json.loads(activity.definition_json))
+            if result["status"] == "passed":
+                self._create_evidence(
+                    database,
+                    run,
+                    activity,
+                    attempt,
+                    evaluation,
+                    finished_at,
+                )
+                activity.status = "completed"
+                activity.completed_at = finished_at
+                if activity.activity_type == "review" and review_task is not None:
+                    self._pass_review(database, run, review_task, finished_at)
+                else:
+                    self._advance_initial_learning(database, run, finished_at)
+            elif result["status"] in {"failed", "timeout", "output_limit"}:
+                if activity.activity_type == "review" and review_task is not None:
+                    activity.status = "completed"
+                    activity.completed_at = finished_at
+                    self._fail_review(database, run, review_task, definition, finished_at)
+                else:
+                    activity.status = "correction_required"
+                    activity.completed_at = None
+            self._rebuild_snapshots(database, run, finished_at)
+            run.updated_at = finished_at
+            self._event(
+                database,
+                run.id,
+                "runner_invocation_finished",
+                {
+                    "invocation_id": invocation_id,
+                    "status": result["status"],
+                    "failure_code": result["failure_code"],
+                    "test_count": len(result["tests"]),
+                },
+                finished_at,
+            )
+            database.commit()
+            return {
+                "invocation": self._runner_invocation_payload(record),
+                "attempt": self._attempt_payload(database, attempt),
+                "activity": self._activity_payload(database, activity, finished_at),
                 "run": self._run_payload(database, run),
             }
 
@@ -1167,6 +1510,12 @@ class LearningExecutionService:
                 },
             )
         if definition["type"] == "code_text":
+            if definition.get("runner_task_id"):
+                return (
+                    "review_pending",
+                    "review_pending",
+                    {"runner_execution": "pending"},
+                )
             return (
                 "not_executable",
                 "not_executable",
@@ -1207,6 +1556,10 @@ class LearningExecutionService:
             if evaluation.result in {"failed", "uncertain"}:
                 continue
             method = evaluation.method
+            if criterion["evaluation_method"] == "runner" and method != "runner":
+                continue
+            if method == "runner" and criterion["evaluation_method"] != "runner":
+                continue
             strength = criterion["evidence_strength"]
             flags = set(criterion["review_flags"])
             if method == "self_review":
@@ -1584,7 +1937,11 @@ class LearningExecutionService:
             level = "none"
             if items:
                 strongest = max(items, key=lambda item: EVIDENCE_RANK[item.strength])
-                level = "supported" if strongest.strength == "supported" else "limited"
+                level = {
+                    "supported": "supported",
+                    "verified": "verified",
+                    "retained": "retained",
+                }.get(strongest.strength, "limited")
             snapshot = snapshots[dimension]
             snapshot.evidence_level = level
             snapshot.review_flags_json = canonical_json(sorted(flags))
@@ -1625,16 +1982,32 @@ class LearningExecutionService:
             "skill_version": run.skill_version,
             "status": run.status,
             "is_preview": run.is_preview,
-            "code_execution": "disabled",
+            "code_execution": (
+                json.loads(content_lock.lock_json)["capabilities"]["code_execution"]
+                if content_lock
+                else "disabled"
+            ),
             "external_ai": "disabled",
             "selected_historical_plan": run.selected_historical_plan,
             "reused_from_run_id": run.reused_from_run_id,
             "lock_sha256": content_lock.lock_sha256 if content_lock else "",
             "engine_protocol_version": ENGINE_PROTOCOL_VERSION,
-            "runner_protocol_version": RUNNER_PROTOCOL_VERSION,
+            "runner_protocol_version": (
+                json.loads(content_lock.lock_json)["runner_protocol_version"]
+                if content_lock
+                else self._package(run.skill_id, run.skill_version).manifest["runner_protocol"][
+                    "version"
+                ]
+            ),
             "evidence_limitations": [
-                "4A 不产生整体掌握结论。",
-                "代码文本未执行，操作和作品证据受限。",
+                "4A/4B 均不产生整体掌握结论。",
+                (
+                    "Runner 只验证锁定测试覆盖的明确操作范围。"
+                    if content_lock
+                    and json.loads(content_lock.lock_json)["capabilities"]["code_execution"]
+                    == "enabled"
+                    else "代码文本未执行，操作和作品证据受限。"
+                ),
                 "自评不是独立人工审核。",
             ],
             "activities": [
@@ -1684,6 +2057,7 @@ class LearningExecutionService:
                 and _aware_utc(activity.available_at).date() < _aware_utc(now).date()
             ),
             "attempts": [self._attempt_payload(database, attempt) for attempt in attempts],
+            "runner_task_id": definition.get("runner_task_id"),
             "completed_at": activity.completed_at,
         }
 
@@ -1696,6 +2070,11 @@ class LearningExecutionService:
             select(ActivityEvaluation)
             .where(ActivityEvaluation.attempt_id == attempt.id)
             .order_by(ActivityEvaluation.created_at)
+        ).all()
+        invocations = database.scalars(
+            select(RunnerInvocation)
+            .where(RunnerInvocation.attempt_id == attempt.id)
+            .order_by(RunnerInvocation.created_at)
         ).all()
         return {
             "id": attempt.id,
@@ -1713,7 +2092,27 @@ class LearningExecutionService:
                 }
                 for evaluation in evaluations
             ],
+            "runner_invocations": [self._runner_invocation_payload(item) for item in invocations],
             "created_at": attempt.created_at,
+        }
+
+    def _runner_invocation_payload(self, item: RunnerInvocation) -> dict[str, Any]:
+        result = json.loads(item.result_json) if item.result_json else None
+        return {
+            "id": item.id,
+            "protocol_version": item.protocol_version,
+            "task_id": item.task_id,
+            "runtime_profile_id": item.runtime_profile_id,
+            "runtime_profile_version": item.runtime_profile_version,
+            "runtime_image": item.runtime_image,
+            "artifact_sha256": item.artifact_sha256,
+            "request_sha256": item.request_sha256,
+            "status": item.status,
+            "failure_code": item.failure_code,
+            "result": result,
+            "created_at": item.created_at,
+            "started_at": item.started_at,
+            "finished_at": item.finished_at,
         }
 
     def _snapshot_payload(self, snapshot: MasterySnapshot) -> dict[str, Any]:

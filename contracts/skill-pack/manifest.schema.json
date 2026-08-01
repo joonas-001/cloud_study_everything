@@ -76,7 +76,8 @@
               "assessment_definition",
               "rubric_definition",
               "review_policy",
-              "mastery_scope"
+              "mastery_scope",
+              "runner_task_definition"
             ]
           },
           "path": {

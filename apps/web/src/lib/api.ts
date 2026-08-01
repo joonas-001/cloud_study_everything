@@ -30,6 +30,7 @@ import type {
   ReadinessEvaluationResponse,
   ReadinessHistoryResponse,
   ResolveSourceChangeRequest,
+  RunnerAvailabilityResponse,
   SourceChangeCandidateResponse,
   SourceCheckRunResponse,
   SubmitAnswerRequest,
@@ -44,6 +45,7 @@ import type {
   ReconcileMarketResearchRequest,
   RedactMarketSourceRequest,
   StartReviewResponse,
+  ExecuteRunnerAttemptResponse,
   TodayLearningRequest,
   TodayLearningResponse,
   UpdateNotificationPreferenceRequest,
@@ -332,6 +334,18 @@ export function selfReviewActivityAttempt(
   return request(`/activity-attempts/${attemptId}/self-review`, {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export function getRunnerAvailability(): Promise<RunnerAvailabilityResponse> {
+  return request("/runner/availability");
+}
+
+export function executeRunnerAttempt(
+  attemptId: string,
+): Promise<ExecuteRunnerAttemptResponse> {
+  return request(`/activity-attempts/${attemptId}/execute`, {
+    method: "POST",
   });
 }
 

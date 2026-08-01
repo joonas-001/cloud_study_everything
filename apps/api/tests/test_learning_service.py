@@ -19,7 +19,7 @@ FAKE_SMTP_SECRET = "-".join(("smtp", "secret"))
 
 def _current_package():
     return next(
-        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.0"
+        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.1"
     )
 
 

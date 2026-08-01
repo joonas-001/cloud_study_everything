@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -22,7 +23,10 @@ def _services(
     database_path = tmp_path / "execution.db"
     upgrade_database(database_path, REPOSITORY_ROOT)
     session_factory = create_session_factory(database_path)
-    packages = validate_repository(REPOSITORY_ROOT)
+    packages = [
+        replace(package, intake="open") if package.version == "0.2.0" else package
+        for package in validate_repository(REPOSITORY_ROOT)
+    ]
     diagnostics = DiagnosticService(
         repository_root=REPOSITORY_ROOT,
         packages=packages,

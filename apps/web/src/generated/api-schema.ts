@@ -6,6 +6,7 @@ export interface ActivityAttemptResponse {
   evaluations: Array<ActivityEvaluationResponse>;
   id: string;
   revision: number;
+  runner_invocations: Array<RunnerInvocationResponse>;
   submission: Record<string, unknown>;
 }
 
@@ -19,7 +20,7 @@ export interface ActivityEvaluationResponse {
   created_at: string;
   detail: Record<string, unknown>;
   id: string;
-  method: "deterministic" | "self_review" | "review_pending" | "not_executable";
+  method: "deterministic" | "self_review" | "review_pending" | "not_executable" | "runner";
   result: "passed" | "failed" | "submitted" | "uncertain" | "review_pending" | "not_executable";
   rubric_id: string | null;
 }
@@ -178,6 +179,13 @@ export interface EmailOutboxProcessResponse {
   sent: number;
 }
 
+export interface ExecuteRunnerAttemptResponse {
+  activity: LearningActivityResponse;
+  attempt: ActivityAttemptResponse;
+  invocation: RunnerInvocationResponse;
+  run: LearningRunResponse;
+}
+
 export interface HTTPValidationError {
   detail?: Array<ValidationError>;
 }
@@ -193,13 +201,14 @@ export interface LearningActivityResponse {
   attempts: Array<ActivityAttemptResponse>;
   available_at: string | null;
   completed_at: string | null;
-  completion_rule: "confirmation" | "valid_submission" | "deterministic_pass";
+  completion_rule: "confirmation" | "valid_submission" | "deterministic_pass" | "runner_pass";
   estimated_minutes: number;
   id: string;
   overdue: boolean;
   prompt: string;
   reason: string;
   required: boolean;
+  runner_task_id: string | null;
   sequence: number;
   source_ids: Array<string>;
   status: "pending" | "available" | "completed" | "correction_required";
@@ -218,7 +227,7 @@ export interface LearningEvidenceResponse {
 
 export interface LearningRunResponse {
   activities: Array<LearningActivityResponse>;
-  code_execution: string;
+  code_execution: "disabled" | "enabled";
   completed_at: string | null;
   created_at: string;
   diagnostic_session_id: string;
@@ -322,7 +331,7 @@ export interface MarketSnapshotResponse {
 export interface MasteryDimensionResponse {
   dimension: "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction";
   evidence_count: number;
-  evidence_level: "none" | "limited" | "supported";
+  evidence_level: "none" | "limited" | "supported" | "verified" | "retained";
   review_flags: Array<"manual_review_pending" | "retention_due" | "source_review_pending">;
   updated_at: string;
 }
@@ -507,6 +516,33 @@ export interface ReviewTaskResponse {
   policy_id: string;
   policy_version: string;
   status: "scheduled" | "available" | "passed" | "failed";
+}
+
+export interface RunnerAvailabilityResponse {
+  available: boolean;
+  data_root: string;
+  docker_path: string | null;
+  free_gb: number | null;
+  reason_code: string | null;
+  server_version?: string | null;
+  used_gb: number | null;
+}
+
+export interface RunnerInvocationResponse {
+  artifact_sha256: string;
+  created_at: string;
+  failure_code: string | null;
+  finished_at: string | null;
+  id: string;
+  protocol_version: string;
+  request_sha256: string;
+  result: Record<string, unknown> | null;
+  runtime_image: string;
+  runtime_profile_id: string;
+  runtime_profile_version: string;
+  started_at: string | null;
+  status: "queued" | "running" | "passed" | "failed" | "timeout" | "output_limit" | "infrastructure_error";
+  task_id: string;
 }
 
 export interface SelectUserGoalRequest {

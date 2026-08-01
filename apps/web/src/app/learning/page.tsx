@@ -23,10 +23,10 @@ export default function LearningPage() {
         <div className="eyebrow">Evidence-led learning</div>
         <h1>计划可以调整，依据必须留下。</h1>
         <p>
-          当前页面验证规划选择、学习活动、追加修订、六维证据和固定间隔复习。代码文本不会执行。
+          当前页面验证规划选择、学习活动、隔离代码运行、追加修订、六维证据和固定间隔复习。
         </p>
       </header>
-      <LearningDashboard skillId="algorithm" skillVersion="0.2.0" />
+      <LearningDashboard skillId="algorithm" skillVersion="0.2.1" />
     </main>
   );
 }

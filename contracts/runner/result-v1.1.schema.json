@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/runner/result-v1.1.schema.json",
+  "title": "Isolated runner result 1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "audit_id",
+    "artifact_sha256",
+    "status",
+    "failure_code",
+    "runtime",
+    "tests",
+    "security",
+    "started_at",
+    "finished_at"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.1.0"
+    },
+    "audit_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "status": {
+      "enum": ["passed", "failed", "timeout", "output_limit", "infrastructure_error"]
+    },
+    "failure_code": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "compile_failed",
+        "runtime_failed",
+        "wrong_output",
+        "wall_timeout",
+        "output_limit_exceeded",
+        "docker_unavailable",
+        "docker_daemon_unavailable",
+        "runner_disk_budget_unavailable",
+        "runner_disk_budget_exceeded",
+        "runner_busy",
+        "image_unavailable",
+        "protocol_invalid",
+        "cleanup_failed"
+      ]
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "image", "observed_image_id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "image": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed_image_id": {
+          "type": ["string", "null"],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "exit_code",
+          "stdout",
+          "stderr",
+          "output_truncated",
+          "duration_ms"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": ["passed", "wrong_output", "compile_failed", "runtime_failed", "timeout", "output_limit"]
+          },
+          "exit_code": {
+            "type": ["integer", "null"]
+          },
+          "stdout": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "stderr": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "output_truncated": {
+            "type": "boolean"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "root_filesystem",
+        "user",
+        "capabilities",
+        "no_new_privileges",
+        "seccomp",
+        "host_mounts",
+        "docker_socket",
+        "pull_policy"
+      ],
+      "properties": {
+        "network": {
+          "const": "none"
+        },
+        "root_filesystem": {
+          "const": "read_only"
+        },
+        "user": {
+          "const": "65534:65534"
+        },
+        "capabilities": {
+          "const": "dropped_all"
+        },
+        "no_new_privileges": {
+          "const": true
+        },
+        "seccomp": {
+          "const": "builtin"
+        },
+        "host_mounts": {
+          "const": "none"
+        },
+        "docker_socket": {
+          "const": "not_mounted"
+        },
+        "pull_policy": {
+          "const": "never"
+        }
+      }
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

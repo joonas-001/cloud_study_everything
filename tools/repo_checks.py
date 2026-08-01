@@ -115,8 +115,10 @@ def check_structure(root: Path) -> None:
         "apps/api/migrations/versions/0004_add_indeterminate_source_status.py",
         "apps/api/migrations/versions/0005_add_learning_execution.py",
         "apps/api/migrations/versions/0006_add_readiness_5a.py",
+        "apps/api/migrations/versions/0009_add_isolated_runner_4b.py",
         "apps/api/src/cloud_study_api/main.py",
         "apps/api/src/cloud_study_api/readiness.py",
+        "apps/api/src/cloud_study_api/runner.py",
         "apps/web/package.json",
         "apps/web/src/app/page.tsx",
         "apps/web/src/app/readiness/page.tsx",
@@ -135,6 +137,13 @@ def check_structure(root: Path) -> None:
         "contracts/skill-pack/mastery-scope.schema.json",
         "contracts/skill-pack/source-catalog.schema.json",
         "contracts/runner/invocation.schema.json",
+        "contracts/runner/invocation-v1.1.schema.json",
+        "contracts/runner/result-v1.1.schema.json",
+        "contracts/runner/runtime-registry.schema.json",
+        "contracts/skill-pack/runner-task-definition.schema.json",
+        "runtimes/registry.yaml",
+        "tools/setup_runner_windows.ps1",
+        "tools/provision_runner_images.ps1",
         "contracts/skill-pack/manifest.schema.json",
         "contracts/skill-pack/registry.schema.json",
         ".github/actions/setup-project/action.yml",
@@ -206,6 +215,8 @@ def check_structure(root: Path) -> None:
         "planning-contract",
         "curriculum-graph",
         "assessment-contract",
+        "runner-contract",
+        "runner-security",
         "review-policy",
         "mastery-policy",
         "market-sources",
@@ -337,12 +348,7 @@ def check_learning_content(root: Path) -> None:
                     f"{path}: unit {unit['id']} needs required study and structured check"
                 )
         serialized = json.dumps(definition, ensure_ascii=False).lower()
-        forbidden_execution_keys = [
-            '"command"',
-            '"runtime_profile"',
-            '"file_upload"',
-            '"local_path"',
-        ]
+        forbidden_execution_keys = ['"command"', '"file_upload"', '"local_path"']
         found = [key for key in forbidden_execution_keys if key in serialized]
         if found:
             raise CheckFailure(
@@ -368,6 +374,7 @@ def check_assessment(root: Path) -> None:
         "self_review",
         "review_pending",
         "not_executable",
+        "runner",
     }
     for _package, assessment, path in assessments:
         criteria = assessment["criteria"]
@@ -386,6 +393,14 @@ def check_assessment(root: Path) -> None:
             if strength == "retained_limited" and criterion["dimension"] != "retention":
                 raise CheckFailure(
                     f"{path}: retained_limited is restricted to retention"
+                )
+            if strength in {"verified", "retained"} and method != "runner":
+                raise CheckFailure(
+                    f"{path}: scoped Runner evidence must use Runner evaluation"
+                )
+            if method == "runner" and strength not in {"verified", "retained"}:
+                raise CheckFailure(
+                    f"{path}: Runner evaluation must use scoped Runner evidence"
                 )
     for _package, rubric, path in rubrics:
         for criterion in rubric["criteria"]:
@@ -429,29 +444,146 @@ def check_mastery_policy(root: Path) -> None:
         "retention",
         "correction",
     }
-    required_prohibitions = {
-        "scope_criteria_met",
-        "verified",
-        "retained",
-        "mastered",
-    }
-    for _package, scope, path in scopes:
+    for package, scope, path in scopes:
         if set(scope["dimensions"]) != required_dimensions:
             raise CheckFailure(
                 f"{path}: mastery dimensions must remain the six dimensions"
             )
+        runner_enabled = any(
+            content["kind"] == "runner_task_definition"
+            for content in package.manifest["content_files"]
+        )
+        required_prohibitions = {"scope_criteria_met", "mastered"}
+        if not runner_enabled:
+            required_prohibitions |= {"verified", "retained"}
         if not required_prohibitions <= set(scope["prohibited_claims"]):
             raise CheckFailure(
                 f"{path}: required prohibited mastery claims are missing"
             )
-        if set(scope["allowed_evidence_levels"]) - {
+        permitted_levels = {
             "limited",
             "supported",
             "retained_limited",
-        }:
-            raise CheckFailure(
-                f"{path}: unrestricted evidence level is not allowed in 4A"
-            )
+        }
+        if runner_enabled:
+            permitted_levels |= {"verified", "retained"}
+            if not {"verified", "retained"} <= set(scope["allowed_evidence_levels"]):
+                raise CheckFailure(
+                    f"{path}: Runner scope must declare verified and retained boundaries"
+                )
+        if set(scope["allowed_evidence_levels"]) - permitted_levels:
+            raise CheckFailure(f"{path}: unrestricted evidence level is not allowed")
+
+
+def check_runner_contract(root: Path) -> None:
+    schema_paths = [
+        root / "contracts" / "runner" / "invocation.schema.json",
+        root / "contracts" / "runner" / "invocation-v1.1.schema.json",
+        root / "contracts" / "runner" / "result-v1.1.schema.json",
+        root / "contracts" / "runner" / "runtime-registry.schema.json",
+        root / "contracts" / "skill-pack" / "runner-task-definition.schema.json",
+    ]
+    for schema_path in schema_paths:
+        Draft202012Validator.check_schema(_read_json(schema_path))
+    legacy = _read_json(root / "contracts" / "runner" / "invocation.schema.json")
+    if legacy["properties"]["protocol_version"].get("const") != "1.0.0":
+        raise CheckFailure("historical Runner 1.0.0 invocation contract changed")
+
+    registry_path = root / "runtimes" / "registry.yaml"
+    registry = yaml.safe_load(registry_path.read_text(encoding="utf-8"))
+    registry_schema = _read_json(
+        root / "contracts" / "runner" / "runtime-registry.schema.json"
+    )
+    errors = sorted(
+        Draft202012Validator(
+            registry_schema, format_checker=FormatChecker()
+        ).iter_errors(registry),
+        key=lambda error: list(error.path),
+    )
+    if errors:
+        raise CheckFailure(f"{registry_path}: {errors[0].message}")
+    profiles = {
+        (profile["id"], profile["version"]): profile for profile in registry["profiles"]
+    }
+    if len(profiles) != len(registry["profiles"]):
+        raise CheckFailure(f"{registry_path}: duplicate runtime profile")
+    provision_source = (root / "tools" / "provision_runner_images.ps1").read_text(
+        encoding="utf-8"
+    )
+    missing_provisioned_images = [
+        profile["image"]
+        for profile in registry["profiles"]
+        if profile["image"] not in provision_source
+    ]
+    if missing_provisioned_images:
+        raise CheckFailure(
+            "Runner provisioning script differs from the runtime registry: "
+            f"{missing_provisioned_images}"
+        )
+
+    runner_definitions = _content_documents(root, "runner_task_definition")
+    if not runner_definitions:
+        raise CheckFailure("no governed Runner task definition")
+    for package, definition, path in runner_definitions:
+        if package.manifest["runner_protocol"]["version"] != "1.1.0":
+            raise CheckFailure(f"{path}: Runner package must lock protocol 1.1.0")
+        locked_profiles = {
+            (item["id"], item["version"])
+            for item in package.manifest["runtime_profiles"]
+        }
+        for task in definition["tasks"]:
+            key = (task["runtime_profile_id"], task["runtime_profile_version"])
+            if key not in locked_profiles or key not in profiles:
+                raise CheckFailure(f"{path}: task {task['id']} runtime is not locked")
+            profile = profiles[key]
+            if profile["language"] != task["language"]:
+                raise CheckFailure(
+                    f"{path}: task {task['id']} language differs from runtime"
+                )
+            for test in task["tests"]:
+                if len(test["stdin"].encode("utf-8")) > 65536:
+                    raise CheckFailure(
+                        f"{path}: test {test['id']} input exceeds 64 KiB"
+                    )
+                if len(test["expected_stdout"].encode("utf-8")) > 65536:
+                    raise CheckFailure(
+                        f"{path}: test {test['id']} expected output exceeds 64 KiB"
+                    )
+
+
+def check_runner_security(root: Path) -> None:
+    source = (
+        root / "apps" / "api" / "src" / "cloud_study_api" / "runner.py"
+    ).read_text(encoding="utf-8")
+    required_literals = {
+        '"--network"',
+        '"none"',
+        '"--read-only"',
+        '"--cap-drop"',
+        '"ALL"',
+        '"no-new-privileges=true"',
+        '"seccomp=builtin"',
+        '"--pids-limit"',
+        '"--memory"',
+        '"--memory-swap"',
+        '"--cpus"',
+        '"--pull"',
+        '"never"',
+        '"65534:65534"',
+    }
+    missing = sorted(item for item in required_literals if item not in source)
+    if missing:
+        raise CheckFailure(f"Runner security implementation lacks {missing}")
+    forbidden_literals = {'"--privileged"', '"--volume"', '"--mount"', '"-v"'}
+    found = sorted(item for item in forbidden_literals if item in source)
+    if found:
+        raise CheckFailure(
+            f"Runner security implementation includes host access {found}"
+        )
+    if "subprocess.Popen(" not in source or "OUTPUT_LIMIT_BYTES = 65536" not in source:
+        raise CheckFailure("Runner must enforce a live combined output cap")
+    if "threading.Lock()" not in source or "acquire(blocking=False)" not in source:
+        raise CheckFailure("Runner must enforce local concurrency one")
 
 
 def _validate_json_instance(
@@ -870,6 +1002,8 @@ CHECKS = {
     "assessment": check_assessment,
     "review-policy": check_review_policy,
     "mastery-policy": check_mastery_policy,
+    "runner-contract": check_runner_contract,
+    "runner-security": check_runner_security,
     "market-sources": check_market_sources,
     "monetization-policy": check_monetization_policy,
     "external-call-boundary": check_external_call_boundary,

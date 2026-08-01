@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   ApiError,
+  executeRunnerAttempt,
   getActiveDiagnosticSession,
   getMarketResearchHistory,
   getMarketResearchOverview,
@@ -30,8 +31,26 @@ describe("diagnostic API helpers", () => {
     );
 
     await expect(
-      getActiveDiagnosticSession("algorithm", "0.2.0"),
+      getActiveDiagnosticSession("algorithm", "0.2.1"),
     ).resolves.toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("runs only the explicitly selected append-only attempt", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ invocation: { status: "passed" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await executeRunnerAttempt("attempt-1");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:8000/activity-attempts/attempt-1/execute",
+      expect.objectContaining({ method: "POST" }),
+    );
     vi.unstubAllGlobals();
   });
 
