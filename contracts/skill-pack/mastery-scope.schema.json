@@ -46,7 +46,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "enum": ["limited", "supported", "retained_limited"]
+        "enum": ["limited", "supported", "retained_limited", "verified", "retained"]
       }
     },
     "prohibited_claims": {

@@ -69,7 +69,7 @@ def test_existing_milestone_three_database_upgrades_to_indeterminate_status(
 
     command.upgrade(config, "head")
 
-    assert read_schema_version(database_path) == "0008"
+    assert read_schema_version(database_path) == "0009"
     engine = create_database_engine(database_path)
     try:
         with engine.begin() as connection:

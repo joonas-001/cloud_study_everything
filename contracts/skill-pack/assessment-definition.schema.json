@@ -49,7 +49,7 @@
             "$ref": "#/$defs/dimension"
           },
           "evaluation_method": {
-            "enum": ["deterministic", "self_review", "review_pending", "not_executable"]
+            "enum": ["deterministic", "self_review", "review_pending", "not_executable", "runner"]
           },
           "self_review_rubric_id": {
             "$ref": "#/$defs/stableId"
@@ -58,7 +58,7 @@
             "enum": ["passed", "submitted"]
           },
           "evidence_strength": {
-            "enum": ["limited", "supported", "retained_limited"]
+            "enum": ["limited", "supported", "retained_limited", "verified", "retained"]
           },
           "review_flags": {
             "type": "array",

@@ -1,0 +1,61 @@
+schema_version: 1.0.0
+id: algorithm-entry-planning-preview
+skill_id: algorithm
+skill_version: 0.2.1
+title: 算法共同主干入口规划预览
+rationale: 先根据全新诊断补牢必要的编程与数学语言，再完成复杂度、数组和链式结构的纵向学习证据闭环。
+limitations:
+  - 结构化诊断信号只用于确定性选择补救活动，不是掌握证据。
+  - 自由文本和代码文本只做结构校验，不执行代码，也不自动判定内容正确。
+  - 这份预览只覆盖共同主干入口；完成流程不等于掌握算法或解锁分支。
+units:
+  - id: programming-bilingual
+    title: 编程基础与双语言表达
+    objective: 用 C++ 和 Python 对照表达变量、分支、循环、函数、数组遍历和边界处理。
+    reason: 稳定的编程表达是后续算法实践的前置条件，诊断缺口会确定性加入相应补救活动。
+    estimated_minutes: 120
+    completion_criteria:
+      - 确认完成来源支持的学习活动。
+      - 通过一次确定性结构检查，或完成对应的确定性纠错路径。
+      - 在锁定、断网且资源受限的 Runner 中通过 C++ 与 Python 确定性测试。
+    source_ids:
+      - python-tutorial-314
+      - cpp-reference-containers
+  - id: complexity-language
+    title: 复杂度分析语言
+    objective: 使用输入规模、增长率、对数和基本求和解释 O(n)、O(n log n) 与 O(n²)。
+    reason: 复杂度是比较算法与结构取舍的共同语言；数学诊断缺口会先加入必要补救。
+    estimated_minutes: 105
+    completion_criteria:
+      - 能提交输入规模与增长率的结构化解释。
+      - 通过常见复杂度排序检查，或完成对应的确定性纠错路径。
+      - 明确区分时间复杂度、额外空间复杂度和实际运行时间。
+    source_ids:
+      - mit-ocw-6006-2020
+  - id: array-linked-structure
+    title: 数组与链式结构
+    objective: 比较连续存储与链式存储在访问、插入、删除、内存语义和标准库使用上的差异。
+    reason: 这是栈、队列、哈希和图结构的共同基础，需要同时观察概念、操作和迁移证据。
+    estimated_minutes: 120
+    completion_criteria:
+      - 通过一次可确定性检查，或完成关联纠错。
+      - 提交至少一个陌生场景的结构选择与理由。
+      - 指出 C++ 与 Python 容器语义或性能限制的至少一项差异。
+    source_ids:
+      - open-data-structures-01g
+      - cpp-reference-containers
+      - python-tutorial-314
+  - id: entry-evidence-checkpoint
+    title: 入口阶段综合证据检查
+    objective: 汇总解释、双语言代码文本、迁移、预置错误纠正和迷你作品说明，并进入延迟复习。
+    reason: 完成阅读不能证明掌握；需要保留多种可观察、可修订且明确受限的证据。
+    estimated_minutes: 150
+    completion_criteria:
+      - 完成所有必需文本提交及用户量表复核。
+      - 通过预置错误纠正任务，形成受确定性规则支持的纠错证据。
+      - 创建第 1、2、4、7、15 天主动提取复习序列。
+    source_ids:
+      - mit-ocw-6006-2020
+      - open-data-structures-01g
+      - ies-study-guide
+      - cepeda-spacing-2008

@@ -37,7 +37,7 @@ export default function Home() {
         </Link>
       </header>
       <div className="status">
-        开发状态：4A 已合并 · 5A 位于 Draft PR · 5B 本地实现验证中
+        开发状态：4A、5A、5B 已合并 · 4B 代码实现中，真实容器验收等待固件虚拟化
       </div>
 
       <section className="grid" aria-label="当前基础能力">
@@ -50,9 +50,9 @@ export default function Home() {
       </section>
 
       <aside className="notice">
-        算法技能包 0.2.0 目前仍是草稿。诊断和学习执行只使用本地确定性流程，
-        诊断和学习执行不会调用外部 AI、执行代码或生成正式掌握结论。5A
-        只提供显著标记的合成比较；5B 的真实外发必须逐次确认并受费用硬门禁约束。
+        算法技能包 0.2.1 目前仍是草稿。诊断与规划不调用外部 AI；代码只在本机锁定的
+        Docker 隔离 Runner 中运行。Runner 证据严格限定到对应测试范围，不生成整体掌握结论。
+        5A 只提供显著标记的合成比较；5B 的真实外发必须逐次确认并受费用硬门禁约束。
       </aside>
     </main>
   );

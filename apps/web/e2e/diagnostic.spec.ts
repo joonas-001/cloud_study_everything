@@ -5,15 +5,11 @@ test("completes the guarded diagnostic preview and preserves corrections", async
 }, testInfo) => {
   const apiBaseUrl =
     process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000";
-  const marketMode =
-    testInfo.project.name === "mobile-chromium"
-      ? "model_mismatch"
-      : "success";
   await page.request.put(`${apiBaseUrl}/settings/privacy`, {
     data: { external_ai_enabled: false },
   });
   await page.request.post(`${apiBaseUrl}/__e2e__/market-reset`, {
-    data: { mode: marketMode },
+    data: { mode: "success" },
   });
   await page.goto("/diagnostic");
 
@@ -85,9 +81,13 @@ test("completes the guarded diagnostic preview and preserves corrections", async
     page.getByRole("heading", { name: "选择一份已保存规划" }),
   ).toBeVisible();
   const createRunButton = page.getByRole("button", { name: "创建学习执行锁" });
+  await expect(createRunButton).toBeDisabled();
+  await page
+    .getByLabel(/我确认本次执行会把代码发送到本机 Docker 隔离 Runner/)
+    .check();
   await expect(createRunButton).toBeEnabled();
   await createRunButton.click();
-  await expect(page.getByText("代码执行：关闭")).toBeVisible();
+  await expect(page.getByText(/Runner：/)).toBeVisible();
   await expect(page.getByText("外部 AI：关闭")).toBeVisible();
   await page.getByRole("button", { name: "生成今日任务" }).click();
   await expect(page.getByRole("heading", { name: "编程表达补救" })).toBeVisible();
@@ -155,67 +155,20 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   ).toBeVisible();
   await expect(page.getByText(/首版不提供人工绕过/)).toBeVisible();
   await expect(
-    page.getByText(
-      "algorithm@0.2.0 · algorithm-entry-mastery-scope",
-    ),
+    page.getByText(/当前没有与受管研究目录匹配的变现目标/),
   ).toBeVisible();
   await expect(
     page.getByText(/employment 证据能力：当前来源体系不支持判断/),
   ).toBeVisible();
   await expect(page.getByText("查看历史研究与审计事件")).toBeVisible();
-  await expect(page.getByRole("button", { name: "检查官方市场来源" })).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }),
+    page.getByRole("button", { name: "检查官方市场来源" }),
   ).toHaveCount(0);
-  await page.getByLabel("确认本次访问上述官方公开来源").check();
-  await page.getByRole("button", { name: "检查官方市场来源" }).click();
-  await expect(page.getByText("发送前最终材料预览")).toBeVisible();
-  await expect(page.getByText(/以下 4 项材料与后端实际构造综合请求/)).toBeVisible();
-  await expect(page.getByText("API 密钥或凭据引用")).toBeVisible();
-  await expect(
-    page.getByLabel("确认删除 cn-nbs-data 的已保存摘录"),
-  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }),
-  ).toBeDisabled();
-  await page.getByLabel("确认发送净化后的最少官方摘录给 DeepSeek").check();
-  await page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }).click();
-
-  if (marketMode === "model_mismatch") {
-    await expect(page.locator(".error-banner")).toContainText(
-      "响应声明的模型与锁定模型不一致",
-    );
-    await expect(page.getByText("本次研究已停止")).toBeVisible();
-    await page.getByText("查看本次研究审计摘要").click();
-    await expect(
-      page.getByText("deepseek_response_model_mismatch", { exact: true }),
-    ).toBeVisible();
-    await expect(page.getByText("¥0.2000").first()).toBeVisible();
-    await page.screenshot({
-      path: testInfo.outputPath("market-research-failed-state-refreshed.png"),
-      fullPage: true,
-    });
-    return;
-  }
-
-  await expect(page.getByText("AI 综合结果（尚未采纳）")).toBeVisible();
-  await page.getByText("查看本次研究审计摘要").click();
-  await expect(page.getByText(/deepseek-v4-flash \/ deepseek-v4-flash/)).toBeVisible();
-  await page.getByRole("button", { name: "接受为研究记录" }).click();
-  await expect(page.getByText("本次研究已结束")).toBeVisible();
-  await page.getByText("逐项检查或删除已保存的净化摘录").click();
-  await page.getByLabel("确认删除 cn-nbs-data 的已保存摘录").check();
-  await page.getByRole("button", { name: "删除这项摘录" }).first().click();
-  await expect(
-    page.getByText("该综合结果所依赖的来源已撤回，只保留审计记录，不能继续采纳。"),
-  ).toBeVisible();
-  await page.getByText("查看历史研究与审计事件").click();
-  await expect(page.getByText("source_excerpt_redacted")).toBeVisible();
-  await expect(
-    page.getByLabel("确认删除 cn-nbs-data 的已保存摘录"),
   ).toHaveCount(0);
   await page.screenshot({
-    path: testInfo.outputPath("market-research-offline-complete-and-redacted.png"),
+    path: testInfo.outputPath("market-research-version-boundary.png"),
     fullPage: true,
   });
 });
