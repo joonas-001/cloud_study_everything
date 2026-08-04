@@ -80,9 +80,14 @@
       "additionalProperties": false,
       "required": [
         "minimum_levels",
+        "evidence_max_age_days",
         "independent_review_dimensions",
+        "independent_review_max_age_days",
+        "independent_review_scope",
+        "independent_review_rubrics",
         "accepted_market_status",
-        "accepted_market_review_status"
+        "accepted_market_review_status",
+        "market_max_age_days"
       ],
       "properties": {
         "minimum_levels": {
@@ -94,12 +99,52 @@
             "retention": { "const": "retained" }
           }
         },
+        "evidence_max_age_days": {
+          "type": "integer",
+          "const": 90
+        },
         "independent_review_dimensions": {
           "type": "array",
           "const": ["transfer", "artifact"]
         },
+        "independent_review_max_age_days": {
+          "type": "integer",
+          "const": 90
+        },
+        "independent_review_scope": {
+          "const": "exact_capability_scope_id"
+        },
+        "independent_review_rubrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transfer", "artifact"],
+          "properties": {
+            "transfer": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["rubric_id", "rubric_version"],
+              "properties": {
+                "rubric_id": { "const": "external-transfer-v1" },
+                "rubric_version": { "const": "1.0.0" }
+              }
+            },
+            "artifact": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["rubric_id", "rubric_version"],
+              "properties": {
+                "rubric_id": { "const": "external-artifact-v1" },
+                "rubric_version": { "const": "1.0.0" }
+              }
+            }
+          }
+        },
         "accepted_market_status": { "const": "completed" },
-        "accepted_market_review_status": { "const": "accepted" }
+        "accepted_market_review_status": { "const": "accepted" },
+        "market_max_age_days": {
+          "type": "integer",
+          "const": 7
+        }
       }
     },
     "state_transitions": {

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run 云奕学 encrypted backup daily
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=30m
+Persistent=true
+Unit=cloud-study-backup.service
+
+[Install]
+WantedBy=timers.target

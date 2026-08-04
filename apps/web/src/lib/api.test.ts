@@ -4,6 +4,7 @@ import {
   ApiError,
   executeRunnerAttempt,
   getActiveDiagnosticSession,
+  getDeploymentStatus,
   getMarketResearchHistory,
   getMarketResearchOverview,
   messageForError,
@@ -14,6 +15,24 @@ import {
 } from "./api";
 
 describe("diagnostic API helpers", () => {
+  it("reads the deployment boundary through the same-origin-capable client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ mode: "private_preview" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getDeploymentStatus();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:8000/deployment/status",
+      expect.objectContaining({ credentials: "same-origin" }),
+    );
+    vi.unstubAllGlobals();
+  });
+
   it("treats a missing active session as an empty state", async () => {
     vi.stubGlobal(
       "fetch",
@@ -31,7 +50,7 @@ describe("diagnostic API helpers", () => {
     );
 
     await expect(
-      getActiveDiagnosticSession("algorithm", "0.2.1"),
+      getActiveDiagnosticSession("algorithm", "0.2.2"),
     ).resolves.toBeNull();
     vi.unstubAllGlobals();
   });

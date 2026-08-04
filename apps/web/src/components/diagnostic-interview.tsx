@@ -20,7 +20,7 @@ import {
 } from "@/lib/api";
 
 const SKILL_ID = "algorithm";
-const SKILL_VERSION = "0.2.1";
+const SKILL_VERSION = "0.2.2";
 
 type ResponseKind = "answered" | "skipped" | "uncertain";
 
@@ -178,7 +178,7 @@ export function DiagnosticInterview() {
   return (
     <div className="diagnostic-layout">
       <aside className="control-rail" aria-label="诊断配置">
-        <div className="eyebrow">算法 · 0.2.1</div>
+        <div className="eyebrow">算法 · 0.2.2</div>
         <h2>诊断预览</h2>
         <p className="muted">
           当前技能包仍为草稿。结构化信号只用于安排补救活动，不会直接生成掌握结论。

@@ -14,7 +14,7 @@ def _create_preview(client: TestClient) -> dict[str, object]:
         "/diagnostic-sessions",
         json={
             "skill_id": "algorithm",
-            "skill_version": "0.2.1",
+            "skill_version": "0.2.2",
             "preview": True,
             "provider_id": "local-deterministic",
             "model_id": "diagnostic-v1",
@@ -41,7 +41,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
 
         missing = client.get(
             "/diagnostic-sessions/active",
-            params={"skill_id": "algorithm", "skill_version": "0.2.1"},
+            params={"skill_id": "algorithm", "skill_version": "0.2.2"},
         )
         assert missing.status_code == 404
 
@@ -56,7 +56,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
             "/diagnostic-sessions",
             json={
                 "skill_id": "algorithm",
-                "skill_version": "0.2.1",
+                "skill_version": "0.2.2",
                 "preview": True,
                 "provider_id": "local-deterministic",
                 "model_id": "diagnostic-v1",
@@ -94,7 +94,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
 
         resumed = client.get(
             "/diagnostic-sessions/active",
-            params={"skill_id": "algorithm", "skill_version": "0.2.1"},
+            params={"skill_id": "algorithm", "skill_version": "0.2.2"},
         )
         assert resumed.status_code == 200
         assert resumed.json()["id"] == session_id
@@ -105,7 +105,7 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         assert ended.json()["end_reason"] == "user_ended"
         latest = client.get(
             "/diagnostic-sessions/latest",
-            params={"skill_id": "algorithm", "skill_version": "0.2.1"},
+            params={"skill_id": "algorithm", "skill_version": "0.2.2"},
         )
         assert latest.status_code == 200
         assert latest.json()["id"] == session_id
@@ -148,7 +148,7 @@ def test_privacy_setting_can_change_without_enabling_preview_external_access(
             "/diagnostic-sessions",
             json={
                 "skill_id": "algorithm",
-                "skill_version": "0.2.1",
+                "skill_version": "0.2.2",
                 "preview": True,
                 "provider_id": "local-deterministic",
                 "model_id": "diagnostic-v1",

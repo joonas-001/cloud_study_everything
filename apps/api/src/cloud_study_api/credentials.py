@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import os
+import stat
+from hashlib import sha256
+from pathlib import Path
 from typing import Any, Protocol, cast
 
 
@@ -50,6 +53,61 @@ class UnavailableCredentialStore:
         raise CredentialStoreError(
             "Windows Credential Manager is required for deleting credentials"
         )
+
+
+class ReadOnlyFileCredentialStore:
+    """Read secrets from a fixed, least-privilege directory mounted by the host."""
+
+    _MAX_SECRET_BYTES = 65_536
+
+    def __init__(self, directory: Path) -> None:
+        if not directory.is_absolute():
+            raise CredentialStoreError("credential directory must be absolute")
+        self._directory = directory.resolve()
+
+    def _path(self, reference: str) -> Path:
+        filename = self.filename_for_reference(reference)
+        candidate = self._directory / filename
+        if candidate.is_symlink():
+            raise CredentialStoreError("credential reference must not be a symlink")
+        path = candidate.resolve()
+        if path.parent != self._directory:
+            raise CredentialStoreError("credential reference escapes the configured directory")
+        return path
+
+    @staticmethod
+    def filename_for_reference(reference: str) -> str:
+        if not reference or len(reference) > 255 or any(ord(value) < 32 for value in reference):
+            raise CredentialStoreError("credential reference is empty or invalid")
+        digest = sha256(reference.encode("utf-8")).hexdigest()
+        return f"sha256-{digest}.secret"
+
+    def put(self, reference: str, secret: str, username: str | None = None) -> None:
+        del reference, secret, username
+        raise CredentialStoreError("cloud-mounted credentials are read-only")
+
+    def get(self, reference: str) -> str:
+        path = self._path(reference)
+        try:
+            metadata = path.stat()
+        except OSError as error:
+            raise CredentialStoreError("credential reference was not found") from error
+        if not path.is_file():
+            raise CredentialStoreError("credential reference must be a regular non-symlink file")
+        if os.name != "nt" and stat.S_IMODE(metadata.st_mode) & 0o077:
+            raise CredentialStoreError("credential file must not grant group or world permissions")
+        if metadata.st_size > self._MAX_SECRET_BYTES:
+            raise CredentialStoreError("credential file exceeds the maximum supported size")
+        try:
+            raw = path.read_bytes()
+            value = raw.decode("utf-8")
+        except (OSError, UnicodeDecodeError) as error:
+            raise CredentialStoreError("credential reference could not be read as UTF-8") from error
+        return value.removesuffix("\n").removesuffix("\r")
+
+    def delete(self, reference: str) -> None:
+        del reference
+        raise CredentialStoreError("cloud-mounted credentials are read-only")
 
 
 class WindowsCredentialStore:
@@ -150,6 +208,16 @@ class WindowsCredentialStore:
 
 
 def create_credential_store() -> CredentialStore:
+    backend = os.getenv("CLOUD_STUDY_CREDENTIAL_STORE", "auto").strip()
+    if backend == "file":
+        configured_directory = os.getenv("CLOUD_STUDY_SECRET_DIRECTORY", "").strip()
+        if not configured_directory:
+            raise CredentialStoreError(
+                "CLOUD_STUDY_SECRET_DIRECTORY is required for the file credential store"
+            )
+        return ReadOnlyFileCredentialStore(Path(configured_directory))
+    if backend not in {"auto", "windows"}:
+        raise CredentialStoreError("CLOUD_STUDY_CREDENTIAL_STORE must be auto, windows, or file")
     if os.name == "nt":
         return WindowsCredentialStore()
     return UnavailableCredentialStore()

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -13,9 +13,9 @@ from cloud_study_api.content_locking import validate_or_backfill_persisted_conte
 from cloud_study_api.credentials import create_credential_store
 from cloud_study_api.database import (
     create_session_factory,
-    read_schema_version,
     upgrade_database,
 )
+from cloud_study_api.deployment import DeploymentGuard
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionService
 from cloud_study_api.experiments import ExperimentService
@@ -26,13 +26,11 @@ from cloud_study_api.notifications import NotificationService
 from cloud_study_api.providers import ProviderRegistry
 from cloud_study_api.readiness import ReadinessService
 from cloud_study_api.routes import router
+from cloud_study_api.security import enforce_deployment_security
 
 
 class HealthResponse(BaseModel):
     status: str
-    service: str
-    database_schema_version: str
-    registered_skill_packages: int
 
 
 @asynccontextmanager
@@ -48,7 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         credential_store=credential_store,
     )
     app.state.settings = settings
-    app.state.registered_skill_packages = len(packages)
+    app.state.deployment_guard = DeploymentGuard(settings.deployment)
     app.state.diagnostic_service = DiagnosticService(
         repository_root=settings.repository_root,
         packages=packages,
@@ -66,6 +64,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         repository_root=settings.repository_root,
         packages=packages,
         session_factory=session_factory,
+        runner_execution_enabled=(
+            settings.deployment.mode == "local" or settings.deployment.remote_runner_enabled
+        ),
     )
     learning_execution_service.recover_stale_runner_invocations()
     app.state.learning_execution_service = learning_execution_service
@@ -97,7 +98,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title="云奕学 API",
     version="0.1.0",
-    description="Local API for the AI skill learning platform.",
+    description="Local or owner-only private API for the AI skill learning platform.",
     lifespan=lifespan,
 )
 app.add_middleware(
@@ -108,15 +109,10 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["Content-Type"],
 )
+app.middleware("http")(enforce_deployment_security)
 app.include_router(router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
-def health(request: Request) -> HealthResponse:
-    settings: Settings = request.app.state.settings
-    return HealthResponse(
-        status="ok",
-        service="cloud-study-api",
-        database_schema_version=read_schema_version(settings.database_path),
-        registered_skill_packages=request.app.state.registered_skill_packages,
-    )
+def health() -> HealthResponse:
+    return HealthResponse(status="ok")

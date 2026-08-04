@@ -118,6 +118,9 @@ def check_structure(root: Path) -> None:
         "apps/api/migrations/versions/0009_add_isolated_runner_4b.py",
         "apps/api/migrations/versions/0010_add_experiments_5c.py",
         "apps/api/src/cloud_study_api/main.py",
+        "apps/api/src/cloud_study_api/backups.py",
+        "apps/api/src/cloud_study_api/deployment.py",
+        "apps/api/src/cloud_study_api/security.py",
         "apps/api/src/cloud_study_api/experiments.py",
         "apps/api/src/cloud_study_api/readiness.py",
         "apps/api/src/cloud_study_api/runner.py",
@@ -125,6 +128,7 @@ def check_structure(root: Path) -> None:
         "apps/web/src/app/page.tsx",
         "apps/web/src/app/readiness/page.tsx",
         "contracts/api/openapi.json",
+        "contracts/deployment/private-deployment-policy.schema.json",
         "contracts/readiness/user-goal.schema.json",
         "contracts/readiness/readiness-policy.schema.json",
         "contracts/readiness/market-evidence-snapshot.schema.json",
@@ -151,6 +155,19 @@ def check_structure(root: Path) -> None:
         "runtimes/registry.yaml",
         "tools/setup_runner_windows.ps1",
         "tools/provision_runner_images.ps1",
+        "tools/manage_backup.py",
+        "tools/deployment_preflight.py",
+        "tools/run_private_preview_web.mjs",
+        "tools/run_web_check.mjs",
+        "tools/credential_file_name.py",
+        "deployment/policies/single-user-singapore-v1.json",
+        "deployment/private-preview.env.example",
+        "deployment/systemd/cloud-study-api.service",
+        "deployment/systemd/cloud-study-web.service",
+        "deployment/systemd/cloud-study-backup.service",
+        "deployment/systemd/cloud-study-backup.timer",
+        "deployment/systemd/journald-cloud-study.conf",
+        "docs/architecture/internet-deployment.md",
         "contracts/skill-pack/manifest.schema.json",
         "contracts/skill-pack/registry.schema.json",
         ".github/actions/setup-project/action.yml",
@@ -161,6 +178,9 @@ def check_structure(root: Path) -> None:
         "skill-packs/registry.yaml",
         "readiness/policies/local-comparison-v1.json",
         "readiness/policies/employment-experiment-v1.json",
+        "readiness/policies/employment-experiment-v2.json",
+        "readiness/sources/official-cn-market-algorithm-0.2.1-v1.json",
+        "readiness/sources/official-cn-market-algorithm-0.2.2-v1.json",
         "readiness/fixtures/market-current-v1.json",
         "readiness/fixtures/market-stale-v1.json",
         "readiness/fixtures/market-conflicted-v1.json",
@@ -660,38 +680,45 @@ def check_market_sources(root: Path) -> None:
         raise CheckFailure(
             "5B market research registry contains duplicate catalog versions"
         )
-    registration = registry["registrations"][0]
-    catalog_path = (root / registration["catalog_path"]).resolve()
-    budget_path = (root / registration["budget_policy_path"]).resolve()
-    if (
-        root.resolve() not in catalog_path.parents
-        or root.resolve() not in budget_path.parents
-    ):
-        raise CheckFailure("5B market research registry path escapes the repository")
-    catalog = _validate_json_instance(
-        catalog_path,
-        root / "contracts" / "readiness" / "official-market-source-catalog.schema.json",
-    )
-    if (
-        catalog["catalog_id"],
-        catalog["version"],
-    ) != (
-        registration["catalog_id"],
-        registration["catalog_version"],
-    ):
-        raise CheckFailure("5B registry catalog identity does not match its file")
-    budget = _validate_json_instance(
-        budget_path,
-        root / "contracts" / "readiness" / "deepseek-budget-policy.schema.json",
-    )
-    if (
-        budget["policy_id"],
-        budget["version"],
-    ) != (
-        registration["budget_policy_id"],
-        registration["budget_policy_version"],
-    ):
-        raise CheckFailure("5B registry budget identity does not match its file")
+    catalogs: list[dict[str, Any]] = []
+    for registration in registry["registrations"]:
+        catalog_path = (root / registration["catalog_path"]).resolve()
+        budget_path = (root / registration["budget_policy_path"]).resolve()
+        if (
+            root.resolve() not in catalog_path.parents
+            or root.resolve() not in budget_path.parents
+        ):
+            raise CheckFailure(
+                "5B market research registry path escapes the repository"
+            )
+        catalog = _validate_json_instance(
+            catalog_path,
+            root
+            / "contracts"
+            / "readiness"
+            / "official-market-source-catalog.schema.json",
+        )
+        if (
+            catalog["catalog_id"],
+            catalog["version"],
+        ) != (
+            registration["catalog_id"],
+            registration["catalog_version"],
+        ):
+            raise CheckFailure("5B registry catalog identity does not match its file")
+        budget = _validate_json_instance(
+            budget_path,
+            root / "contracts" / "readiness" / "deepseek-budget-policy.schema.json",
+        )
+        if (
+            budget["policy_id"],
+            budget["version"],
+        ) != (
+            registration["budget_policy_id"],
+            registration["budget_policy_version"],
+        ):
+            raise CheckFailure("5B registry budget identity does not match its file")
+        catalogs.append(catalog)
     approved_sources = {
         "cn-nbs-data": ("中华人民共和国国家统计局", "www.stats.gov.cn"),
         "cn-mohrss-statistics": (
@@ -701,8 +728,29 @@ def check_market_sources(root: Path) -> None:
         "cn-public-recruitment": ("中国公共招聘网", "job.mohrss.gov.cn"),
         "cn-miit-data": ("中华人民共和国工业和信息化部", "www.miit.gov.cn"),
     }
-    if {source["id"] for source in catalog["sources"]} != set(approved_sources):
-        raise CheckFailure("5B official source IDs differ from the approved catalog")
+    expected_contexts = {
+        ("algorithm", "0.2.0", "algorithm-entry-mastery-scope"),
+        ("algorithm", "0.2.1", "algorithm-entry-mastery-scope"),
+        ("algorithm", "0.2.2", "algorithm-entry-mastery-scope"),
+    }
+    actual_contexts = {
+        (
+            catalog["research_context"]["skill_id"],
+            catalog["research_context"]["skill_version"],
+            catalog["research_context"]["capability_scope_id"],
+        )
+        for catalog in catalogs
+    }
+    if actual_contexts != expected_contexts:
+        raise CheckFailure(
+            "5B market catalogs do not cover the governed skill versions"
+        )
+    for catalog in catalogs:
+        if {source["id"] for source in catalog["sources"]} != set(approved_sources):
+            raise CheckFailure(
+                "5B official source IDs differ from the approved catalog"
+            )
+    catalog = catalogs[-1]
     covered_paths: set[str] = set()
     direct_paths: set[str] = set()
     independence_groups_by_owner: dict[str, set[str]] = {}
@@ -829,7 +877,7 @@ def check_monetization_policy(root: Path) -> None:
     if budget["synthesis_lease_minutes"] != 5:
         raise CheckFailure("5B synthesis lease must remain the approved five minutes")
     experiment_policy = _validate_json_instance(
-        root / "readiness" / "policies" / "employment-experiment-v1.json",
+        root / "readiness" / "policies" / "employment-experiment-v2.json",
         root / "contracts" / "readiness" / "experiment-policy.schema.json",
     )
     if experiment_policy["enabled_paths"] != ["employment"]:
@@ -857,6 +905,24 @@ def check_monetization_policy(root: Path) -> None:
         raise CheckFailure(
             "5C must independently review transfer and artifact evidence"
         )
+    if (
+        action_gate["evidence_max_age_days"] != 90
+        or action_gate["independent_review_max_age_days"] != 90
+        or action_gate["market_max_age_days"] != 7
+        or action_gate["independent_review_scope"] != "exact_capability_scope_id"
+    ):
+        raise CheckFailure("5C evidence, review, and market freshness policy changed")
+    if action_gate["independent_review_rubrics"] != {
+        "transfer": {
+            "rubric_id": "external-transfer-v1",
+            "rubric_version": "1.0.0",
+        },
+        "artifact": {
+            "rubric_id": "external-artifact-v1",
+            "rubric_version": "1.0.0",
+        },
+    }:
+        raise CheckFailure("5C independent review rubric allowlist changed")
     if experiment_policy["external_action_mode"] != "manual_record_only":
         raise CheckFailure("5C must never execute external actions")
     income_policy = experiment_policy["income_policy"]
@@ -1038,6 +1104,133 @@ def check_contracts(root: Path) -> None:
         raise CheckFailure("OpenAPI contract must contain the /health path")
 
 
+def check_deployment_policy(root: Path) -> None:
+    schema = _read_json(
+        root / "contracts/deployment/private-deployment-policy.schema.json"
+    )
+    policy = _read_json(root / "deployment/policies/single-user-singapore-v1.json")
+    Draft202012Validator.check_schema(schema)
+    errors = sorted(
+        Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(
+            policy
+        ),
+        key=lambda error: tuple(str(part) for part in error.absolute_path),
+    )
+    if errors:
+        raise CheckFailure(
+            f"deployment policy failed schema validation: {errors[0].message}"
+        )
+
+    required_values = {
+        ("status",): "confirmed",
+        ("access", "audience"): "owner_only",
+        ("access", "registration"): "disabled",
+        ("access", "ingress"): "tailscale_serve_private",
+        ("identity", "provider"): "microsoft_personal",
+        ("identity", "allowlist_size"): 1,
+        ("platform", "provider"): "tencent_cloud",
+        ("platform", "product"): "lighthouse",
+        ("platform", "region"): "singapore",
+        ("platform", "topology"): "single_instance",
+        ("runtime", "node_major"): 24,
+        ("runtime", "python"): "3.14.3",
+        ("storage", "database"): "sqlite",
+        ("runner", "remote_enabled"): False,
+        ("external_calls", "enabled_by_default"): False,
+        ("backup", "frequency"): "daily",
+        ("backup", "daily_retention"): 7,
+        ("backup", "weekly_retention"): 4,
+        ("logs", "operations_retention_days"): 7,
+        ("logs", "sensitive_body_logging"): False,
+    }
+    for path, expected in required_values.items():
+        current: Any = policy
+        for part in path:
+            if not isinstance(current, dict) or part not in current:
+                raise CheckFailure(f"deployment policy is missing {'.'.join(path)}")
+            current = current[part]
+        if current != expected:
+            raise CheckFailure(
+                f"deployment policy {'.'.join(path)} must remain {expected!r}"
+            )
+
+    authorization = policy["authorization"]
+    if authorization != {
+        "code_implementation": True,
+        "cloud_resource_creation": False,
+        "paid_service": False,
+        "public_release": False,
+    }:
+        raise CheckFailure(
+            "deployment authorization exceeds the confirmed 6A code-only scope"
+        )
+    budget = policy["budget"]
+    if budget["expected_monthly"] > budget["monthly_hard_limit"]:
+        raise CheckFailure("expected deployment cost exceeds the monthly hard limit")
+    if budget["monthly_hard_limit"] != 50 or budget["alert_percentages"] != [50, 80]:
+        raise CheckFailure("deployment cost stop or warning thresholds drifted")
+    if budget["automatic_top_up"] or budget["automatic_scaling"]:
+        raise CheckFailure("automatic spend expansion must remain disabled")
+
+    source_hosts = {
+        urlsplit(item["url"]).hostname
+        for item in policy["sources"]
+        if isinstance(item, dict) and isinstance(item.get("url"), str)
+    }
+    required_source_hosts = {"cloud.tencent.com", "tailscale.com", "www.miit.gov.cn"}
+    if not required_source_hosts.issubset(source_hosts):
+        raise CheckFailure(
+            f"deployment policy is missing official evidence hosts: "
+            f"{sorted(required_source_hosts - source_hosts)}"
+        )
+
+    api_unit = (root / "deployment/systemd/cloud-study-api.service").read_text(
+        encoding="utf-8"
+    )
+    web_unit = (root / "deployment/systemd/cloud-study-web.service").read_text(
+        encoding="utf-8"
+    )
+    web_launcher = (root / "tools/run_private_preview_web.mjs").read_text(
+        encoding="utf-8"
+    )
+    backup_unit = (root / "deployment/systemd/cloud-study-backup.service").read_text(
+        encoding="utf-8"
+    )
+    env_template = (root / "deployment/private-preview.env.example").read_text(
+        encoding="utf-8"
+    )
+    required_runtime_guards = [
+        ("--host 127.0.0.1", api_unit),
+        ("--no-access-log", api_unit),
+        ("--no-proxy-headers", api_unit),
+        ("ExecStartPre=", api_unit),
+        ("IPAddressDeny=any", api_unit),
+        ("tools/run_private_preview_web.mjs", web_unit),
+        ('"--hostname", "127.0.0.1"', web_launcher),
+        ("IPAddressDeny=any", web_unit),
+        ("tools/manage_backup.py scheduled", backup_unit),
+        ("RestrictAddressFamilies=AF_UNIX", backup_unit),
+        ("NEXT_PUBLIC_API_BASE_URL=/api", env_template),
+        ("CLOUD_STUDY_DEPLOYMENT_MODE=private_preview", env_template),
+    ]
+    missing_runtime_guards = sorted(
+        token for token, content in required_runtime_guards if token not in content
+    )
+    if missing_runtime_guards:
+        raise CheckFailure(
+            f"private deployment runtime guards are missing: {missing_runtime_guards}"
+        )
+    unit_text = f"{api_unit}\n{web_unit}\n{backup_unit}"
+    forbidden_runtime_tokens = {"0.0.0.0", "docker.sock", "DockerData"}
+    found_forbidden = sorted(
+        token for token in forbidden_runtime_tokens if token in unit_text
+    )
+    if found_forbidden:
+        raise CheckFailure(
+            f"private deployment units contain forbidden exposure: {found_forbidden}"
+        )
+
+
 def find_secrets(root: Path) -> list[str]:
     patterns = [
         re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
@@ -1100,6 +1293,7 @@ CHECKS = {
     "market-sources": check_market_sources,
     "monetization-policy": check_monetization_policy,
     "external-call-boundary": check_external_call_boundary,
+    "deployment-policy": check_deployment_policy,
     "contracts": check_contracts,
     "secrets": check_secrets,
 }

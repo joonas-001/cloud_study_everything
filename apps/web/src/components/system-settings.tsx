@@ -6,12 +6,14 @@ import type { FormEvent } from "react";
 import type {
   AiProviderProfileResponse,
   AiProviderResponse,
+  DeploymentStatusResponse,
   NotificationPreferenceResponse,
 } from "@/generated/api-schema";
 import {
   createAiProviderProfile,
   getAiProviderProfiles,
   getAiProviders,
+  getDeploymentStatus,
   getNotificationPreferences,
   messageForError,
   sendTestEmail,
@@ -47,6 +49,8 @@ const emptyEmailForm: EmailForm = {
 };
 
 export function SystemSettings() {
+  const [deployment, setDeployment] =
+    useState<DeploymentStatusResponse | null>(null);
   const [preferences, setPreferences] =
     useState<NotificationPreferenceResponse | null>(null);
   const [providers, setProviders] = useState<Array<AiProviderResponse>>([]);
@@ -66,14 +70,16 @@ export function SystemSettings() {
   useEffect(() => {
     let active = true;
     Promise.all([
+      getDeploymentStatus(),
       getNotificationPreferences(),
       getAiProviders(),
       getAiProviderProfiles(),
     ])
-      .then(([nextPreferences, nextProviders, nextProfiles]) => {
+      .then(([nextDeployment, nextPreferences, nextProviders, nextProfiles]) => {
         if (!active) {
           return;
         }
+        setDeployment(nextDeployment);
         setPreferences(nextPreferences);
         setProviders(nextProviders);
         setProfiles(nextProfiles);
@@ -200,6 +206,42 @@ export function SystemSettings() {
 
       <section className="panel settings-section">
         <header>
+          <span className="eyebrow">Deployment boundary</span>
+          <h2>当前运行与访问边界</h2>
+          <p>
+            {deployment?.mode === "private_preview"
+              ? "新加坡单实例私有预发布：仅 Microsoft 所有者白名单可访问，注册关闭。"
+              : "本地验证模式：网站仅由当前电脑提供服务，不包含互联网身份验证。"}
+          </p>
+        </header>
+        {deployment ? (
+          <div className="provider-cards">
+            <article>
+              <div>
+                <strong>
+                  {deployment.mode === "private_preview" ? "私有预发布" : "本地验证"}
+                </strong>
+                <span>
+                  {deployment.authentication_required ? "身份必需" : "无登录"}
+                </span>
+              </div>
+              <p>
+                区域：{deployment.region ?? "本机"} · 数据：SQLite · 月度硬上限：
+                {deployment.monthly_budget_cny
+                  ? `¥${deployment.monthly_budget_cny}`
+                  : "不适用"}
+              </p>
+              <small>
+                远程 Runner：{deployment.remote_runner_enabled ? "启用" : "禁用"} ·
+                外部调用：{deployment.external_calls_enabled ? "启用" : "禁用"}
+              </small>
+            </article>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="panel settings-section">
+        <header>
           <span className="eyebrow">Notification preferences</span>
           <h2>站内通知与可选邮件</h2>
           <p>
@@ -317,7 +359,9 @@ export function SystemSettings() {
                 placeholder={
                   preferences?.credential_reference
                     ? "已保存；留空表示不替换"
-                    : "保存在 Windows 凭据管理器"
+                    : deployment?.mode === "private_preview"
+                      ? "私有预发布凭据由主机只读挂载"
+                      : "保存在 Windows 凭据管理器"
                 }
                 onChange={(event) =>
                   setEmailForm({
@@ -478,7 +522,11 @@ export function SystemSettings() {
                 value={apiKey}
                 disabled={busy || providerId === "local-deterministic"}
                 required={providerId === "deepseek"}
-                placeholder="保存到 Windows 凭据管理器"
+                placeholder={
+                  deployment?.mode === "private_preview"
+                    ? "私有预发布凭据由主机只读挂载"
+                    : "保存到 Windows 凭据管理器"
+                }
                 onChange={(event) => setApiKey(event.target.value)}
               />
             </label>
