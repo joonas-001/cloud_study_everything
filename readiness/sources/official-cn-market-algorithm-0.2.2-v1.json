@@ -1,0 +1,107 @@
+{
+  "catalog_id": "official-cn-algorithm-market",
+  "version": "1.4.0",
+  "research_context": {
+    "skill_id": "algorithm",
+    "skill_version": "0.2.2",
+    "capability_scope_id": "algorithm-entry-mastery-scope",
+    "research_topic": "综合中国大陆算法共同主干入口能力相关市场信号",
+    "allowed_goal_kinds": ["employment", "freelancing", "productization"],
+    "allowed_paths": ["employment", "freelancing", "productization"]
+  },
+  "scope": {
+    "region": "CN-mainland",
+    "primary_language": "zh-CN",
+    "employment": ["初级 C++ 后端", "算法应用工程"],
+    "freelancing": ["中国大陆中小企业和个人客户"],
+    "productization": ["中文个人开发者", "算法学习者"]
+  },
+  "path_evidence_capabilities": {
+    "employment": {
+      "coverage": "context_only",
+      "reason": "当前获准页面只提供宏观背景或招聘入口，未取得包含目标岗位的可复核官方查询结果。"
+    },
+    "freelancing": {
+      "coverage": "context_only",
+      "reason": "当前获准来源没有中小客户算法接单的直接官方需求信号。"
+    },
+    "productization": {
+      "coverage": "context_only",
+      "reason": "当前获准来源没有中文个人开发者或算法学习者产品需求的直接官方信号。"
+    }
+  },
+  "refresh_policy": {
+    "metadata_interval_days": 7,
+    "failure_cooldown_hours": 24,
+    "manual_bypass_allowed": false,
+    "synthesis_interval_days": 30,
+    "unavailable_is_unchanged": false
+  },
+  "content_removal_policy": {
+    "explicit_confirmation_required": true,
+    "remove_saved_excerpt": true,
+    "retain_hash_and_audit": true
+  },
+  "sources": [
+    {
+      "id": "cn-nbs-data",
+      "owner": "中华人民共和国国家统计局",
+      "independence_group": "cn-nbs",
+      "authority_kind": "government",
+      "url": "https://www.stats.gov.cn/sj/",
+      "allowed_hosts": ["www.stats.gov.cn"],
+      "paths": ["employment", "freelancing", "productization"],
+      "evidence_role": "background_context",
+      "limitations": ["仅提供宏观行业背景，不能直接证明具体岗位、客户订单或个人产品需求。"],
+      "acquisition": "public_official_page",
+      "content_storage": "metadata_hash_and_short_excerpt",
+      "access_basis": "公开官方统计入口；每次访问仍须通过条款、robots 和响应状态门禁。",
+      "reviewed_at": "2026-07-29"
+    },
+    {
+      "id": "cn-mohrss-statistics",
+      "owner": "中华人民共和国人力资源和社会保障部",
+      "independence_group": "cn-mohrss",
+      "authority_kind": "government",
+      "url": "https://www.mohrss.gov.cn/SYrlzyhshbzb/zwgk/szrs/",
+      "allowed_hosts": ["www.mohrss.gov.cn"],
+      "paths": ["employment"],
+      "evidence_role": "background_context",
+      "limitations": ["统计入口只支持就业宏观背景，不能单独证明初级 C++ 或算法应用岗位需求。"],
+      "acquisition": "public_official_page",
+      "content_storage": "metadata_hash_and_short_excerpt",
+      "access_basis": "公开官方人力资源和社会保障统计入口；禁止绕过访问控制。",
+      "reviewed_at": "2026-07-29"
+    },
+    {
+      "id": "cn-public-recruitment",
+      "owner": "中国公共招聘网",
+      "independence_group": "cn-mohrss",
+      "authority_kind": "government",
+      "url": "https://job.mohrss.gov.cn/",
+      "allowed_hosts": ["job.mohrss.gov.cn"],
+      "paths": ["employment"],
+      "evidence_role": "background_context",
+      "limitations": ["公开入口可能不在首屏呈现目标岗位；未检索到具体岗位时必须返回无法判断。"],
+      "acquisition": "public_official_page",
+      "content_storage": "metadata_hash_and_short_excerpt",
+      "access_basis": "人力资源和社会保障部门官方公共招聘入口；只读取无需登录的公开页面。",
+      "reviewed_at": "2026-07-29"
+    },
+    {
+      "id": "cn-miit-data",
+      "owner": "中华人民共和国工业和信息化部",
+      "independence_group": "cn-miit",
+      "authority_kind": "government",
+      "url": "https://www.miit.gov.cn/gxsj/index.html",
+      "allowed_hosts": ["www.miit.gov.cn"],
+      "paths": ["employment", "freelancing", "productization"],
+      "evidence_role": "background_context",
+      "limitations": ["软件业运行数据是行业背景，不能直接证明接单机会、客户预算或算法学习产品需求。"],
+      "acquisition": "public_official_page",
+      "content_storage": "metadata_hash_and_short_excerpt",
+      "access_basis": "公开官方工业和信息化数据入口；只保存元数据、摘要哈希和短摘录。",
+      "reviewed_at": "2026-07-29"
+    }
+  ]
+}

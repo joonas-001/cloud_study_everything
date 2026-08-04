@@ -19,5 +19,12 @@ packages:
     path: skill-packs/algorithm/versions/0.2.1
     state: draft
     availability: available
-    intake: open
+    intake: closed
     manifest_sha256: 758ff18bb7fc3478a1b564f5ed2e787fac4a480cea8a863d5cd67738868fd782
+  - id: algorithm
+    version: 0.2.2
+    path: skill-packs/algorithm/versions/0.2.2
+    state: draft
+    availability: available
+    intake: open
+    manifest_sha256: 384d1c275dfccbc2eb748c0bbb90e1e25106601ef2d8e711a6ce7538be075336

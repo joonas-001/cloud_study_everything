@@ -11,6 +11,7 @@ import type {
   CreatePlanningProposalRequest,
   CreateSourceCheckRequest,
   DiagnosticSessionResponse,
+  DeploymentStatusResponse,
   DecidePathComparisonRequest,
   ActivityAttemptSubmissionResponse,
   EmailOutboxProcessResponse,
@@ -91,6 +92,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       ...init?.headers,
@@ -109,6 +111,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function getPrivacySettings(): Promise<PrivacySettingsResponse> {
   return request("/settings/privacy");
+}
+
+export function getDeploymentStatus(): Promise<DeploymentStatusResponse> {
+  return request("/deployment/status");
 }
 
 export function updatePrivacySettings(
@@ -593,6 +599,7 @@ export async function exportExperiment(
     `${API_BASE_URL}/experiments/${encodeURIComponent(experimentId)}/exports`,
     {
       method: "POST",
+      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     },

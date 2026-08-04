@@ -1,0 +1,398 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloud-study.local/contracts/deployment/private-deployment-policy.schema.json",
+  "title": "Private single-user deployment policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policy_id",
+    "version",
+    "status",
+    "authorization",
+    "access",
+    "identity",
+    "platform",
+    "runtime",
+    "budget",
+    "storage",
+    "runner",
+    "external_calls",
+    "backup",
+    "logs",
+    "sources"
+  ],
+  "properties": {
+    "policy_id": {
+      "const": "single-user-singapore"
+    },
+    "version": {
+      "const": "1.0.0"
+    },
+    "status": {
+      "const": "confirmed"
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code_implementation",
+        "cloud_resource_creation",
+        "paid_service",
+        "public_release"
+      ],
+      "properties": {
+        "code_implementation": {
+          "const": true
+        },
+        "cloud_resource_creation": {
+          "const": false
+        },
+        "paid_service": {
+          "const": false
+        },
+        "public_release": {
+          "const": false
+        }
+      }
+    },
+    "access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audience",
+        "registration",
+        "host_independent",
+        "ingress",
+        "custom_domain"
+      ],
+      "properties": {
+        "audience": {
+          "const": "owner_only"
+        },
+        "registration": {
+          "const": "disabled"
+        },
+        "host_independent": {
+          "const": true
+        },
+        "ingress": {
+          "const": "tailscale_serve_private"
+        },
+        "custom_domain": {
+          "const": false
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "allowlist_size",
+        "login_source",
+        "password_database"
+      ],
+      "properties": {
+        "provider": {
+          "const": "microsoft_personal"
+        },
+        "allowlist_size": {
+          "const": 1
+        },
+        "login_source": {
+          "const": "runtime_secret"
+        },
+        "password_database": {
+          "const": false
+        }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "product",
+        "region",
+        "country_code",
+        "topology",
+        "instance"
+      ],
+      "properties": {
+        "provider": {
+          "const": "tencent_cloud"
+        },
+        "product": {
+          "const": "lighthouse"
+        },
+        "region": {
+          "const": "singapore"
+        },
+        "country_code": {
+          "const": "SG"
+        },
+        "topology": {
+          "const": "single_instance"
+        },
+        "instance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "vcpu",
+            "memory_gib",
+            "system_disk_gib",
+            "monthly_transfer_gib"
+          ],
+          "properties": {
+            "vcpu": {
+              "const": 2
+            },
+            "memory_gib": {
+              "const": 2
+            },
+            "system_disk_gib": {
+              "const": 40
+            },
+            "monthly_transfer_gib": {
+              "const": 512
+            }
+          }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_major",
+        "python",
+        "package_manager",
+        "python_manager"
+      ],
+      "properties": {
+        "node_major": {
+          "const": 24
+        },
+        "python": {
+          "const": "3.14.3"
+        },
+        "package_manager": {
+          "const": "pnpm"
+        },
+        "python_manager": {
+          "const": "uv"
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currency",
+        "monthly_hard_limit",
+        "expected_monthly",
+        "alert_percentages",
+        "automatic_top_up",
+        "automatic_scaling",
+        "unknown_price_action",
+        "checkout_reconfirmation_required"
+      ],
+      "properties": {
+        "currency": {
+          "const": "CNY"
+        },
+        "monthly_hard_limit": {
+          "const": 50
+        },
+        "expected_monthly": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 50
+        },
+        "alert_percentages": {
+          "const": [
+            50,
+            80
+          ]
+        },
+        "automatic_top_up": {
+          "const": false
+        },
+        "automatic_scaling": {
+          "const": false
+        },
+        "unknown_price_action": {
+          "const": "stop"
+        },
+        "checkout_reconfirmation_required": {
+          "const": true
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "database",
+        "persistence",
+        "managed_database_todo"
+      ],
+      "properties": {
+        "database": {
+          "const": "sqlite"
+        },
+        "persistence": {
+          "const": "single_instance_persistent_disk"
+        },
+        "managed_database_todo": {
+          "const": true
+        }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "remote_enabled",
+        "local_history_preserved",
+        "future_enablement_requires_separate_authorization"
+      ],
+      "properties": {
+        "remote_enabled": {
+          "const": false
+        },
+        "local_history_preserved": {
+          "const": true
+        },
+        "future_enablement_requires_separate_authorization": {
+          "const": true
+        }
+      }
+    },
+    "external_calls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled_by_default",
+        "real_ai",
+        "real_sources",
+        "email"
+      ],
+      "properties": {
+        "enabled_by_default": {
+          "const": false
+        },
+        "real_ai": {
+          "const": false
+        },
+        "real_sources": {
+          "const": false
+        },
+        "email": {
+          "const": false
+        }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frequency",
+        "daily_retention",
+        "weekly_retention",
+        "encryption",
+        "private_key_location",
+        "rpo_hours",
+        "rto_hours",
+        "restore_drill"
+      ],
+      "properties": {
+        "frequency": {
+          "const": "daily"
+        },
+        "daily_retention": {
+          "const": 7
+        },
+        "weekly_retention": {
+          "const": 4
+        },
+        "encryption": {
+          "const": "rsa_oaep_aes_256_gcm"
+        },
+        "private_key_location": {
+          "const": "offline_owner_controlled"
+        },
+        "rpo_hours": {
+          "const": 24
+        },
+        "rto_hours": {
+          "const": 4
+        },
+        "restore_drill": {
+          "const": "before_preview_then_quarterly"
+        }
+      }
+    },
+    "logs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operations_retention_days",
+        "sensitive_body_logging",
+        "product_audit_history"
+      ],
+      "properties": {
+        "operations_retention_days": {
+          "const": 7
+        },
+        "sensitive_body_logging": {
+          "const": false
+        },
+        "product_audit_history": {
+          "const": "preserve"
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "publisher",
+          "url",
+          "retrieved_at",
+          "claim"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "claim": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  }
+}

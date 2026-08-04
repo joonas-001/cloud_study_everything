@@ -911,6 +911,85 @@
         "title": "DecidePathComparisonRequest",
         "type": "object"
       },
+      "DeploymentStatusResponse": {
+        "properties": {
+          "authentication_required": {
+            "title": "Authentication Required",
+            "type": "boolean"
+          },
+          "data_store": {
+            "const": "sqlite",
+            "title": "Data Store",
+            "type": "string"
+          },
+          "external_calls_enabled": {
+            "title": "External Calls Enabled",
+            "type": "boolean"
+          },
+          "identity_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identity Provider"
+          },
+          "mode": {
+            "enum": [
+              "local",
+              "private_preview"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "monthly_budget_cny": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Budget Cny"
+          },
+          "owner_login_configured": {
+            "title": "Owner Login Configured",
+            "type": "boolean"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "remote_runner_enabled": {
+            "title": "Remote Runner Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mode",
+          "authentication_required",
+          "identity_provider",
+          "owner_login_configured",
+          "region",
+          "data_store",
+          "remote_runner_enabled",
+          "external_calls_enabled",
+          "monthly_budget_cny"
+        ],
+        "title": "DeploymentStatusResponse",
+        "type": "object"
+      },
       "DiagnosticAnswerResponse": {
         "properties": {
           "content": {
@@ -2091,28 +2170,13 @@
       },
       "HealthResponse": {
         "properties": {
-          "database_schema_version": {
-            "title": "Database Schema Version",
-            "type": "string"
-          },
-          "registered_skill_packages": {
-            "title": "Registered Skill Packages",
-            "type": "integer"
-          },
-          "service": {
-            "title": "Service",
-            "type": "string"
-          },
           "status": {
             "title": "Status",
             "type": "string"
           }
         },
         "required": [
-          "status",
-          "service",
-          "database_schema_version",
-          "registered_skill_packages"
+          "status"
         ],
         "title": "HealthResponse",
         "type": "object"
@@ -5688,7 +5752,7 @@
     }
   },
   "info": {
-    "description": "Local API for the AI skill learning platform.",
+    "description": "Local or owner-only private API for the AI skill learning platform.",
     "title": "云奕学 API",
     "version": "0.1.0"
   },
@@ -5874,6 +5938,27 @@
         "summary": "List Ai Providers",
         "tags": [
           "ai-configuration"
+        ]
+      }
+    },
+    "/deployment/status": {
+      "get": {
+        "operationId": "get_deployment_status_deployment_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Deployment Status",
+        "tags": [
+          "deployment-6a"
         ]
       }
     },

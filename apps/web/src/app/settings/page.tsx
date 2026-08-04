@@ -21,10 +21,11 @@ export default function SettingsPage() {
         </div>
       </nav>
       <header className="page-intro">
-        <div className="eyebrow">Local control</div>
+        <div className="eyebrow">Private control</div>
         <h1>外发之前，先把边界说清楚。</h1>
         <p>
-          邮件和真实 AI 默认不会自动启用。密钥只保存为 Windows 凭据引用，SQLite 和页面不会返回原文。
+          邮件和真实 AI 默认不会自动启用。本地密钥保存在 Windows
+          凭据管理器；私有预发布由主机只读挂载，SQLite 和页面都不会返回原文。
         </p>
       </header>
       <SystemSettings />

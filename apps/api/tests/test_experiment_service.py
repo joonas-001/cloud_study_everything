@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -106,7 +108,7 @@ def _run(
 ) -> dict[str, Any]:
     diagnostic = diagnostics.create_session(
         skill_id="algorithm",
-        skill_version="0.2.1",
+        skill_version="0.2.2",
         preview=True,
         provider_id="local-deterministic",
         model_id="diagnostic-v1",
@@ -167,6 +169,7 @@ def _set_evidence(
     *,
     action_ready: bool,
     blocking_flag: str | None = None,
+    updated_at: datetime = NOW,
 ) -> None:
     with session_factory() as database:
         existing = {
@@ -196,14 +199,14 @@ def _set_evidence(
                         evidence_level=level,
                         review_flags_json=flags,
                         evidence_count=1,
-                        updated_at=NOW,
+                        updated_at=updated_at,
                     )
                 )
             else:
                 item.evidence_level = level
                 item.review_flags_json = flags
                 item.evidence_count = 1
-                item.updated_at = NOW
+                item.updated_at = updated_at
         database.commit()
 
 
@@ -211,8 +214,32 @@ def _market(
     session_factory: Any,
     run: dict[str, Any],
     goal: dict[str, Any],
+    *,
+    completed_at: datetime | None = NOW,
 ) -> str:
     market_id = "accepted-market-research"
+    registry = json.loads(
+        (REPOSITORY_ROOT / "readiness" / "market-research-registry-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    matching_catalogs = []
+    for registration in registry["registrations"]:
+        catalog = json.loads(
+            (REPOSITORY_ROOT / registration["catalog_path"]).read_text(encoding="utf-8")
+        )
+        context = catalog["research_context"]
+        if (
+            context["skill_id"] == run["skill_id"]
+            and context["skill_version"] == run["skill_version"]
+            and context["capability_scope_id"] == goal["capability_scope_id"]
+        ):
+            matching_catalogs.append(catalog)
+    assert len(matching_catalogs) == 1
+    catalog = matching_catalogs[0]
+    catalog_snapshot = json.dumps(
+        catalog, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+    )
     with session_factory() as database:
         database.add(
             AiProviderProfile(
@@ -230,10 +257,10 @@ def _market(
         database.add(
             MarketResearchRun(
                 id=market_id,
-                catalog_id="official-cn-algorithm-market",
-                catalog_version="1.2.0",
-                catalog_sha256="a" * 64,
-                catalog_snapshot_json="{}",
+                catalog_id=catalog["catalog_id"],
+                catalog_version=catalog["version"],
+                catalog_sha256=hashlib.sha256(catalog_snapshot.encode("utf-8")).hexdigest(),
+                catalog_snapshot_json=catalog_snapshot,
                 skill_id=run["skill_id"],
                 skill_version=run["skill_version"],
                 capability_scope_id=goal["capability_scope_id"],
@@ -268,9 +295,9 @@ def _market(
                 cached_input_tokens=0,
                 output_tokens=0,
                 failure_code=None,
-                created_at=NOW,
-                updated_at=NOW,
-                completed_at=NOW,
+                created_at=completed_at or NOW,
+                updated_at=completed_at or NOW,
+                completed_at=completed_at,
             )
         )
         database.commit()
@@ -375,7 +402,7 @@ def test_action_ready_requires_runner_human_reviews_and_accepted_market(
         experiment["id"],
         dimension="transfer",
         reviewer_relationship="mentor",
-        review_scope="陌生需求下的数据结构选择与理由",
+        review_scope=goal["capability_scope_id"],
         rubric_id="external-transfer-v1",
         rubric_version="1.0.0",
         conclusion="passed",
@@ -386,7 +413,7 @@ def test_action_ready_requires_runner_human_reviews_and_accepted_market(
         experiment["id"],
         dimension="artifact",
         reviewer_relationship="peer",
-        review_scope="作品目标、实现取舍与测试说明",
+        review_scope=goal["capability_scope_id"],
         rubric_id="external-artifact-v1",
         rubric_version="1.0.0",
         conclusion="passed",
@@ -408,11 +435,12 @@ def test_action_ready_requires_runner_human_reviews_and_accepted_market(
 
     assert experiment["actions"][0]["execution_mode"] == "completed_outside_product"
     assert experiment["actions"][0]["result"] == "response"
+    experiments._now = lambda: NOW + timedelta(minutes=1)
     regressed = experiments.add_independent_review(
         experiment["id"],
         dimension="artifact",
         reviewer_relationship="mentor",
-        review_scope="后续评审发现作品仍需补充。",
+        review_scope=goal["capability_scope_id"],
         rubric_id="external-artifact-v1",
         rubric_version="1.0.0",
         conclusion="needs_work",
@@ -420,6 +448,199 @@ def test_action_ready_requires_runner_human_reviews_and_accepted_market(
     )
     assert regressed["gate_level"] == "local_ready"
     assert "independent_artifact_review_required" in regressed["gate_reason_codes"]
+
+
+def test_action_gate_rejects_unmanaged_or_future_human_reviews(tmp_path: Path) -> None:
+    experiments, sessions, run, goal = _create_fixture(tmp_path)
+    _set_evidence(sessions, run["id"], action_ready=True)
+    experiment = experiments.create_experiment(
+        goal_selection_id=goal["id"],
+        learning_run_id=run["id"],
+        market_research_run_id=_market(sessions, run, goal),
+        plan=_plan(),
+    )
+
+    invalid_cases = [
+        (
+            {
+                "review_scope": "free-text-scope",
+                "rubric_id": "external-transfer-v1",
+                "rubric_version": "1.0.0",
+                "reviewed_at": NOW,
+            },
+            "independent_review_scope_mismatch",
+        ),
+        (
+            {
+                "review_scope": goal["capability_scope_id"],
+                "rubric_id": "unmanaged-rubric",
+                "rubric_version": "1.0.0",
+                "reviewed_at": NOW,
+            },
+            "independent_review_rubric_unapproved",
+        ),
+        (
+            {
+                "review_scope": goal["capability_scope_id"],
+                "rubric_id": "external-transfer-v1",
+                "rubric_version": "1.0.0",
+                "reviewed_at": NOW + timedelta(seconds=1),
+            },
+            "independent_review_future_dated",
+        ),
+    ]
+    for values, expected_code in invalid_cases:
+        with pytest.raises(ExperimentError) as caught:
+            experiments.add_independent_review(
+                experiment["id"],
+                dimension="transfer",
+                reviewer_relationship="mentor",
+                conclusion="passed",
+                **values,
+            )
+        assert caught.value.code == expected_code
+
+
+@pytest.mark.parametrize(
+    ("stale_evidence", "stale_reviews", "stale_market", "reason_prefix"),
+    [
+        (True, False, False, "evidence_expired:"),
+        (False, True, False, "independent_review_expired:"),
+        (False, False, True, "market_research_expired"),
+    ],
+)
+def test_action_gate_blocks_expired_inputs(
+    tmp_path: Path,
+    stale_evidence: bool,
+    stale_reviews: bool,
+    stale_market: bool,
+    reason_prefix: str,
+) -> None:
+    experiments, sessions, run, goal = _create_fixture(tmp_path)
+    _set_evidence(
+        sessions,
+        run["id"],
+        action_ready=True,
+        updated_at=NOW - timedelta(days=91) if stale_evidence else NOW,
+    )
+    market_id = _market(
+        sessions,
+        run,
+        goal,
+        completed_at=NOW - timedelta(days=8) if stale_market else NOW,
+    )
+    experiment = experiments.create_experiment(
+        goal_selection_id=goal["id"],
+        learning_run_id=run["id"],
+        market_research_run_id=market_id,
+        plan=_plan(),
+    )
+    review_time = NOW - timedelta(days=91) if stale_reviews else NOW
+    for dimension in ("transfer", "artifact"):
+        experiment = experiments.add_independent_review(
+            experiment["id"],
+            dimension=dimension,
+            reviewer_relationship="mentor",
+            review_scope=goal["capability_scope_id"],
+            rubric_id=f"external-{dimension}-v1",
+            rubric_version="1.0.0",
+            conclusion="passed",
+            reviewed_at=review_time,
+        )
+
+    assert experiment["gate_level"] == "blocked"
+    assert any(code.startswith(reason_prefix) for code in experiment["gate_reason_codes"])
+
+
+def test_action_gate_blocks_future_evidence(tmp_path: Path) -> None:
+    experiments, sessions, run, goal = _create_fixture(tmp_path)
+    _set_evidence(
+        sessions,
+        run["id"],
+        action_ready=True,
+        updated_at=NOW + timedelta(seconds=1),
+    )
+
+    experiment = experiments.create_experiment(
+        goal_selection_id=goal["id"],
+        learning_run_id=run["id"],
+        market_research_run_id=_market(sessions, run, goal),
+        plan=_plan(),
+    )
+
+    assert experiment["gate_level"] == "blocked"
+    assert any(
+        code.startswith("evidence_future_dated:") for code in experiment["gate_reason_codes"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("completed_at", "expected_reason"),
+    [
+        (NOW + timedelta(seconds=1), "market_research_future_dated"),
+        (None, "market_research_timestamp_missing"),
+    ],
+)
+def test_action_gate_blocks_invalid_market_completion_time(
+    tmp_path: Path,
+    completed_at: datetime | None,
+    expected_reason: str,
+) -> None:
+    experiments, sessions, run, goal = _create_fixture(tmp_path)
+    _set_evidence(sessions, run["id"], action_ready=True)
+
+    experiment = experiments.create_experiment(
+        goal_selection_id=goal["id"],
+        learning_run_id=run["id"],
+        market_research_run_id=_market(sessions, run, goal, completed_at=completed_at),
+        plan=_plan(),
+    )
+
+    assert experiment["gate_level"] == "blocked"
+    assert expected_reason in experiment["gate_reason_codes"]
+
+
+def test_expired_active_experiment_is_persistently_paused_before_external_action(
+    tmp_path: Path,
+) -> None:
+    experiments, sessions, run, goal = _create_fixture(tmp_path)
+    _set_evidence(sessions, run["id"], action_ready=True)
+    experiment = experiments.create_experiment(
+        goal_selection_id=goal["id"],
+        learning_run_id=run["id"],
+        market_research_run_id=_market(sessions, run, goal),
+        plan=_plan(),
+    )
+    for dimension in ("transfer", "artifact"):
+        experiment = experiments.add_independent_review(
+            experiment["id"],
+            dimension=dimension,
+            reviewer_relationship="mentor",
+            review_scope=goal["capability_scope_id"],
+            rubric_id=f"external-{dimension}-v1",
+            rubric_version="1.0.0",
+            conclusion="passed",
+            reviewed_at=NOW,
+        )
+    experiment = experiments.transition(experiment["id"], action="approve", confirm=True)
+    experiment = experiments.transition(experiment["id"], action="start", confirm=True)
+    experiments._now = lambda: NOW + timedelta(days=8)
+
+    with pytest.raises(ExperimentError) as caught:
+        experiments.record_external_action(
+            experiment["id"],
+            action_kind="application",
+            description="不应记录的过期市场动作",
+            result="pending",
+            occurred_at=NOW + timedelta(days=8),
+            confirm_completed_outside_product=True,
+        )
+
+    assert caught.value.code == "experiment_not_active"
+    paused = experiments.get_experiment(experiment["id"])
+    assert paused["status"] == "paused"
+    assert paused["gate_level"] == "blocked"
+    assert "market_research_expired" in paused["gate_reason_codes"]
 
 
 def test_income_is_hidden_revisioned_exported_only_with_confirmation_and_redacted(
@@ -438,7 +659,7 @@ def test_income_is_hidden_revisioned_exported_only_with_confirmation_and_redacte
             experiment["id"],
             dimension=dimension,
             reviewer_relationship="mentor",
-            review_scope=f"{dimension} 外部评审",
+            review_scope=goal["capability_scope_id"],
             rubric_id=f"external-{dimension}-v1",
             rubric_version="1.0.0",
             conclusion="passed",
