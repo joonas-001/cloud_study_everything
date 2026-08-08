@@ -5,7 +5,7 @@ import hashlib
 import io
 import json
 from collections.abc import Callable
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -98,7 +98,7 @@ class ExperimentService:
         self._session_factory = session_factory
         self._now = now
         self._policy = self._load_json(
-            repository_root / "readiness" / "policies" / "employment-experiment-v1.json"
+            repository_root / "readiness" / "policies" / "employment-experiment-v2.json"
         )
         self._plan_validator = self._validator(
             repository_root / "contracts" / "readiness" / "experiment-plan.schema.json"
@@ -248,9 +248,33 @@ class ExperimentService:
             "invalid_independent_review",
         )
         now = self._now()
+        if self._utc_timestamp(reviewed_at) > self._utc_timestamp(now):
+            raise ExperimentError(
+                422,
+                "independent_review_future_dated",
+                "真人评审日期不能晚于当前时间。",
+            )
         with self._session_factory() as database:
             experiment = self._experiment(database, experiment_id)
             self._ensure_not_terminal(experiment)
+            expected_rubric = self._policy["external_action_gate"]["independent_review_rubrics"][
+                dimension
+            ]
+            if review_scope != experiment.capability_scope_id:
+                raise ExperimentError(
+                    422,
+                    "independent_review_scope_mismatch",
+                    "真人评审必须精确绑定当前实验的受管能力范围。",
+                )
+            if {
+                "rubric_id": rubric_id,
+                "rubric_version": rubric_version,
+            } != expected_rubric:
+                raise ExperimentError(
+                    422,
+                    "independent_review_rubric_unapproved",
+                    "真人评审量表不属于当前策略允许的受管量表。",
+                )
             review = ExperimentIndependentReview(
                 id=str(uuid4()),
                 experiment_id=experiment.id,
@@ -425,8 +449,23 @@ class ExperimentService:
         now = self._now()
         with self._session_factory() as database:
             experiment = self._experiment(database, experiment_id)
+            old_status = experiment.status
             self._refresh_gate(database, experiment, now)
             if experiment.status != "active":
+                if experiment.status != old_status:
+                    self._event(
+                        database,
+                        experiment.id,
+                        "experiment_paused_after_gate_regression",
+                        {
+                            "old_status": old_status,
+                            "new_status": experiment.status,
+                            "gate_level": experiment.gate_level,
+                            "reason_codes": json.loads(experiment.gate_reasons_json),
+                        },
+                        now,
+                    )
+                    database.commit()
                 raise ExperimentError(
                     409,
                     "experiment_not_active",
@@ -845,17 +884,23 @@ class ExperimentService:
         experiment: MonetizationExperiment,
         now: datetime,
     ) -> None:
-        snapshot, gate, reasons = self._gate(database, experiment)
+        snapshot, gate, reasons = self._gate(database, experiment, now)
         experiment.evidence_snapshot_json = _canonical_json(snapshot)
         experiment.evidence_sha256 = _sha256(snapshot)
         experiment.gate_level = gate
         experiment.gate_reasons_json = _canonical_json(reasons)
+        if gate in {"draft_only", "blocked"}:
+            if experiment.status == "active":
+                experiment.status = "paused"
+            elif experiment.status == "approved":
+                experiment.status = "blocked"
         experiment.updated_at = now
 
     def _gate(
         self,
         database: Session,
         experiment: MonetizationExperiment,
+        now: datetime,
     ) -> tuple[dict[str, Any], str, list[str]]:
         reasons: list[str] = []
         goal = database.get(UserGoalSelection, experiment.goal_selection_id)
@@ -894,6 +939,9 @@ class ExperimentService:
         )
         dimensions = []
         local_ready = True
+        temporal_blocked = False
+        action_gate = self._policy["external_action_gate"]
+        evidence_cutoff = now - timedelta(days=action_gate["evidence_max_age_days"])
         for dimension in self._policy["required_dimensions"]:
             row = rows.get(dimension)
             flags = [] if row is None else json.loads(row.review_flags_json)
@@ -915,6 +963,14 @@ class ExperimentService:
                 if flag in self._policy["blocking_review_flags"]:
                     reasons.append(f"review_flag_blocking:{dimension}:{flag}")
                     local_ready = False
+            if row is not None:
+                evidence_timestamp = self._utc_timestamp(row.updated_at)
+                if evidence_timestamp > self._utc_timestamp(now):
+                    reasons.append(f"evidence_future_dated:{dimension}")
+                    temporal_blocked = True
+                elif evidence_timestamp < self._utc_timestamp(evidence_cutoff):
+                    reasons.append(f"evidence_expired:{dimension}")
+                    temporal_blocked = True
 
         reviews = database.scalars(
             select(ExperimentIndependentReview).where(
@@ -934,9 +990,33 @@ class ExperimentService:
                 previous.id,
             ):
                 latest_reviews[item.dimension] = item
-        passed_review_dimensions = {
-            dimension for dimension, item in latest_reviews.items() if item.conclusion == "passed"
-        }
+        passed_review_dimensions: set[str] = set()
+        review_cutoff = now - timedelta(days=action_gate["independent_review_max_age_days"])
+        for dimension, item in latest_reviews.items():
+            expected_rubric = action_gate["independent_review_rubrics"].get(dimension)
+            if self._utc_timestamp(item.reviewed_at) > self._utc_timestamp(now):
+                reasons.append(f"independent_review_future_dated:{dimension}")
+                temporal_blocked = True
+                continue
+            if self._utc_timestamp(item.reviewed_at) < self._utc_timestamp(review_cutoff):
+                reasons.append(f"independent_review_expired:{dimension}")
+                temporal_blocked = True
+                continue
+            if item.review_scope != experiment.capability_scope_id:
+                reasons.append(f"independent_review_scope_mismatch:{dimension}")
+                continue
+            if (
+                expected_rubric is None
+                or {
+                    "rubric_id": item.rubric_id,
+                    "rubric_version": item.rubric_version,
+                }
+                != expected_rubric
+            ):
+                reasons.append(f"independent_review_rubric_unapproved:{dimension}")
+                continue
+            if item.conclusion == "passed":
+                passed_review_dimensions.add(dimension)
         operation_level = next(
             item["evidence_level"] for item in dimensions if item["dimension"] == "operation"
         )
@@ -950,7 +1030,7 @@ class ExperimentService:
         if retention_level != "retained":
             reasons.append("retention_retained_required")
             action_ready = False
-        for dimension in self._policy["external_action_gate"]["independent_review_dimensions"]:
+        for dimension in action_gate["independent_review_dimensions"]:
             if dimension not in passed_review_dimensions:
                 reasons.append(f"independent_{dimension}_review_required")
                 action_ready = False
@@ -981,15 +1061,30 @@ class ExperimentService:
                 reasons.append("market_research_context_mismatch")
                 action_ready = False
             if (
-                market.status != self._policy["external_action_gate"]["accepted_market_status"]
-                or market.review_status
-                != self._policy["external_action_gate"]["accepted_market_review_status"]
+                market.status != action_gate["accepted_market_status"]
+                or market.review_status != action_gate["accepted_market_review_status"]
                 or market.synthesis_invalidated_at is not None
             ):
                 reasons.append("market_review_not_accepted")
                 action_ready = False
+            if market.completed_at is None:
+                reasons.append("market_research_timestamp_missing")
+                action_ready = False
+                temporal_blocked = True
+            else:
+                market_completed_timestamp = self._utc_timestamp(market.completed_at)
+                if market_completed_timestamp > self._utc_timestamp(now):
+                    reasons.append("market_research_future_dated")
+                    action_ready = False
+                    temporal_blocked = True
+                elif market_completed_timestamp < self._utc_timestamp(
+                    now - timedelta(days=action_gate["market_max_age_days"])
+                ):
+                    reasons.append("market_research_expired")
+                    action_ready = False
+                    temporal_blocked = True
 
-        if invariant_failed:
+        if invariant_failed or temporal_blocked:
             gate = "blocked"
         elif not local_ready:
             gate = "draft_only"

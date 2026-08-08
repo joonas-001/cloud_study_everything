@@ -1,0 +1,41 @@
+[Unit]
+Description=云奕学 private preview web
+After=cloud-study-api.service
+Requires=cloud-study-api.service
+ConditionPathExists=/etc/cloud-study/private-preview.env
+
+[Service]
+Type=simple
+User=cloud-study
+Group=cloud-study
+WorkingDirectory=/opt/cloud-study/app
+EnvironmentFile=/etc/cloud-study/private-preview.env
+ExecStart=/usr/bin/node tools/run_private_preview_web.mjs
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/cloud-study
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+LogNamespace=cloud-study
+
+[Install]
+WantedBy=multi-user.target

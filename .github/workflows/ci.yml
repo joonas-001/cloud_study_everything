@@ -133,6 +133,14 @@ jobs:
       - uses: ./.github/actions/setup-project
       - run: pnpm check:external-call-boundary
 
+  deployment_policy:
+    name: deployment-policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-project
+      - run: pnpm check:deployment-policy
+
   api_tests:
     name: api-tests
     runs-on: ubuntu-latest
@@ -193,6 +201,7 @@ jobs:
       - market_sources
       - monetization_policy
       - external_call_boundary
+      - deployment_policy
       - api_tests
       - web_tests
       - end_to_end
@@ -218,6 +227,7 @@ jobs:
           test "${{ needs.market_sources.result }}" = "success"
           test "${{ needs.monetization_policy.result }}" = "success"
           test "${{ needs.external_call_boundary.result }}" = "success"
+          test "${{ needs.deployment_policy.result }}" = "success"
           test "${{ needs.api_tests.result }}" = "success"
           test "${{ needs.web_tests.result }}" = "success"
           test "${{ needs.end_to_end.result }}" = "success"

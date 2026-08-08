@@ -34,7 +34,7 @@ def test_external_provider_requires_both_permission_layers_and_credential(
         next(
             package
             for package in validate_repository(REPOSITORY_ROOT)
-            if package.version == "0.2.1"
+            if package.version == "0.2.2"
         ),
         state="active",
     )
@@ -97,7 +97,7 @@ def test_inactivity_timeout_ends_session_without_silent_resume(tmp_path: Path) -
     database_path = tmp_path / "timeout.db"
     upgrade_database(database_path, REPOSITORY_ROOT)
     package = next(
-        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.1"
+        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.2"
     )
     clock = [datetime(2026, 7, 27, 8, 0, tzinfo=UTC)]
     service = DiagnosticService(

@@ -1,0 +1,42 @@
+[Unit]
+Description=云奕学 private preview API
+After=network.target
+ConditionPathExists=/etc/cloud-study/private-preview.env
+
+[Service]
+Type=simple
+User=cloud-study
+Group=cloud-study
+WorkingDirectory=/opt/cloud-study/app
+EnvironmentFile=/etc/cloud-study/private-preview.env
+ExecStartPre=/opt/cloud-study/app/apps/api/.venv/bin/python tools/deployment_preflight.py
+ExecStart=/opt/cloud-study/app/apps/api/.venv/bin/uvicorn cloud_study_api.main:app --app-dir apps/api/src --host 127.0.0.1 --port 8000 --no-proxy-headers --no-access-log
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/cloud-study
+ReadWritePaths=/var/lib/cloud-study
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+LogNamespace=cloud-study
+
+[Install]
+WantedBy=multi-user.target

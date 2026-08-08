@@ -83,7 +83,6 @@ export function ExperimentPanel() {
   const [reviewDimension, setReviewDimension] = useState<"transfer" | "artifact">(
     "transfer",
   );
-  const [reviewScope, setReviewScope] = useState("");
   const [actionDescription, setActionDescription] = useState("");
   const [actionResult, setActionResult] = useState<
     "pending" | "response" | "no_response" | "interview" | "rejected" | "offer"
@@ -249,19 +248,18 @@ export function ExperimentPanel() {
   }
 
   async function addReview() {
-    if (!experiment || !reviewScope.trim()) return;
+    if (!experiment) return;
     await run(() =>
       addExperimentReview(experiment.id, {
         dimension: reviewDimension,
         reviewer_relationship: "mentor",
-        review_scope: reviewScope.trim(),
+        review_scope: experiment.capability_scope_id,
         rubric_id: `external-${reviewDimension}-v1`,
         rubric_version: "1.0.0",
         conclusion: "passed",
         reviewed_at: new Date().toISOString(),
       }),
     );
-    setReviewScope("");
   }
 
   async function recordAction() {
@@ -409,7 +407,7 @@ export function ExperimentPanel() {
     return <p className="empty-state">正在读取本地实验记录…</p>;
   }
   if (scopes.length === 0) {
-    return <p className="empty-state">请先创建 algorithm@0.2.1 学习记录。</p>;
+    return <p className="empty-state">请先创建 algorithm@0.2.2 学习记录。</p>;
   }
 
   return (
@@ -590,7 +588,10 @@ export function ExperimentPanel() {
 
           <section className="experiment-subsection">
             <h4>外部真人评审</h4>
-            <p>只记录关系、范围、量表和结论；不要填写姓名、证件或上传附件。</p>
+            <p>
+              只记录关系、受管能力范围、量表和结论；不要填写姓名、证件或上传附件。
+              当前范围固定为 <code>{experiment.capability_scope_id}</code>。
+            </p>
             <div className="inline-form">
               <select
                 aria-label="评审维度"
@@ -602,14 +603,8 @@ export function ExperimentPanel() {
                 <option value="transfer">迁移能力</option>
                 <option value="artifact">作品证据</option>
               </select>
-              <input
-                aria-label="评审范围"
-                placeholder="例如：陌生需求下的结构选择与理由"
-                value={reviewScope}
-                onChange={(event) => setReviewScope(event.target.value)}
-              />
               <button
-                disabled={working || !reviewScope.trim()}
+                disabled={working}
                 onClick={() => void addReview()}
                 type="button"
               >

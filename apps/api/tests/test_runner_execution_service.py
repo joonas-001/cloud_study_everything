@@ -219,7 +219,7 @@ def _create_run(
 ) -> dict[str, Any]:
     diagnostic = diagnostics.create_session(
         skill_id="algorithm",
-        skill_version="0.2.1",
+        skill_version="0.2.2",
         preview=True,
         provider_id="local-deterministic",
         model_id="diagnostic-v1",
@@ -423,7 +423,7 @@ def test_new_runner_package_requires_explicit_code_execution_confirmation(
     diagnostics, learning, execution = _services(tmp_path, clock, backend)
     diagnostic = diagnostics.create_session(
         skill_id="algorithm",
-        skill_version="0.2.1",
+        skill_version="0.2.2",
         preview=True,
         provider_id="local-deterministic",
         model_id="diagnostic-v1",

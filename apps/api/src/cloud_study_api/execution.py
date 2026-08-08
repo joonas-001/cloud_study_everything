@@ -94,6 +94,7 @@ class LearningExecutionService:
         packages: list[SkillPackage],
         session_factory: sessionmaker[Session],
         runner_backend: RunnerBackend | None = None,
+        runner_execution_enabled: bool = True,
         now: Callable[[], datetime] = utc_now,
     ) -> None:
         self._repository_root = repository_root
@@ -102,6 +103,7 @@ class LearningExecutionService:
         self._session_factory = session_factory
         self._now = now
         self._runner_backend = runner_backend or DockerRunnerBackend(repository_root)
+        self._runner_execution_enabled = runner_execution_enabled
         self._runtime_registry = RuntimeRegistry(repository_root)
         self._runner_result_validator = Draft202012Validator(
             json.loads(
@@ -723,6 +725,16 @@ class LearningExecutionService:
             }
 
     def runner_availability(self) -> dict[str, Any]:
+        if not self._runner_execution_enabled:
+            return {
+                "available": False,
+                "reason_code": "remote_runner_disabled",
+                "docker_path": None,
+                "data_root": "disabled",
+                "free_gb": None,
+                "used_gb": None,
+                "server_version": None,
+            }
         return self._runner_backend.availability()
 
     def recover_stale_runner_invocations(self) -> int:
@@ -731,11 +743,13 @@ class LearningExecutionService:
             stale = database.scalars(
                 select(RunnerInvocation).where(RunnerInvocation.status.in_(["queued", "running"]))
             ).all()
-            if stale:
+            if stale and self._runner_execution_enabled:
                 self._runner_backend.cleanup_stale()
             for item in stale:
                 item.status = "infrastructure_error"
-                item.failure_code = "cleanup_failed"
+                item.failure_code = (
+                    "cleanup_failed" if self._runner_execution_enabled else "remote_runner_disabled"
+                )
                 item.finished_at = now
                 item.result_json = None
                 self._event(
@@ -752,6 +766,12 @@ class LearningExecutionService:
         return len(stale)
 
     def execute_attempt(self, attempt_id: str) -> dict[str, Any]:
+        if not self._runner_execution_enabled:
+            raise LearningExecutionError(
+                409,
+                "remote_runner_disabled",
+                "Remote Runner is disabled for the private preview.",
+            )
         now = self._now()
         with self._session_factory() as database:
             attempt = database.get(ActivityAttempt, attempt_id)

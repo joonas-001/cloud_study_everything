@@ -177,6 +177,7 @@ def _service(
     external_ai_enabled: bool = True,
     available_sources: int = 4,
     now: Callable[[], datetime] = lambda: NOW,
+    skill_version: str = "0.2.0",
 ) -> tuple[MarketResearchService, FakeMarketTransport, str, Any, str]:
     database_path = tmp_path / "market-research.db"
     upgrade_database(database_path, REPOSITORY_ROOT)
@@ -205,7 +206,7 @@ def _service(
             UserGoalSelection(
                 id="market-research-goal",
                 skill_id="algorithm",
-                skill_version="0.2.0",
+                skill_version=skill_version,
                 capability_scope_id="algorithm-entry-mastery-scope",
                 goal_kind="employment",
                 custom_label=None,
@@ -223,6 +224,22 @@ def _service(
         now=now,
     )
     return service, transport, profile["id"], session_factory, api_key
+
+
+def test_runner_enabled_skill_versions_have_exact_registered_market_contexts(
+    tmp_path: Path,
+) -> None:
+    service, _transport, _profile_id, _sessions, _api_key = _service(
+        tmp_path,
+        skill_version="0.2.2",
+    )
+
+    contexts = service.overview()["available_contexts"]
+
+    assert len(contexts) == 1
+    assert contexts[0]["skill_version"] == "0.2.2"
+    assert contexts[0]["catalog_id"] == "official-cn-algorithm-market"
+    assert contexts[0]["catalog_version"] == "1.4.0"
 
 
 def test_official_sources_deepseek_synthesis_and_human_review_are_audited(
