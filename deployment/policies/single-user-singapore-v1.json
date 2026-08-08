@@ -1,0 +1,131 @@
+{
+  "policy_id": "single-user-singapore",
+  "version": "1.0.0",
+  "status": "confirmed",
+  "authorization": {
+    "code_implementation": true,
+    "cloud_resource_creation": false,
+    "paid_service": false,
+    "public_release": false
+  },
+  "access": {
+    "audience": "owner_only",
+    "registration": "disabled",
+    "host_independent": true,
+    "ingress": "tailscale_serve_private",
+    "custom_domain": false
+  },
+  "identity": {
+    "provider": "microsoft_personal",
+    "allowlist_size": 1,
+    "login_source": "runtime_secret",
+    "password_database": false
+  },
+  "platform": {
+    "provider": "tencent_cloud",
+    "product": "lighthouse",
+    "region": "singapore",
+    "country_code": "SG",
+    "topology": "single_instance",
+    "instance": {
+      "vcpu": 2,
+      "memory_gib": 2,
+      "system_disk_gib": 40,
+      "monthly_transfer_gib": 512
+    }
+  },
+  "runtime": {
+    "node_major": 24,
+    "python": "3.14.3",
+    "package_manager": "pnpm",
+    "python_manager": "uv"
+  },
+  "budget": {
+    "currency": "CNY",
+    "monthly_hard_limit": 50,
+    "expected_monthly": 32,
+    "alert_percentages": [
+      50,
+      80
+    ],
+    "automatic_top_up": false,
+    "automatic_scaling": false,
+    "unknown_price_action": "stop",
+    "checkout_reconfirmation_required": true
+  },
+  "storage": {
+    "database": "sqlite",
+    "persistence": "single_instance_persistent_disk",
+    "managed_database_todo": true
+  },
+  "runner": {
+    "remote_enabled": false,
+    "local_history_preserved": true,
+    "future_enablement_requires_separate_authorization": true
+  },
+  "external_calls": {
+    "enabled_by_default": false,
+    "real_ai": false,
+    "real_sources": false,
+    "email": false
+  },
+  "backup": {
+    "frequency": "daily",
+    "daily_retention": 7,
+    "weekly_retention": 4,
+    "encryption": "rsa_oaep_aes_256_gcm",
+    "private_key_location": "offline_owner_controlled",
+    "rpo_hours": 24,
+    "rto_hours": 4,
+    "restore_drill": "before_preview_then_quarterly"
+  },
+  "logs": {
+    "operations_retention_days": 7,
+    "sensitive_body_logging": false,
+    "product_audit_history": "preserve"
+  },
+  "sources": [
+    {
+      "id": "tencent-lighthouse-pricing",
+      "publisher": "腾讯云",
+      "url": "https://cloud.tencent.com/document/product/1207/73452/",
+      "retrieved_at": "2026-08-02",
+      "claim": "海外 Linux 入门型 2 核 2 GB、40 GB SSD、512 GB 月流量的刊例价为 30 元/月；新加坡套餐外流量为 0.8 元/GB。"
+    },
+    {
+      "id": "tencent-object-storage-pricing",
+      "publisher": "腾讯云",
+      "url": "https://cloud.tencent.com/document/product/1207/88189",
+      "retrieved_at": "2026-08-02",
+      "claim": "新加坡轻量对象存储标准容量刊例价为 0.0056 元/GB/日，外网下行流量为 0.5 元/GB。"
+    },
+    {
+      "id": "tailscale-pricing",
+      "publisher": "Tailscale",
+      "url": "https://tailscale.com/pricing",
+      "retrieved_at": "2026-08-02",
+      "claim": "Personal 计划当前为永久免费，允许最多 6 个用户；本项目仍只允许一个所有者身份。"
+    },
+    {
+      "id": "tailscale-serve",
+      "publisher": "Tailscale",
+      "url": "https://tailscale.com/docs/features/tailscale-serve",
+      "retrieved_at": "2026-08-02",
+      "claim": "Serve 可在 tailnet 内提供 HTTPS 与身份头；使用身份头时后端应只监听 localhost。"
+    },
+    {
+      "id": "tailscale-identity",
+      "publisher": "Tailscale",
+      "url": "https://tailscale.com/docs/integrations/identity",
+      "retrieved_at": "2026-08-02",
+      "claim": "Tailscale 支持 Microsoft 个人账号作为原生身份供应商，并继承身份供应商的 MFA。"
+    },
+    {
+      "id": "miit-noncommercial-filing",
+      "publisher": "中华人民共和国工业和信息化部",
+      "url": "https://www.miit.gov.cn/gyhxxhb/jgsj/cyzcyfgs/bmgz/xxtxl/art/2024/art_84a0cfa0ebd049bbbe751dca9a008e56.html",
+      "retrieved_at": "2026-08-02",
+      "claim": "在中国境内通过域名或仅通过 IP 地址提供非经营性互联网信息服务均适用备案管理。"
+    }
+  ]
+}

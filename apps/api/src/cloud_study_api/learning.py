@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Protocol, cast
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 import yaml
@@ -59,8 +60,42 @@ class SourceFetcher(Protocol):
     def fetch(self, source: dict[str, Any]) -> SourceObservation: ...
 
 
+def _validate_http_source_url(url: str, expected_host: str | None = None) -> str:
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme != "https"
+        or not host
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port not in {None, 443}
+        or (expected_host is not None and host != expected_host.lower())
+    ):
+        raise RuntimeError("source URL or redirect target is outside the governed HTTPS host")
+    return host
+
+
+class _SameHostHttpsRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def __init__(self, expected_host: str) -> None:
+        super().__init__()
+        self._expected_host = expected_host
+
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: Any,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        _validate_http_source_url(newurl, self._expected_host)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 class HttpSourceFetcher:
     def fetch(self, source: dict[str, Any]) -> SourceObservation:
+        expected_host = _validate_http_source_url(source["url"])
         request = urllib.request.Request(
             source["url"],
             headers={
@@ -71,14 +106,17 @@ class HttpSourceFetcher:
             },
             method="GET",
         )
+        opener = urllib.request.build_opener(_SameHostHttpsRedirectHandler(expected_host))
         try:
-            with urllib.request.urlopen(request, timeout=6) as response:
+            with opener.open(request, timeout=6) as response:
                 response.read(1)
+                final_url = response.geturl()
+                _validate_http_source_url(final_url, expected_host)
                 return SourceObservation(
                     http_status=int(response.status),
                     etag=response.headers.get("ETag"),
                     last_modified=response.headers.get("Last-Modified"),
-                    final_url=response.geturl(),
+                    final_url=final_url,
                 )
         except urllib.error.HTTPError as error:
             raise RuntimeError(f"HTTP {error.code}") from error

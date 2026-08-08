@@ -158,6 +158,18 @@ export interface DecidePathComparisonRequest {
   reason?: string | null;
 }
 
+export interface DeploymentStatusResponse {
+  authentication_required: boolean;
+  data_store: string;
+  external_calls_enabled: boolean;
+  identity_provider: string | null;
+  mode: "local" | "private_preview";
+  monthly_budget_cny: number | null;
+  owner_login_configured: boolean;
+  region: string | null;
+  remote_runner_enabled: boolean;
+}
+
 export interface DiagnosticAnswerResponse {
   content: string | null;
   created_at: string;
@@ -354,9 +366,6 @@ export interface HTTPValidationError {
 }
 
 export interface HealthResponse {
-  database_schema_version: string;
-  registered_skill_packages: number;
-  service: string;
   status: string;
 }
 

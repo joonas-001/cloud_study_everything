@@ -1,0 +1,446 @@
+schema_version: 1.0.0
+id: algorithm-entry-learning
+skill_id: algorithm
+skill_version: 0.2.2
+units:
+  - id: programming-bilingual
+    title: 编程基础与双语言表达
+    objective: 对照 C++ 与 Python 表达数组遍历、函数边界和标准库使用。
+    reason: 先消除语法表达干扰，才能把后续证据聚焦到算法思维。
+    estimated_minutes: 120
+    prerequisite_unit_ids: []
+    source_ids:
+      - python-tutorial-314
+      - cpp-reference-containers
+  - id: complexity-language
+    title: 复杂度分析语言
+    objective: 使用增长率、对数和求和解释常见复杂度。
+    reason: 为数据结构和算法取舍建立共同的分析语言。
+    estimated_minutes: 105
+    prerequisite_unit_ids:
+      - programming-bilingual
+    source_ids:
+      - mit-ocw-6006-2020
+  - id: array-linked-structure
+    title: 数组与链式结构
+    objective: 比较访问、插入、删除、空间和语言容器语义。
+    reason: 建立后续栈、队列、哈希和图结构的共同基础。
+    estimated_minutes: 120
+    prerequisite_unit_ids:
+      - complexity-language
+    source_ids:
+      - open-data-structures-01g
+      - cpp-reference-containers
+      - python-tutorial-314
+  - id: entry-evidence-checkpoint
+    title: 入口阶段综合证据检查
+    objective: 汇总解释、操作文本、迁移、作品、纠错和延迟保持证据。
+    reason: 用多种可观察证据替代“看完即掌握”。
+    estimated_minutes: 150
+    prerequisite_unit_ids:
+      - array-linked-structure
+    source_ids:
+      - mit-ocw-6006-2020
+      - open-data-structures-01g
+activities:
+  - id: programming-remediation
+    unit_id: programming-bilingual
+    type: study
+    title: 编程表达补救
+    prompt: 对照复习变量、条件、循环、函数和数组遍历，并记录最不稳定的一项。
+    reason: 结构化诊断显示编程表达可能阻断算法学习。
+    estimated_minutes: 35
+    required: false
+    completion_rule: confirmation
+    source_ids:
+      - python-tutorial-314
+      - cpp-reference-containers
+    submission_fields:
+      - id: completed
+        kind: confirmation
+        label: 我已完成来源支持的复习
+        required: true
+        min_length: 1
+        max_length: 5
+  - id: programming-study
+    unit_id: programming-bilingual
+    type: study
+    title: 双语言数组遍历
+    prompt: 阅读数组遍历、函数参数和容器访问的来源摘要，比较两种语言的表达。
+    reason: 建立同一算法在 C++ 与 Python 中的共同概念和差异边界。
+    estimated_minutes: 30
+    required: true
+    completion_rule: confirmation
+    source_ids:
+      - python-tutorial-314
+      - cpp-reference-containers
+    submission_fields:
+      - id: completed
+        kind: confirmation
+        label: 我已完成阅读
+        required: true
+        min_length: 1
+        max_length: 5
+  - id: programming-check
+    unit_id: programming-bilingual
+    type: structured_check
+    title: 边界处理检查
+    prompt: 空数组可能出现时，哪种做法最明确地避免读取不存在的第一个元素？
+    reason: 用确定性规则检查一个代表性的边界意识信号。
+    estimated_minutes: 15
+    required: true
+    completion_rule: deterministic_pass
+    source_ids:
+      - python-tutorial-314
+      - cpp-reference-containers
+    submission_fields:
+      - id: answer
+        kind: choice
+        label: 选择处理方式
+        required: true
+        min_length: 1
+        max_length: 40
+        options:
+          - check-empty-first
+          - always-read-first
+          - ignore-input
+    deterministic_check:
+      field_id: answer
+      accepted_values:
+        - check-empty-first
+      feedback: 在访问第一个元素前显式处理空输入。
+  - id: math-remediation
+    unit_id: complexity-language
+    type: study
+    title: 增长率数学语言补救
+    prompt: 复习函数增长、对数含义和简单求和，只覆盖本入口所需内容。
+    reason: 结构化诊断显示数学语言可能阻断复杂度分析。
+    estimated_minutes: 35
+    required: false
+    completion_rule: confirmation
+    source_ids:
+      - mit-ocw-6006-2020
+    submission_fields:
+      - id: completed
+        kind: confirmation
+        label: 我已完成必要数学复习
+        required: true
+        min_length: 1
+        max_length: 5
+  - id: complexity-study
+    unit_id: complexity-language
+    type: study
+    title: 输入规模与增长率
+    prompt: 学习输入规模、最坏情况、渐近上界以及时间与额外空间的区别。
+    reason: 为后续比较结构和算法建立一致的分析语言。
+    estimated_minutes: 35
+    required: true
+    completion_rule: confirmation
+    source_ids:
+      - mit-ocw-6006-2020
+    submission_fields:
+      - id: completed
+        kind: confirmation
+        label: 我已完成学习
+        required: true
+        min_length: 1
+        max_length: 5
+  - id: complexity-check
+    unit_id: complexity-language
+    type: structured_check
+    title: 复杂度排序练习
+    prompt: 选择随 n 增长从慢到快的正确顺序。
+    reason: 确定性检查增长率语言是否足以继续。
+    estimated_minutes: 15
+    required: true
+    completion_rule: deterministic_pass
+    source_ids:
+      - mit-ocw-6006-2020
+    submission_fields:
+      - id: answer
+        kind: choice
+        label: 复杂度顺序
+        required: true
+        min_length: 1
+        max_length: 40
+        options:
+          - n-nlogn-n2
+          - nlogn-n-n2
+          - n2-nlogn-n
+    deterministic_check:
+      field_id: answer
+      accepted_values:
+        - n-nlogn-n2
+      feedback: 对足够大的 n，n 的增长慢于 n log n，后者慢于 n²。
+  - id: structure-study
+    unit_id: array-linked-structure
+    type: study
+    title: 连续与链式存储
+    prompt: 比较随机访问、已知位置插入、遍历、额外空间和缓存局部性。
+    reason: 用明确假设解释结构取舍，避免死记复杂度表。
+    estimated_minutes: 40
+    required: true
+    completion_rule: confirmation
+    source_ids:
+      - open-data-structures-01g
+      - cpp-reference-containers
+    submission_fields:
+      - id: completed
+        kind: confirmation
+        label: 我已完成学习
+        required: true
+        min_length: 1
+        max_length: 5
+  - id: structure-check
+    unit_id: array-linked-structure
+    type: structured_check
+    title: 数据结构取舍检查
+    prompt: 需要频繁按下标读取且很少在中间插入时，通常优先选择什么？
+    reason: 用确定性规则检查代表性的结构选择。
+    estimated_minutes: 15
+    required: true
+    completion_rule: deterministic_pass
+    source_ids:
+      - open-data-structures-01g
+    submission_fields:
+      - id: answer
+        kind: choice
+        label: 结构选择
+        required: true
+        min_length: 1
+        max_length: 40
+        options:
+          - dynamic-array
+          - singly-linked-list
+          - either-identical
+    deterministic_check:
+      field_id: answer
+      accepted_values:
+        - dynamic-array
+      feedback: 动态数组通常提供常数时间按下标访问；链表需要顺序移动。
+  - id: checkpoint-explanation
+    unit_id: entry-evidence-checkpoint
+    type: explanation
+    title: 概念解释
+    prompt: 解释数组与链表的取舍，并明确你的复杂度假设。
+    reason: 收集理解证据；结构有效不代表解释一定正确。
+    estimated_minutes: 20
+    required: true
+    completion_rule: valid_submission
+    source_ids:
+      - open-data-structures-01g
+      - mit-ocw-6006-2020
+    submission_fields:
+      - id: explanation
+        kind: text
+        label: 你的解释
+        required: true
+        min_length: 80
+        max_length: 4000
+  - id: checkpoint-cpp-code
+    unit_id: entry-evidence-checkpoint
+    type: code_text
+    title: C++ 实现文本
+    prompt: 编写完整 C++20 程序：读取 n 和 n 个整数；n 为 0 时输出 EMPTY，否则输出最大值及其首次出现的 0 基下标。
+    reason: 在锁定 GCC 15.2.0、断网和资源受限的隔离容器中验证明确范围内的操作能力。
+    estimated_minutes: 25
+    required: true
+    completion_rule: runner_pass
+    runner_task_id: max-index-cpp-v1
+    source_ids:
+      - cpp-reference-containers
+      - iso-cpp-standard
+    submission_fields:
+      - id: code
+        kind: code
+        label: C++ 代码文本
+        required: true
+        min_length: 40
+        max_length: 12000
+      - id: boundary
+        kind: text
+        label: 空输入约定
+        required: true
+        min_length: 20
+        max_length: 1000
+  - id: checkpoint-python-code
+    unit_id: entry-evidence-checkpoint
+    type: code_text
+    title: Python 实现文本
+    prompt: 编写完整 Python 3.14.3 程序，遵循与 C++ 相同的输入输出约定，并说明两种实现的容器、整数和性能差异。
+    reason: 在锁定 Python 3.14.3、断网和资源受限的隔离容器中验证双语言表达。
+    estimated_minutes: 25
+    required: true
+    completion_rule: runner_pass
+    runner_task_id: max-index-python-v1
+    source_ids:
+      - python-tutorial-314
+    submission_fields:
+      - id: code
+        kind: code
+        label: Python 代码文本
+        required: true
+        min_length: 30
+        max_length: 12000
+      - id: differences
+        kind: text
+        label: 与 C++ 的差异
+        required: true
+        min_length: 40
+        max_length: 2000
+  - id: checkpoint-transfer
+    unit_id: entry-evidence-checkpoint
+    type: transfer
+    title: 陌生场景迁移
+    prompt: 为“按下标读取很多、偶尔在末尾追加”的记录集合选择结构，并说明如果需求改为频繁在已知节点后插入时如何变化。
+    reason: 观察能否把结构取舍迁移到变化的需求。
+    estimated_minutes: 20
+    required: true
+    completion_rule: valid_submission
+    source_ids:
+      - open-data-structures-01g
+    submission_fields:
+      - id: decision
+        kind: text
+        label: 结构选择与变化说明
+        required: true
+        min_length: 100
+        max_length: 4000
+  - id: checkpoint-correction
+    unit_id: entry-evidence-checkpoint
+    type: correction
+    title: 预置错误纠正
+    prompt: 错误说法：“链表能像数组一样用下标在 O(1) 时间访问任意元素。”请选择正确纠正。
+    reason: 预置错误点允许确定性验证纠错结果并产生 supported 证据。
+    estimated_minutes: 15
+    required: true
+    completion_rule: deterministic_pass
+    source_ids:
+      - open-data-structures-01g
+    submission_fields:
+      - id: answer
+        kind: choice
+        label: 选择纠正
+        required: true
+        min_length: 1
+        max_length: 60
+        options:
+          - linked-list-needs-traversal
+          - linked-list-random-access
+          - all-operations-identical
+    deterministic_check:
+      field_id: answer
+      accepted_values:
+        - linked-list-needs-traversal
+      feedback: 普通链表需要从已知节点顺序移动，按下标访问通常是 O(n)。
+  - id: checkpoint-project
+    unit_id: entry-evidence-checkpoint
+    type: project_evidence
+    title: 迷你作品说明
+    prompt: 设计一个同时展示数组与链式结构取舍的小作品，只提交目标、数据结构决策、测试思路、反思和代码文本。
+    reason: 收集可审查的作品文本，不上传文件、不读取本地路径、不执行代码。
+    estimated_minutes: 45
+    required: true
+    completion_rule: valid_submission
+    source_ids:
+      - open-data-structures-01g
+      - mit-ocw-6006-2020
+    submission_fields:
+      - id: goal
+        kind: text
+        label: 作品目标
+        required: true
+        min_length: 40
+        max_length: 2000
+      - id: decisions
+        kind: text
+        label: 数据结构决策
+        required: true
+        min_length: 80
+        max_length: 4000
+      - id: test-plan
+        kind: text
+        label: 测试思路
+        required: true
+        min_length: 60
+        max_length: 3000
+      - id: reflection
+        kind: text
+        label: 反思
+        required: true
+        min_length: 60
+        max_length: 3000
+      - id: code
+        kind: code
+        label: 代码文本
+        required: true
+        min_length: 80
+        max_length: 20000
+  - id: retention-review-template
+    unit_id: entry-evidence-checkpoint
+    type: review
+    title: 延迟隔离运行复测
+    prompt: 不查看原答案，重新编写完整 C++20 程序完成最大值及首次下标任务。
+    reason: 按锁定策略延迟重做同范围 Runner 任务；通过只形成该操作范围的 retained 证据。
+    estimated_minutes: 20
+    required: true
+    completion_rule: runner_pass
+    runner_task_id: max-index-retention-cpp-v1
+    source_ids:
+      - open-data-structures-01g
+      - ies-study-guide
+      - cepeda-spacing-2008
+    submission_fields:
+      - id: code
+        kind: code
+        label: C++ 复测代码
+        required: true
+        min_length: 40
+        max_length: 12000
+      - id: reflection
+        kind: text
+        label: 与首轮实现相比的修正
+        required: true
+        min_length: 20
+        max_length: 1000
+diagnostic_remediation_rules:
+  - id: programming-foundation-remediation
+    question_id: programming-foundation
+    response_values:
+      - needs-foundation
+      - guided-practice
+      - uncertain
+      - skipped
+    activity_ids:
+      - programming-remediation
+    reason: 诊断显示编程表达尚不稳定，先安排补救以避免干扰算法学习。
+  - id: math-foundation-remediation
+    question_id: math-foundation
+    response_values:
+      - needs-math-foundation
+      - partial-math-foundation
+      - uncertain
+      - skipped
+    activity_ids:
+      - math-remediation
+    reason: 诊断显示增长率所需数学语言尚不稳定，先补充当前入口所需范围。
+  - id: complexity-signal-remediation
+    question_id: complexity-order
+    response_values:
+      - nlogn-n-n2
+      - n2-nlogn-n
+      - uncertain
+      - skipped
+    activity_ids:
+      - math-remediation
+    reason: 确定性复杂度信号未通过，加入增长率语言补救。
+  - id: structure-signal-remediation
+    question_id: structure-choice
+    response_values:
+      - linked-list
+      - no-difference
+      - uncertain
+      - skipped
+    activity_ids:
+      - structure-study
+    reason: 结构选择信号未通过，保留并强调连续与链式存储学习活动。

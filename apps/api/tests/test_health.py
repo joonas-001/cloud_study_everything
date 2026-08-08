@@ -6,7 +6,7 @@ from pytest import MonkeyPatch
 from cloud_study_api.main import app
 
 
-def test_health_initializes_sqlite_and_reports_repository_state(
+def test_health_initializes_sqlite_and_returns_minimal_status(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
     database_path = tmp_path / "health-test.db"
@@ -16,10 +16,5 @@ def test_health_initializes_sqlite_and_reports_repository_state(
         response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "status": "ok",
-        "service": "cloud-study-api",
-        "database_schema_version": "0010",
-        "registered_skill_packages": 3,
-    }
+    assert response.json() == {"status": "ok"}
     assert database_path.is_file()

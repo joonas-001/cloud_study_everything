@@ -10,6 +10,7 @@ from cloud_study_api.ai_configuration import (
     AiConfigurationError,
     AiConfigurationService,
 )
+from cloud_study_api.deployment import DeploymentCapabilityError, DeploymentGuard
 from cloud_study_api.diagnostics import DiagnosticError, DiagnosticService
 from cloud_study_api.execution import (
     LearningExecutionError,
@@ -26,6 +27,18 @@ class PrivacySettingsResponse(BaseModel):
     external_ai_enabled: bool
     inactivity_timeout_minutes: int
     updated_at: datetime
+
+
+class DeploymentStatusResponse(BaseModel):
+    mode: Literal["local", "private_preview"]
+    authentication_required: bool
+    identity_provider: str | None
+    owner_login_configured: bool
+    region: str | None
+    data_store: Literal["sqlite"]
+    remote_runner_enabled: bool
+    external_calls_enabled: bool
+    monthly_budget_cny: int | None
 
 
 class UpdatePrivacySettingsRequest(BaseModel):
@@ -1242,6 +1255,27 @@ ExperimentServiceDependency = Annotated[
 ]
 
 
+def get_deployment_guard(request: Request) -> DeploymentGuard:
+    guard: DeploymentGuard = request.app.state.deployment_guard
+    return guard
+
+
+DeploymentGuardDependency = Annotated[
+    DeploymentGuard,
+    Depends(get_deployment_guard),
+]
+
+
+def _require_external_calls(guard: DeploymentGuard) -> None:
+    try:
+        guard.require_external_calls()
+    except DeploymentCapabilityError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": error.code, "message": str(error), "context": {}},
+        ) from error
+
+
 def _raise_http(error: DiagnosticError) -> None:
     raise HTTPException(
         status_code=error.status_code,
@@ -1289,6 +1323,17 @@ def _raise_service_http(
 
 
 @router.get(
+    "/deployment/status",
+    response_model=DeploymentStatusResponse,
+    tags=["deployment-6a"],
+)
+def get_deployment_status(
+    guard: DeploymentGuardDependency,
+) -> DeploymentStatusResponse:
+    return DeploymentStatusResponse.model_validate(guard.status())
+
+
+@router.get(
     "/settings/privacy",
     response_model=PrivacySettingsResponse,
     tags=["settings"],
@@ -1307,7 +1352,10 @@ def get_privacy_settings(
 def update_privacy_settings(
     payload: UpdatePrivacySettingsRequest,
     service: DiagnosticServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> PrivacySettingsResponse:
+    if payload.external_ai_enabled:
+        _require_external_calls(deployment_guard)
     return PrivacySettingsResponse.model_validate(
         service.update_privacy_settings(payload.external_ai_enabled)
     )
@@ -1322,7 +1370,10 @@ def update_privacy_settings(
 def create_diagnostic_session(
     payload: CreateDiagnosticSessionRequest,
     service: DiagnosticServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> DiagnosticSessionResponse:
+    if payload.external_ai_consent:
+        _require_external_calls(deployment_guard)
     try:
         result = service.create_session(**payload.model_dump())
     except DiagnosticError as error:
@@ -1533,7 +1584,9 @@ def update_planning_status(
 def create_source_check_run(
     payload: CreateSourceCheckRequest,
     service: LearningServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> SourceCheckRunResponse:
+    _require_external_calls(deployment_guard)
     try:
         result = service.check_sources(**payload.model_dump())
     except LearningError as error:
@@ -1593,7 +1646,10 @@ def get_notification_preferences(
 def update_notification_preferences(
     payload: UpdateNotificationPreferenceRequest,
     service: NotificationServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> NotificationPreferenceResponse:
+    if payload.email_enabled:
+        _require_external_calls(deployment_guard)
     try:
         result = service.update_preferences(**payload.model_dump())
     except NotificationError as error:
@@ -1608,7 +1664,9 @@ def update_notification_preferences(
 )
 def send_test_email(
     service: NotificationServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> NotificationResponse:
+    _require_external_calls(deployment_guard)
     try:
         result = service.send_test_email()
     except NotificationError as error:
@@ -1638,7 +1696,9 @@ def list_notifications(
 )
 def process_email_outbox(
     service: NotificationServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> EmailOutboxProcessResponse:
+    _require_external_calls(deployment_guard)
     return EmailOutboxProcessResponse.model_validate(service.process_outbox())
 
 
@@ -2125,7 +2185,9 @@ def get_market_research_history(
 def create_market_research_run(
     payload: CreateMarketResearchRunRequest,
     service: MarketResearchServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> MarketResearchRunResponse:
+    _require_external_calls(deployment_guard)
     try:
         result = service.create_run(**payload.model_dump())
     except MarketResearchError as error:
@@ -2158,7 +2220,9 @@ def synthesize_market_research_run(
     run_id: str,
     payload: SynthesizeMarketResearchRequest,
     service: MarketResearchServiceDependency,
+    deployment_guard: DeploymentGuardDependency,
 ) -> MarketResearchRunResponse:
+    _require_external_calls(deployment_guard)
     try:
         result = service.synthesize(run_id, **payload.model_dump())
     except MarketResearchError as error:

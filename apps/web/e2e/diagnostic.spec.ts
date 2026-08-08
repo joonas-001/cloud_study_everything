@@ -177,7 +177,7 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   ).toBeVisible();
   await expect(page.getByText(/首版不提供人工绕过/)).toBeVisible();
   await expect(
-    page.getByText(/当前没有与受管研究目录匹配的变现目标/),
+    page.getByText(/algorithm@0\.2\.2 · algorithm-entry-mastery-scope/),
   ).toBeVisible();
   await expect(
     page.getByText(/employment 证据能力：当前来源体系不支持判断/),
@@ -185,7 +185,7 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(page.getByText("查看历史研究与审计事件")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "检查官方市场来源" }),
-  ).toHaveCount(0);
+  ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "使用 deepseek-v4-flash 综合" }),
   ).toHaveCount(0);

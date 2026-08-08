@@ -223,7 +223,7 @@ export function ReadinessPanel() {
       <section className="readiness-shell">
         <h2>还没有可评估的能力范围</h2>
         <p className="empty-state">
-          请先在学习面板创建一条 algorithm@0.2.1 学习记录。完成进度不会被当作掌握或变现资格。
+          请先在学习面板创建一条 algorithm@0.2.2 学习记录。完成进度不会被当作掌握或变现资格。
         </p>
       </section>
     );

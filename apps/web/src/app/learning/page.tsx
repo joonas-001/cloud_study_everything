@@ -27,7 +27,7 @@ export default function LearningPage() {
           当前页面验证规划选择、学习活动、隔离代码运行、追加修订、六维证据和固定间隔复习。
         </p>
       </header>
-      <LearningDashboard skillId="algorithm" skillVersion="0.2.1" />
+      <LearningDashboard skillId="algorithm" skillVersion="0.2.2" />
     </main>
   );
 }

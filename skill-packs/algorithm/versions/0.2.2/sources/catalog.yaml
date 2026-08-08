@@ -1,0 +1,107 @@
+schema_version: 1.0.0
+skill_id: algorithm
+skill_version: 0.2.2
+sources:
+  - id: python-tutorial-314
+    title: The Python Tutorial
+    publisher: Python Software Foundation
+    url: https://docs.python.org/3.14/tutorial/
+    source_type: official_documentation
+    authority_tier: 1
+    authority_rationale: Python 3.14 官方教程，由 Python Software Foundation 维护。
+    published_version: "3.14"
+    retrieved_at: "2026-07-28"
+    check_mode: http_metadata
+    access_note: 只保存链接、版本、必要摘要和响应元数据，不复制完整文档。
+  - id: cpp-reference-containers
+    title: Containers library
+    publisher: cppreference.com
+    url: https://en.cppreference.com/w/cpp/container.html
+    source_type: community_reference
+    authority_tier: 2
+    authority_rationale: 广泛使用且持续维护的 C++ 标准库参考资料；关键标准结论仍以 ISO C++ 为准。
+    retrieved_at: "2026-07-28"
+    check_mode: http_metadata
+    access_note: 只保存结构化摘要和链接，不复制页面全文。
+  - id: iso-cpp-standard
+    title: The C++ Standards Committee
+    publisher: ISO C++ Foundation
+    url: https://isocpp.org/std/the-standard
+    source_type: standard
+    authority_tier: 1
+    authority_rationale: ISO C++ Foundation 提供的 C++ 标准与委员会公开入口。
+    retrieved_at: "2026-07-28"
+    check_mode: http_metadata
+    access_note: 不复制受版权保护的标准全文，仅记录公开版本信息和链接。
+  - id: mit-ocw-6006-2020
+    title: Introduction to Algorithms
+    publisher: MIT OpenCourseWare
+    url: https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2020/
+    source_type: university_course
+    authority_tier: 2
+    authority_rationale: 麻省理工学院公开的算法课程材料，由课程教师和 MIT OpenCourseWare 发布。
+    published_at: "2020-09-01"
+    retrieved_at: "2026-07-28"
+    check_mode: http_metadata
+    access_note: 遵守 MIT OpenCourseWare 条款，仅保存结构化引用、摘要和课程关系。
+  - id: open-data-structures-01g
+    title: Open Data Structures
+    publisher: Pat Morin
+    url: https://opendatastructures.org/
+    source_type: textbook
+    authority_tier: 3
+    authority_rationale: 由计算机科学教授公开维护的数据结构教材，提供版本和许可说明。
+    published_version: "0.1G"
+    retrieved_at: "2026-07-28"
+    check_mode: http_metadata
+    access_note: 按原站许可使用，只保存规划所需摘要、章节关系和出处。
+  - id: ies-study-guide
+    title: Organizing Instruction and Study to Improve Student Learning
+    publisher: U.S. Institute of Education Sciences
+    url: https://ies.ed.gov/ncee/wwc/PracticeGuide/1
+    source_type: government_guidance
+    authority_tier: 1
+    authority_rationale: 美国教育科学研究院发布的研究型实践指南，明确标注建议的证据等级。
+    published_at: "2007-09-01"
+    retrieved_at: "2026-07-28"
+    check_mode: http_metadata
+    access_note: 保存建议摘要、证据等级和出处；指南为公共领域资料。
+  - id: cepeda-spacing-2008
+    title: "Spacing Effects in Learning: A Temporal Ridgeline of Optimal Retention"
+    publisher: Psychological Science
+    url: https://doi.org/10.1111/j.1467-9280.2008.02209.x
+    source_type: peer_reviewed_research
+    authority_tier: 2
+    authority_rationale: 同行评审的大样本间隔效应研究，观察最长一年保持延迟。
+    published_at: "2008-11-01"
+    retrieved_at: "2026-07-28"
+    check_mode: manual
+    access_note: 只保存研究结论摘要、限制和 DOI，不复制论文全文。
+  - id: murre-ebbinghaus-2015
+    title: Replication and Analysis of Ebbinghaus’ Forgetting Curve
+    publisher: PLOS ONE
+    url: https://doi.org/10.1371/journal.pone.0120644
+    source_type: peer_reviewed_research
+    authority_tier: 2
+    authority_rationale: 同行评审的艾宾浩斯遗忘曲线直接复现研究。
+    published_at: "2015-07-06"
+    retrieved_at: "2026-07-28"
+    check_mode: manual
+    access_note: 保存结论、限制和 DOI；不把实验测量点伪装为通用复习处方。
+experts:
+  - id: mit-algorithms-faculty
+    name: MIT 6.006 课程教师团队
+    expertise_evidence: 公开教授算法与数据结构课程，并由 MIT OpenCourseWare 发布完整课程材料。
+    source_ids:
+      - mit-ocw-6006-2020
+    planning_principles:
+      - 将数据结构、算法分析和问题求解放在同一学习序列中。
+      - 使用可观察练习连接抽象概念与工程取舍。
+  - id: pat-morin
+    name: Pat Morin
+    expertise_evidence: Open Data Structures 作者和计算机科学教授，公开维护多语言数据结构教材。
+    source_ids:
+      - open-data-structures-01g
+    planning_principles:
+      - 用实现、复杂度和适用场景共同解释数据结构。
+      - 在抽象概念后安排可手工检查的代表性任务。

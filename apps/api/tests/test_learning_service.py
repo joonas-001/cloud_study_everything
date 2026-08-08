@@ -9,7 +9,12 @@ from cloud_study_api.credentials import MemoryCredentialStore
 from cloud_study_api.database import create_session_factory, upgrade_database
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.governance import validate_repository
-from cloud_study_api.learning import LearningError, LearningService, SourceObservation
+from cloud_study_api.learning import (
+    LearningError,
+    LearningService,
+    SourceObservation,
+    _validate_http_source_url,
+)
 from cloud_study_api.models import SourceCheckResult, SourceCheckRun
 from cloud_study_api.notifications import NotificationError, NotificationService
 
@@ -19,7 +24,7 @@ FAKE_SMTP_SECRET = "-".join(("smtp", "secret"))
 
 def _current_package():
     return next(
-        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.1"
+        package for package in validate_repository(REPOSITORY_ROOT) if package.version == "0.2.2"
     )
 
 
@@ -38,6 +43,24 @@ class FakeSourceFetcher:
             last_modified=("Mon, 27 Jul 2026 00:00:00 GMT" if self.include_validators else None),
             final_url=source["url"],
         )
+
+
+def test_learning_source_urls_require_same_governed_https_host() -> None:
+    assert (
+        _validate_http_source_url(
+            "https://docs.python.org/3.14/tutorial/",
+            "docs.python.org",
+        )
+        == "docs.python.org"
+    )
+    for url in (
+        "http://docs.python.org/3.14/tutorial/",
+        "https://127.0.0.1/private",
+        "https://user:password@docs.python.org/3.14/tutorial/",
+        "https://docs.python.org:8443/3.14/tutorial/",
+    ):
+        with pytest.raises(RuntimeError, match="governed HTTPS host"):
+            _validate_http_source_url(url, "docs.python.org")
 
 
 class FakeMailSender:

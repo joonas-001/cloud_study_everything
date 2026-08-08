@@ -1,0 +1,44 @@
+schema_version: 1.0.0
+id: algorithm-entry-rubric
+skill_id: algorithm
+skill_version: 0.2.2
+criteria:
+  - id: explanation-self-review
+    title: 概念解释自评
+    prompt: 你的解释是否同时写明操作差异、复杂度假设和适用场景？
+    levels:
+      - value: not_yet
+        label: 尚未满足
+        observable_description: 缺少两个及以上必要部分，需要修订。
+      - value: uncertain
+        label: 不确定
+        observable_description: 已提交但无法自行确认内容是否充分，需要未来复核。
+      - value: meets
+        label: 自评满足
+        observable_description: 三个部分均已明确写出；这仍是自评，不是独立审核。
+  - id: transfer-self-review
+    title: 迁移任务自评
+    prompt: 你的选择是否随需求变化而调整，并解释了理由？
+    levels:
+      - value: not_yet
+        label: 尚未满足
+        observable_description: 没有处理需求变化或没有说明理由。
+      - value: uncertain
+        label: 不确定
+        observable_description: 已作选择但不确定理由是否成立，需要未来复核。
+      - value: meets
+        label: 自评满足
+        observable_description: 已明确说明两个场景的选择与变化；这仍是有限证据。
+  - id: project-self-review
+    title: 迷你作品自评
+    prompt: 作品说明是否包含目标、结构决策、测试思路、反思和代码文本？
+    levels:
+      - value: not_yet
+        label: 尚未满足
+        observable_description: 缺少一个或多个必需组成部分。
+      - value: uncertain
+        label: 不确定
+        observable_description: 结构完整但无法确认技术内容，需要未来复核。
+      - value: meets
+        label: 自评满足
+        observable_description: 必需组成部分齐全；代码未执行，不能证明作品正确。

@@ -1,0 +1,52 @@
+schema_version: 1.0.0
+id: algorithm
+version: 0.2.2
+title: 算法共同主干入口来源修复草稿
+state: draft
+availability: available
+engine_contract:
+  version: ">=0.3.0 <0.4.0"
+runner_protocol:
+  version: "1.1.0"
+runtime_profiles:
+  - id: cpp-gcc-15-2
+    version: "1.0.0"
+  - id: python-3-14-3
+    version: "1.0.0"
+skill_dependencies: []
+content_files:
+  - kind: curriculum
+    path: curriculum/README.md
+    sha256: c5e8492cc11c3651ffc60a78ecb29144b5f6e19f882562df404a564b35ed01f8
+  - kind: diagnostic_definition
+    path: assessments/diagnostic.yaml
+    sha256: b67d4f956d0ee93cdd0f97e5b4d5009d9018dc5bccb1897e6726fd115a71b207
+  - kind: source_catalog
+    path: sources/catalog.yaml
+    sha256: 9a27cca22c476252479cf57bc9ddd95b4a34f282eab4a63133b21eb86d172cf3
+  - kind: planning_template
+    path: curriculum/planning-preview.yaml
+    sha256: 118ac2824f91f4c49e3bf528c572a4877dd51027da0624a184e780d8eb24253f
+  - kind: learning_definition
+    path: curriculum/learning.yaml
+    sha256: 2efc7ac9a811ea05eaaeb8593d12b2cc5b4d54b70462ef43ec9348a233bf2586
+  - kind: assessment_definition
+    path: assessments/assessment.yaml
+    sha256: 86daff67984a0b252375ba5965a45658fe143d691f7380b7e64875bed34cf299
+  - kind: rubric_definition
+    path: assessments/rubric.yaml
+    sha256: 55f42188eb68614438146c588746300172fecbc537cc29f714d6ba651def85d6
+  - kind: review_policy
+    path: review/policy.yaml
+    sha256: 68c4640a604776db4bfd7c6739d856a0d046a4a0da59bb446831397318ccdb5c
+  - kind: mastery_scope
+    path: assessments/mastery-scope.yaml
+    sha256: 30a15a3b5d577c2c281fc175c0a30b98fef8133cdc40e2213d064debe2fd7796
+  - kind: runner_task_definition
+    path: assessments/runner-tasks.yaml
+    sha256: a96357b265113347b6c661f1a38a0c1b8933f2ca7ed16c9f031362a4a8637c14
+sources:
+  - id: review-policy-research
+    title: 第四里程碑复习策略研究记录
+    url: https://local.cloud-study/docs/research/review-policy
+    retrieved_at: "2026-07-28"

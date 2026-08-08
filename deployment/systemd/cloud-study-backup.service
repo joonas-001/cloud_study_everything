@@ -1,0 +1,33 @@
+[Unit]
+Description=云奕学 encrypted SQLite backup
+ConditionPathExists=/etc/cloud-study/private-preview.env
+
+[Service]
+Type=oneshot
+User=cloud-study
+Group=cloud-study
+WorkingDirectory=/opt/cloud-study/app
+EnvironmentFile=/etc/cloud-study/private-preview.env
+ExecStart=/opt/cloud-study/app/apps/api/.venv/bin/python tools/manage_backup.py scheduled --database /var/lib/cloud-study/cloud-study.db --output-directory /var/backups/cloud-study --public-key /etc/cloud-study/backup-public.pem
+UMask=0077
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/cloud-study /var/lib/cloud-study
+ReadWritePaths=/var/backups/cloud-study
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+LogNamespace=cloud-study
