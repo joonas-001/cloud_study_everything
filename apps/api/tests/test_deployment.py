@@ -24,7 +24,7 @@ def _configure_private_preview(
     monkeypatch: MonkeyPatch,
 ) -> None:
     secret_directory = tmp_path / "secrets"
-    secret_directory.mkdir()
+    secret_directory.mkdir(mode=0o700)
     monkeypatch.setenv("CLOUD_STUDY_DEPLOYMENT_MODE", "private_preview")
     monkeypatch.setenv("CLOUD_STUDY_DATABASE_PATH", str(tmp_path / "private.sqlite3"))
     monkeypatch.setenv("CLOUD_STUDY_CREDENTIAL_STORE", "file")
@@ -169,8 +169,9 @@ def test_private_preview_preflight_is_read_only_and_version_locked(
     generate_backup_key_pair(private_key, public_key)
     monkeypatch.setenv("CLOUD_STUDY_BACKUP_PUBLIC_KEY", str(public_key.resolve()))
 
+    node_command = "/usr/bin/node" if os.name != "nt" else "node"
     versions = {
-        "node": "v24.14.0",
+        node_command: "v24.14.0",
         "pnpm": "11.9.0",
         "uv": "uv 0.11.32",
     }
@@ -182,5 +183,6 @@ def test_private_preview_preflight_is_read_only_and_version_locked(
     result = deployment_preflight.run_preflight()
     assert result["ok"] is True
     assert result["database_revision"] == "0010"
+    assert result["node_executable"] == node_command
     assert result["remote_runner_enabled"] is False
     assert result["external_calls_enabled"] is False
