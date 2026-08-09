@@ -69,3 +69,10 @@ python tools/manage_backup.py restore --backup <制品> --target-database <新SQ
 不要修改原备份或原数据库。依次检查制品完整性、是否使用对应私钥、磁盘空间和文件权限。
 若一个制品失败，保留失败证据后尝试上一份已验证备份。所有候选都失败时停止上线并回到
 本地只读版本，不创建空数据库冒充恢复成功。
+
+## 7. 演练记录
+
+- 2026-08-09：已完成 6A 本地合成数据库的“迁移、加密备份、删除源库、恢复到新路径、
+  摘要与完整性复核、私有预发布预检”演练。结果和后续边界见
+  [`evidence/milestone-6a-backup-restore-2026-08-09.md`](evidence/milestone-6a-backup-restore-2026-08-09.md)。
+  该证据不代替 6B 异机副本恢复演练。

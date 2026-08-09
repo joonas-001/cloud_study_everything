@@ -170,9 +170,10 @@ def test_private_preview_preflight_is_read_only_and_version_locked(
     monkeypatch.setenv("CLOUD_STUDY_BACKUP_PUBLIC_KEY", str(public_key.resolve()))
 
     node_command = "/usr/bin/node" if os.name != "nt" else "node"
+    pnpm_command = "pnpm.cmd" if os.name == "nt" else "pnpm"
     versions = {
         node_command: "v24.14.0",
-        "pnpm": "11.9.0",
+        pnpm_command: "11.9.0",
         "uv": "uv 0.11.32",
     }
     monkeypatch.setattr(
