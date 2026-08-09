@@ -97,8 +97,9 @@ def run_preflight() -> dict[str, object]:
     _verify_public_key(public_key_path)
 
     node_command = "/usr/bin/node" if os.name != "nt" else "node"
+    pnpm_command = "pnpm.cmd" if os.name == "nt" else "pnpm"
     node_version = _command_version(node_command)
-    pnpm_version = _command_version("pnpm")
+    pnpm_version = _command_version(pnpm_command)
     uv_version = _command_version("uv")
     if not node_version.startswith("v24."):
         raise PreflightError("private preview requires Node.js 24")
