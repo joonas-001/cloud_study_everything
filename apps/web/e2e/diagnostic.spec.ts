@@ -1,5 +1,78 @@
 import { expect, test } from "@playwright/test";
 
+test("keeps the milestone 7B shell navigable on desktop and mobile", async ({ page }, testInfo) => {
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: "今天从最明确的一步开始。" })).toBeVisible();
+  await expect(page.locator(".top-nav")).toHaveCount(0);
+
+  const skipLink = page.getByRole("link", { name: "跳到主要内容" });
+  await expect(skipLink).toHaveCSS("opacity", "0");
+  await expect(skipLink).toHaveCSS("clip-path", "inset(50%)");
+  await page.screenshot({ path: testInfo.outputPath("m7b-shell-home.png"), fullPage: true });
+  await page.keyboard.press("Tab");
+  await expect(skipLink).toBeFocused();
+  await expect(skipLink).toHaveCSS("opacity", "1");
+  await expect(skipLink).toHaveCSS("clip-path", "none");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
+
+  const viewportWidth = page.viewportSize()?.width ?? 1280;
+  if (viewportWidth <= 760) {
+    const mobileNavigation = page.getByRole("navigation", { name: "移动端主导航" });
+    await expect(mobileNavigation).toBeVisible();
+    await expect(page.getByLabel("应用导航")).toBeHidden();
+    await expect(mobileNavigation.getByRole("link", { name: "今日" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await mobileNavigation.getByRole("link", { name: /证据/ }).click();
+    await expect(page.getByRole("heading", { name: /证据说明能力范围/ })).toBeVisible();
+    await mobileNavigation.getByRole("link", { name: "更多" }).click();
+    await expect(page.getByRole("heading", { name: "更多一级能力" })).toBeVisible();
+    await page.getByRole("link", { name: /目标与行动/ }).click();
+  } else {
+    const desktopNavigation = page.getByRole("navigation", { name: "主导航" });
+    await expect(desktopNavigation).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "移动端主导航" })).toBeHidden();
+    await expect(desktopNavigation.getByRole("link", { name: "今日" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await desktopNavigation.getByRole("link", { name: "证据" }).click();
+    await expect(page.getByRole("heading", { name: /证据说明能力范围/ })).toBeVisible();
+    await desktopNavigation.getByRole("link", { name: "目标与行动" }).click();
+  }
+
+  await expect(page.getByRole("heading", { name: /先明确目标/ })).toBeVisible();
+  await page.goto("/inbox");
+  await expect(page.getByRole("heading", { name: /需要了解、确认或处理/ })).toBeVisible();
+  await expect(page.getByText("尚未汇总", { exact: true }).first()).toBeVisible();
+});
+
+test("keeps the shell usable at an effective 200% zoom", async ({ page }) => {
+  const viewport = page.viewportSize();
+  if (!viewport) {
+    throw new Error("The 200% zoom check requires a configured viewport.");
+  }
+
+  await page.setViewportSize({
+    width: Math.floor(viewport.width / 2),
+    height: viewport.height,
+  });
+  await page.goto("/");
+
+  await expect(page.getByRole("navigation", { name: "移动端主导航" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今天从最明确的一步开始。" })).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
+});
+
 test("completes the guarded diagnostic preview and preserves corrections", async ({
   page,
 }, testInfo) => {
