@@ -546,12 +546,6 @@ export function LearningDashboard({
           </section>
         ) : null}
 
-        <section className="panel inbox-handoff">
-          <span className="eyebrow">Inbox</span>
-          <h2>消息已统一到收件箱</h2>
-          <p>规划与来源流程产生的通知、真实未读状态和标记已读操作现在集中在一级收件箱。</p>
-          <Link href="/inbox">打开收件箱</Link>
-        </section>
       </aside>
     </div>
   );

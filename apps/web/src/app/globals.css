@@ -2580,27 +2580,6 @@ textarea::placeholder {
   font-size: 0.74rem;
 }
 
-.inbox-handoff {
-  padding: 24px;
-}
-
-.inbox-handoff h2 {
-  margin: 8px 0;
-  font-size: 1rem;
-}
-
-.inbox-handoff p {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.65;
-}
-
-.inbox-handoff a {
-  color: var(--deep);
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
 .m7-dimension-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
