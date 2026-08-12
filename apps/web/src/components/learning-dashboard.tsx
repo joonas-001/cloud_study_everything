@@ -6,7 +6,6 @@ import type { FormEvent } from "react";
 
 import type {
   DiagnosticSessionResponse,
-  NotificationResponse,
   PlanningProposalResponse,
   PlanningUnitResponse,
   SourceChangeCandidateResponse,
@@ -17,11 +16,8 @@ import {
   createSourceCheck,
   getLatestDiagnosticSession,
   getLatestPlanningProposal,
-  getNotifications,
   getSourceChangeCandidates,
-  markNotificationRead,
   messageForError,
-  processEmailOutbox,
   resolveSourceChangeCandidate,
   updatePlanningStatus,
   updatePlanningUnit,
@@ -52,9 +48,6 @@ export function LearningDashboard({
   const [proposal, setProposal] = useState<PlanningProposalResponse | null>(
     null,
   );
-  const [notifications, setNotifications] = useState<
-    Array<NotificationResponse>
-  >([]);
   const [candidates, setCandidates] = useState<
     Array<SourceChangeCandidateResponse>
   >([]);
@@ -70,11 +63,9 @@ export function LearningDashboard({
     Promise.all([
       getLatestDiagnosticSession(skillId, skillVersion),
       getLatestPlanningProposal(skillId, skillVersion),
-      getNotifications(),
       getSourceChangeCandidates(skillId, skillVersion),
-      processEmailOutbox().catch(() => null),
     ])
-      .then(([nextDiagnostic, nextProposal, nextNotifications, nextCandidates]) => {
+      .then(([nextDiagnostic, nextProposal, nextCandidates]) => {
         if (!active) {
           return;
         }
@@ -84,7 +75,6 @@ export function LearningDashboard({
             ? nextProposal
             : null,
         );
-        setNotifications(nextNotifications);
         setCandidates(nextCandidates);
       })
       .catch((reason: unknown) => {
@@ -127,7 +117,6 @@ export function LearningDashboard({
           model_id: "planner-sim-v1",
         }),
       );
-      setNotifications(await getNotifications());
     });
   }
 
@@ -140,12 +129,7 @@ export function LearningDashboard({
           manual,
         }),
       );
-      const [nextNotifications, nextCandidates] = await Promise.all([
-        getNotifications(),
-        getSourceChangeCandidates(skillId, skillVersion),
-      ]);
-      setNotifications(nextNotifications);
-      setCandidates(nextCandidates);
+      setCandidates(await getSourceChangeCandidates(skillId, skillVersion));
     });
   }
 
@@ -204,16 +188,6 @@ export function LearningDashboard({
       setCandidates((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
-      setNotifications(await getNotifications());
-    });
-  }
-
-  function readNotification(notificationId: string) {
-    void run(async () => {
-      const updated = await markNotificationRead(notificationId);
-      setNotifications((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      );
     });
   }
 
@@ -221,7 +195,7 @@ export function LearningDashboard({
     return (
       <section className="panel loading-panel" aria-live="polite">
         <span className="loading-dot" aria-hidden="true" />
-        正在读取本地规划、来源和通知……
+        正在读取本地规划和来源……
       </section>
     );
   }
@@ -535,44 +509,6 @@ export function LearningDashboard({
       </section>
 
       <aside className="learning-sidebar">
-        <section className="panel notification-center">
-          <header>
-            <div>
-              <span className="eyebrow">Notification center</span>
-              <h2>站内通知</h2>
-            </div>
-            <Link href="/settings">通知设置</Link>
-          </header>
-          {notifications.length === 0 ? (
-            <p className="muted">目前没有通知。</p>
-          ) : (
-            <ol>
-              {notifications.map((item) => (
-                <li className={item.read_at ? "is-read" : ""} key={item.id}>
-                  <span className={`severity ${item.severity}`}>
-                    {item.severity}
-                  </span>
-                  <strong>{item.title}</strong>
-                  <p>{item.message}</p>
-                  {item.email_status ? (
-                    <small>邮件：{item.email_status}</small>
-                  ) : null}
-                  {!item.read_at ? (
-                    <button
-                      className="text-button"
-                      type="button"
-                      disabled={busy}
-                      onClick={() => readNotification(item.id)}
-                    >
-                      标记已读
-                    </button>
-                  ) : null}
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
-
         {candidates.some((item) => item.status === "pending") ? (
           <section className="panel candidate-list">
             <span className="eyebrow">Review required</span>
@@ -609,6 +545,13 @@ export function LearningDashboard({
               ))}
           </section>
         ) : null}
+
+        <section className="panel inbox-handoff">
+          <span className="eyebrow">Inbox</span>
+          <h2>消息已统一到收件箱</h2>
+          <p>规划与来源流程产生的通知、真实未读状态和标记已读操作现在集中在一级收件箱。</p>
+          <Link href="/inbox">打开收件箱</Link>
+        </section>
       </aside>
     </div>
   );
