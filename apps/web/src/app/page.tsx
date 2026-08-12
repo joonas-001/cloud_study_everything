@@ -1,64 +1,61 @@
 import Link from "next/link";
 
-import { getPlatformMilestones } from "@/lib/platform";
+import { PageHeader } from "@/components/page-header";
 
 export default function Home() {
-  const milestones = getPlatformMilestones();
-
   return (
-    <main className="page">
-      <nav className="top-nav" aria-label="页面导航">
-        <span className="wordmark">云奕学</span>
-        <div className="nav-links">
-          <Link href="/diagnostic">诊断</Link>
-          <Link href="/learning">学习面板</Link>
-          <Link href="/readiness">目标与准备度</Link>
-          <Link href="/market-research">市场研究</Link>
-          <Link href="/experiments">就业实验</Link>
-          <Link href="/settings">设置</Link>
+    <main id="main-content" tabIndex={-1} className="page today-page">
+      <PageHeader
+        eyebrow="Today · 7B shell"
+        title="今天从最明确的一步开始。"
+        description="当前阶段先建立稳定入口；跨记录的今日聚合将在 7C 接入，不会用占位数据冒充真实任务或状态。"
+        context={[
+          { label: "技能包", value: "algorithm@0.2.2" },
+          { label: "今日聚合", value: "尚未接入", tone: "warning" },
+          { label: "证据边界", value: "完成不等于掌握" },
+        ]}
+        actions={
+          <Link className="primary-button" href="/learning">
+            进入现有学习工作区
+          </Link>
+        }
+      />
+
+      <section className="m7-overview" aria-labelledby="today-overview-title">
+        <div className="m7-section-heading">
+          <div>
+            <span className="eyebrow">Current view</span>
+            <h2 id="today-overview-title">今日概览</h2>
+          </div>
+          <p>7B 只提供准确入口，7C 才会建立跨记录聚合。</p>
         </div>
-      </nav>
-      <header className="hero">
-        <div className="eyebrow">Evidence before confidence</div>
-        <h1>让每一步学习，都留下可信的掌握证据。</h1>
-        <p>
-          云奕学从诊断真实基础开始，逐步连接学习、实践、作品与复习。当前版本专注验证最小闭环。
-        </p>
-        <Link className="primary-button" href="/diagnostic">
-          进入算法诊断预览
-        </Link>
-        <Link className="secondary-link" href="/learning">
-          查看学习面板
-        </Link>
-        <Link className="secondary-link" href="/readiness">
-          选择目标并查看准备度
-        </Link>
-        <Link className="secondary-link" href="/market-research">
-          检查官方市场来源
-        </Link>
-        <Link className="secondary-link" href="/experiments">
-          规划证据门禁的就业实验
-        </Link>
-      </header>
-      <div className="status">
-        开发状态：4A、4B、5A、5B 已合并 · 5C 本地就业实验实现中
-      </div>
-
-      <section className="grid" aria-label="当前基础能力">
-        {milestones.map((milestone) => (
-          <article className="card" key={milestone.title}>
-            <h2>{milestone.title}</h2>
-            <p>{milestone.description}</p>
+        <div className="m7-overview-grid">
+          <article className="m7-overview-card m7-overview-card--primary">
+            <span className="m7-card-kicker">当前任务</span>
+            <h3>从已有学习执行继续</h3>
+            <p>本页尚未读取活动执行记录。进入学习工作区查看已锁定规划、今日活动与完成标准。</p>
+            <Link href="/learning">查看学习工作区</Link>
           </article>
-        ))}
+          <article className="m7-overview-card">
+            <span className="m7-card-kicker">到期复习</span>
+            <h3>尚未汇总到今日</h3>
+            <p>现有延迟复习仍保留在对应学习执行记录中，7B 不推断是否已经到期。</p>
+            <Link href="/learning">查看复习记录</Link>
+          </article>
+          <article className="m7-overview-card">
+            <span className="m7-card-kicker">阻断事项</span>
+            <h3>按能力范围查看门禁</h3>
+            <p>学习阻断和目标实验门禁仍由原有页面确定，不把局部状态外推为整门技能结论。</p>
+            <Link href="/goals">进入目标与行动</Link>
+          </article>
+          <article className="m7-overview-card">
+            <span className="m7-card-kicker">最近变化</span>
+            <h3>统一变化流尚未接入</h3>
+            <p>来源候选和站内通知仍在原位置；收件箱当前明确展示这一限制。</p>
+            <Link href="/inbox">查看收件箱边界</Link>
+          </article>
+        </div>
       </section>
-
-      <aside className="notice">
-        算法技能包 0.2.2 目前仍是草稿。诊断与规划不调用外部 AI；代码只在本机锁定的
-        Docker 隔离 Runner 中运行。Runner 证据严格限定到对应测试范围，不生成整体掌握结论。
-        5A 只提供显著标记的合成比较；5B 的真实外发必须逐次确认并受费用硬门禁约束。
-        5C 只记录用户亲自在产品外完成的动作，不执行自动投递、联系或交易。
-      </aside>
     </main>
   );
 }
