@@ -42,6 +42,7 @@ from cloud_study_api.models import (
     SourceChangeCandidate,
     utc_now,
 )
+from cloud_study_api.notifications import NotificationService
 from cloud_study_api.runner import (
     RUNNER_PROTOCOL_VERSION,
     DockerRunnerBackend,
@@ -93,6 +94,7 @@ class LearningExecutionService:
         repository_root: Path,
         packages: list[SkillPackage],
         session_factory: sessionmaker[Session],
+        notification_service: NotificationService | None = None,
         runner_backend: RunnerBackend | None = None,
         runner_execution_enabled: bool = True,
         now: Callable[[], datetime] = utc_now,
@@ -101,6 +103,7 @@ class LearningExecutionService:
         self._package_list = packages
         self._packages = {(package.package_id, package.version): package for package in packages}
         self._session_factory = session_factory
+        self._notifications = notification_service
         self._now = now
         self._runner_backend = runner_backend or DockerRunnerBackend(repository_root)
         self._runner_execution_enabled = runner_execution_enabled
@@ -648,7 +651,7 @@ class LearningExecutionService:
             )
             database.add(evaluation)
             database.flush()
-            self._create_evidence(
+            evidence_count = self._create_evidence(
                 database,
                 run,
                 activity,
@@ -718,6 +721,7 @@ class LearningExecutionService:
                 now,
             )
             database.commit()
+            self._notify_evidence_update(run, activity, attempt, evidence_count)
             return {
                 "attempt": self._attempt_payload(database, attempt),
                 "activity": self._activity_payload(database, activity, now),
@@ -1002,7 +1006,7 @@ class LearningExecutionService:
             )
             definition = cast(dict[str, Any], json.loads(activity.definition_json))
             if result["status"] == "passed":
-                self._create_evidence(
+                evidence_count = self._create_evidence(
                     database,
                     run,
                     activity,
@@ -1016,7 +1020,9 @@ class LearningExecutionService:
                     self._pass_review(database, run, review_task, finished_at)
                 else:
                     self._advance_initial_learning(database, run, finished_at)
-            elif result["status"] in {"failed", "timeout", "output_limit"}:
+            else:
+                evidence_count = 0
+            if result["status"] in {"failed", "timeout", "output_limit"}:
                 if activity.activity_type == "review" and review_task is not None:
                     activity.status = "completed"
                     activity.completed_at = finished_at
@@ -1039,6 +1045,7 @@ class LearningExecutionService:
                 finished_at,
             )
             database.commit()
+            self._notify_evidence_update(run, activity, attempt, evidence_count)
             return {
                 "invocation": self._runner_invocation_payload(record),
                 "attempt": self._attempt_payload(database, attempt),
@@ -1148,7 +1155,7 @@ class LearningExecutionService:
             for evidence in existing:
                 evidence.superseded_at = now
                 evidence.superseded_by_attempt_id = attempt.id
-            self._create_evidence(
+            evidence_count = self._create_evidence(
                 database,
                 run,
                 activity,
@@ -1178,6 +1185,7 @@ class LearningExecutionService:
                 now,
             )
             database.commit()
+            self._notify_evidence_update(run, activity, attempt, evidence_count)
             return {
                 "attempt": self._attempt_payload(database, attempt),
                 "activity": self._activity_payload(database, activity, now),
@@ -1643,7 +1651,7 @@ class LearningExecutionService:
         attempt: ActivityAttempt,
         evaluation: ActivityEvaluation,
         now: datetime,
-    ) -> None:
+    ) -> int:
         package = self._package(run.skill_id, run.skill_version)
         assessment = self._content(package, "assessment_definition")
         template_id = activity.template_activity_id.split(":", maxsplit=1)[0]
@@ -1652,6 +1660,7 @@ class LearningExecutionService:
             for criterion in assessment["criteria"]
             if criterion["activity_id"] == template_id
         ]
+        created = 0
         for criterion in criteria:
             if evaluation.result in {"failed", "uncertain"}:
                 continue
@@ -1690,6 +1699,30 @@ class LearningExecutionService:
                     created_at=now,
                 )
             )
+            created += 1
+        return created
+
+    def _notify_evidence_update(
+        self,
+        run: LearningRun,
+        activity: LearningActivity,
+        attempt: ActivityAttempt,
+        evidence_count: int,
+    ) -> None:
+        if evidence_count == 0 or self._notifications is None:
+            return
+        self._notifications.create(
+            category="evidence_update",
+            severity="info",
+            title="学习证据已更新",
+            message=(
+                f"“{activity.title}”本次提交已为对应能力范围记录 {evidence_count} 条证据。"
+                "请核对证据等级和待复核标记；这不表示整门技能已经掌握。"
+            ),
+            related_type="learning_run",
+            related_id=run.id,
+            deduplication_key=f"evidence-updated:{attempt.id}",
+        )
 
     def _advance_initial_learning(
         self,
