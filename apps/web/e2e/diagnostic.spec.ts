@@ -154,6 +154,7 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await page.getByRole("button", { name: "保存这份预览" }).click();
   await expect(page.getByText("预览已保存")).toBeVisible();
   await expect(page.getByRole("heading", { name: "站内通知" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "消息已统一到收件箱" })).toHaveCount(0);
 
   await page.goto("/inbox");
   await expect(page.getByRole("heading", { name: "真实站内通知" })).toBeVisible();
