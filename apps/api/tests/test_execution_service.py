@@ -19,7 +19,12 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 def _services(
     tmp_path: Path,
     clock: list[datetime],
-) -> tuple[DiagnosticService, LearningService, LearningExecutionService]:
+) -> tuple[
+    DiagnosticService,
+    LearningService,
+    LearningExecutionService,
+    NotificationService,
+]:
     database_path = tmp_path / "execution.db"
     upgrade_database(database_path, REPOSITORY_ROOT)
     session_factory = create_session_factory(database_path)
@@ -49,9 +54,10 @@ def _services(
         repository_root=REPOSITORY_ROOT,
         packages=packages,
         session_factory=session_factory,
+        notification_service=notifications,
         now=lambda: clock[0],
     )
-    return diagnostics, learning, execution
+    return diagnostics, learning, execution, notifications
 
 
 def _saved_plan(
@@ -145,7 +151,7 @@ def test_run_locks_content_rejects_parallel_run_and_requires_confirmed_reuse(
     tmp_path: Path,
 ) -> None:
     clock = [datetime(2026, 7, 28, 8, 0, tzinfo=UTC)]
-    diagnostics, learning, execution = _services(tmp_path, clock)
+    diagnostics, learning, execution, _notifications = _services(tmp_path, clock)
     proposal = _saved_plan(diagnostics, learning)
 
     run = _create_run(execution, proposal["id"])
@@ -183,7 +189,7 @@ def test_historical_saved_plan_is_visible_and_requires_explicit_confirmation(
     tmp_path: Path,
 ) -> None:
     clock = [datetime(2026, 7, 28, 8, 0, tzinfo=UTC)]
-    diagnostics, learning, execution = _services(tmp_path, clock)
+    diagnostics, learning, execution, _notifications = _services(tmp_path, clock)
     old_plan = _saved_plan(diagnostics, learning)
     clock[0] += timedelta(minutes=1)
     new_plan = _saved_plan(diagnostics, learning)
@@ -215,9 +221,17 @@ def test_initial_completion_review_failure_correction_and_next_day_retry(
     tmp_path: Path,
 ) -> None:
     clock = [datetime(2026, 7, 28, 8, 0, tzinfo=UTC)]
-    diagnostics, learning, execution = _services(tmp_path, clock)
+    diagnostics, learning, execution, notifications = _services(tmp_path, clock)
     proposal = _saved_plan(diagnostics, learning)
     created = _create_run(execution, proposal["id"])
+
+    first_activity = next(
+        item
+        for item in created["activities"]
+        if item["status"] == "available" and item["type"] == "study"
+    )
+    execution.submit_attempt(first_activity["id"], submission=_submission(first_activity))
+    assert all(item["category"] != "evidence_update" for item in notifications.list_notifications())
 
     run = _finish_initial_learning(execution, created["id"])
     assert run["status"] == "retention_pending"
@@ -225,6 +239,12 @@ def test_initial_completion_review_failure_correction_and_next_day_retry(
     assert [review["interval_days"] for review in run["reviews"]] == [1]
 
     evidence = execution.get_evidence(run["id"])
+    evidence_notifications = [
+        item for item in notifications.list_notifications() if item["category"] == "evidence_update"
+    ]
+    assert evidence_notifications
+    assert all(item["related_type"] == "learning_run" for item in evidence_notifications)
+    assert all("不表示整门技能已经掌握" in item["message"] for item in evidence_notifications)
     dimensions = {item["dimension"]: item for item in evidence["dimensions"]}
     assert set(dimensions) == {
         "understanding",
@@ -285,7 +305,7 @@ def test_self_review_reopens_append_only_correction_and_binds_rubric(
     tmp_path: Path,
 ) -> None:
     clock = [datetime(2026, 7, 28, 8, 0, tzinfo=UTC)]
-    diagnostics, learning, execution = _services(tmp_path, clock)
+    diagnostics, learning, execution, _notifications = _services(tmp_path, clock)
     proposal = _saved_plan(diagnostics, learning)
     created = _create_run(execution, proposal["id"])
     run = _finish_initial_learning(execution, created["id"])

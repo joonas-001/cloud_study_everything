@@ -64,6 +64,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         repository_root=settings.repository_root,
         packages=packages,
         session_factory=session_factory,
+        notification_service=notification_service,
         runner_execution_enabled=(
             settings.deployment.mode == "local" or settings.deployment.remote_runner_enabled
         ),

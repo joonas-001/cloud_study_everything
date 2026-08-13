@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("keeps the milestone 7B shell navigable on desktop and mobile", async ({ page }, testInfo) => {
+test("keeps the milestone 7C shell and real inbox state navigable", async ({ page }, testInfo) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "今天从最明确的一步开始。" })).toBeVisible();
@@ -9,7 +9,9 @@ test("keeps the milestone 7B shell navigable on desktop and mobile", async ({ pa
   const skipLink = page.getByRole("link", { name: "跳到主要内容" });
   await expect(skipLink).toHaveCSS("opacity", "0");
   await expect(skipLink).toHaveCSS("clip-path", "inset(50%)");
-  await page.screenshot({ path: testInfo.outputPath("m7b-shell-home.png"), fullPage: true });
+  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
+  await expect(page.getByText(/当前没有到期复习|复习需要处理/)).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("m7c-today-home.png"), fullPage: true });
   await page.keyboard.press("Tab");
   await expect(skipLink).toBeFocused();
   await expect(skipLink).toHaveCSS("opacity", "1");
@@ -47,7 +49,8 @@ test("keeps the milestone 7B shell navigable on desktop and mobile", async ({ pa
   await expect(page.getByRole("heading", { name: /先明确目标/ })).toBeVisible();
   await page.goto("/inbox");
   await expect(page.getByRole("heading", { name: /需要了解、确认或处理/ })).toBeVisible();
-  await expect(page.getByText("尚未汇总", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "真实站内通知" })).toBeVisible();
+  await expect(page.getByText(/条未读|目前没有站内通知/).first()).toBeVisible();
 });
 
 test("keeps the shell usable at an effective 200% zoom", async ({ page }) => {
@@ -64,6 +67,7 @@ test("keeps the shell usable at an effective 200% zoom", async ({ page }) => {
 
   await expect(page.getByRole("navigation", { name: "移动端主导航" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "今天从最明确的一步开始。" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
   await expect
     .poll(() =>
       page.evaluate(
@@ -149,6 +153,20 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(planningTitle).toBeVisible();
   await page.getByRole("button", { name: "保存这份预览" }).click();
   await expect(page.getByText("预览已保存")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "站内通知" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "消息已统一到收件箱" })).toHaveCount(0);
+
+  await page.goto("/inbox");
+  await expect(page.getByRole("heading", { name: "真实站内通知" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "规划预览已生成" }).first()).toBeVisible();
+  const markReadButton = page.getByRole("button", { name: "标记已读" }).first();
+  await expect(markReadButton).toBeVisible();
+  await markReadButton.click();
+  await expect(page.getByText("已读", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.locator(".nav-item__state").filter({ hasText: /无未读|\d+ 未读/ }),
+  ).toHaveAttribute("aria-label", /收件箱未读状态：(无未读|\d+ 未读)/);
+  await page.goto("/learning");
 
   await expect(
     page.getByRole("heading", { name: "选择一份已保存规划" }),
@@ -177,6 +195,7 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await expect(page.getByRole("button", { name: "提交追加修正" })).toBeVisible();
   await page.getByLabel("选择处理方式").selectOption("check-empty-first");
   await page.getByRole("button", { name: "提交追加修正" }).click();
+
   await expect(page.getByRole("heading", { name: "输入规模与增长率" })).toBeVisible();
   await expect(page.getByText("六维证据，不是掌握百分比")).toBeVisible();
   await page.getByRole("button", { name: "明确结束本次学习执行" }).click();

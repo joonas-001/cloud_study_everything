@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -10,23 +11,69 @@ import {
   MOBILE_NAVIGATION,
   PRIMARY_NAVIGATION,
 } from "@/lib/navigation";
+import { getNotifications } from "@/lib/api";
+import { INBOX_UPDATED_EVENT, unreadNotificationCount } from "@/lib/inbox";
 
-function InboxState() {
+function InboxState({ count, status }: Readonly<{ count: number | null; status: "loading" | "ready" | "error" }>) {
+  const label =
+    status === "loading"
+      ? "读取中"
+      : status === "error"
+        ? "不可用"
+        : count === 0
+          ? "无未读"
+          : `${count} 未读`;
   return (
-    <span className="nav-item__state" aria-label="收件箱未读状态：尚未汇总">
-      未汇总
+    <span className="nav-item__state" aria-label={`收件箱未读状态：${label}`}>
+      {label}
     </span>
   );
 }
 
 export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
+  const [inboxCount, setInboxCount] = useState<number | null>(null);
+  const [inboxStatus, setInboxStatus] = useState<"loading" | "ready" | "error">("loading");
   const activeSection = getActiveSection(pathname);
   const activeMobileSection = getActiveMobileSection(pathname);
   const activeLabel =
     pathname === "/more"
       ? "更多"
       : (PRIMARY_NAVIGATION.find((item) => item.id === activeSection)?.label ?? "云奕学");
+
+  const refreshInboxState = useCallback(async () => {
+    try {
+      const notifications = await getNotifications();
+      setInboxCount(unreadNotificationCount(notifications));
+      setInboxStatus("ready");
+    } catch {
+      setInboxCount(null);
+      setInboxStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    getNotifications()
+      .then((notifications) => {
+        if (active) {
+          setInboxCount(unreadNotificationCount(notifications));
+          setInboxStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setInboxCount(null);
+          setInboxStatus("error");
+        }
+      });
+    const handleUpdate = () => void refreshInboxState();
+    window.addEventListener(INBOX_UPDATED_EVENT, handleUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener(INBOX_UPDATED_EVENT, handleUpdate);
+    };
+  }, [pathname, refreshInboxState]);
 
   return (
     <div className="app-shell">
@@ -49,7 +96,9 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
                   href={item.href}
                 >
                   <span>{item.label}</span>
-                  {item.id === "inbox" ? <InboxState /> : null}
+                  {item.id === "inbox" ? (
+                    <InboxState count={inboxCount} status={inboxStatus} />
+                  ) : null}
                 </Link>
               </li>
             ))}
@@ -79,7 +128,16 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
                 </span>
                 <span>{item.label}</span>
                 {item.id === "inbox" ? (
-                  <span className="visually-hidden">，未读状态尚未汇总</span>
+                  <span className="visually-hidden">
+                    ，收件箱未读状态：
+                    {inboxStatus === "loading"
+                      ? "读取中"
+                      : inboxStatus === "error"
+                        ? "不可用"
+                        : inboxCount === 0
+                          ? "无未读"
+                          : `${inboxCount} 条未读`}
+                  </span>
                 ) : null}
               </Link>
             </li>
