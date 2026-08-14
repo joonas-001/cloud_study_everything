@@ -1,10 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import type {
   LearningActivityResponse,
-  LearningEvidenceResponse,
   LearningRunResponse,
   PlanningOptionResponse,
   RunnerAvailabilityResponse,
@@ -17,7 +17,6 @@ import {
   endLearningRun,
   executeRunnerAttempt,
   generateTodayLearning,
-  getLearningEvidence,
   getLearningPlanOptions,
   getLatestLearningRun,
   getRunnerAvailability,
@@ -29,29 +28,6 @@ import {
 type LearningExecutionPanelProps = {
   skillId: string;
   skillVersion: string;
-};
-
-const dimensionLabels: Record<string, string> = {
-  understanding: "理解",
-  operation: "操作",
-  transfer: "迁移",
-  artifact: "作品",
-  retention: "保持",
-  correction: "纠错",
-};
-
-const evidenceLabels: Record<string, string> = {
-  none: "尚无证据",
-  limited: "有限证据",
-  supported: "确定性支持",
-  verified: "Runner 范围验证",
-  retained: "延迟 Runner 保持证据",
-};
-
-const flagLabels: Record<string, string> = {
-  manual_review_pending: "待未来独立复核",
-  retention_due: "待延迟复习",
-  source_review_pending: "来源待复核",
 };
 
 const runnerReasonLabels: Record<string, string> = {
@@ -98,9 +74,6 @@ export function LearningExecutionPanel({
   const [confirmCodeExecution, setConfirmCodeExecution] = useState(false);
   const [run, setRun] = useState<LearningRunResponse | null>(null);
   const [today, setToday] = useState<TodayLearningResponse | null>(null);
-  const [evidence, setEvidence] = useState<LearningEvidenceResponse | null>(
-    null,
-  );
   const [runnerAvailability, setRunnerAvailability] =
     useState<RunnerAvailabilityResponse | null>(null);
   const [availableMinutes, setAvailableMinutes] = useState(120);
@@ -129,13 +102,6 @@ export function LearningExecutionPanel({
         );
         setRun(nextRun);
         setRunnerAvailability(nextRunnerAvailability);
-        if (nextRun) {
-          return getLearningEvidence(nextRun.id).then((nextEvidence) => {
-            if (active) {
-              setEvidence(nextEvidence);
-            }
-          });
-        }
         return undefined;
       })
       .catch((reason: unknown) => {
@@ -204,7 +170,6 @@ export function LearningExecutionPanel({
       });
       setRun(created);
       setToday(null);
-      setEvidence(await getLearningEvidence(created.id));
       setConfirmReuse(false);
     });
   }
@@ -217,7 +182,6 @@ export function LearningExecutionPanel({
       const result = await executeRunnerAttempt(latestAttempt.id);
       setRun(result.run);
       setToday(null);
-      setEvidence(await getLearningEvidence(result.run.id));
     });
   }
 
@@ -257,7 +221,6 @@ export function LearningExecutionPanel({
       setRun(result.run);
       setToday(null);
       setSubmission({});
-      setEvidence(await getLearningEvidence(result.run.id));
     });
   }
 
@@ -283,7 +246,6 @@ export function LearningExecutionPanel({
           : "",
       );
       setSubmission({});
-      setEvidence(await getLearningEvidence(reviewed.run.id));
     });
   }
 
@@ -309,16 +271,19 @@ export function LearningExecutionPanel({
             代码仅在锁定镜像的本地隔离容器中按确定性测试运行。通过只证明对应任务范围，不等于整体掌握。
           </p>
         </div>
-        <div className="execution-guardrails">
-          <span>
-            Runner：
-            {runnerAvailability?.available
-              ? "本地可用"
-              : runnerReasonLabels[runnerAvailability?.reason_code ?? ""] ??
-                "不可用"}
-          </span>
-          <span>外部 AI：关闭</span>
-          <span>文件上传：关闭</span>
+        <div className="execution-header__aside">
+          <div className="execution-guardrails">
+            <span>
+              Runner：
+              {runnerAvailability?.available
+                ? "本地可用"
+                : runnerReasonLabels[runnerAvailability?.reason_code ?? ""] ??
+                  "不可用"}
+            </span>
+            <span>外部 AI：关闭</span>
+            <span>文件上传：关闭</span>
+          </div>
+          <Link href="/evidence">打开六维证据中心</Link>
         </div>
       </header>
 
@@ -664,47 +629,6 @@ export function LearningExecutionPanel({
               ) : null}
             </section>
           ) : null}
-
-          <section className="mastery-grid" aria-label="六维证据">
-            <header>
-              <div>
-                <span className="eyebrow">Evidence dimensions</span>
-                <h3>六维证据，不是掌握百分比</h3>
-              </div>
-              <button
-                className="text-button"
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (run) {
-                    void execute(async () => {
-                      setEvidence(await getLearningEvidence(run.id));
-                    });
-                  }
-                }}
-              >
-                刷新证据
-              </button>
-            </header>
-            <div>
-              {(evidence?.dimensions ?? run.dimensions).map((dimension) => (
-                <article key={dimension.dimension}>
-                  <span>{dimensionLabels[dimension.dimension]}</span>
-                  <strong>{evidenceLabels[dimension.evidence_level]}</strong>
-                  <small>{dimension.evidence_count} 条当前证据</small>
-                  <ul>
-                    {dimension.review_flags.map((flag) => (
-                      <li key={flag}>{flagLabels[flag]}</li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-            <p>
-              verified 只来自锁定 Runner 任务；retained 只来自延迟后的同范围 Runner
-              复测。两者都不会生成 scope_criteria_met、“已经掌握”或自动解锁 5C。
-            </p>
-          </section>
 
           {!["completed", "ended"].includes(run.status) ? (
             <section className="self-review-list">

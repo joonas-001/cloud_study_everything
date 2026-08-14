@@ -29,7 +29,12 @@ test("keeps the milestone 7C shell and real inbox state navigable", async ({ pag
       "page",
     );
     await mobileNavigation.getByRole("link", { name: /证据/ }).click();
-    await expect(page.getByRole("heading", { name: /证据说明能力范围/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "看见证据，也看见证据的边界。" })).toBeVisible();
+    await expect(
+      page
+        .getByRole("heading", { name: "还没有可汇总的学习执行" })
+        .or(page.getByRole("heading", { name: "六维能力证据" })),
+    ).toBeVisible();
     await mobileNavigation.getByRole("link", { name: "更多" }).click();
     await expect(page.getByRole("heading", { name: "更多一级能力" })).toBeVisible();
     await page.getByRole("link", { name: /目标与行动/ }).click();
@@ -42,7 +47,12 @@ test("keeps the milestone 7C shell and real inbox state navigable", async ({ pag
       "page",
     );
     await desktopNavigation.getByRole("link", { name: "证据" }).click();
-    await expect(page.getByRole("heading", { name: /证据说明能力范围/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "看见证据，也看见证据的边界。" })).toBeVisible();
+    await expect(
+      page
+        .getByRole("heading", { name: "还没有可汇总的学习执行" })
+        .or(page.getByRole("heading", { name: "六维能力证据" })),
+    ).toBeVisible();
     await desktopNavigation.getByRole("link", { name: "目标与行动" }).click();
   }
 
@@ -80,6 +90,7 @@ test("keeps the shell usable at an effective 200% zoom", async ({ page }) => {
 test("completes the guarded diagnostic preview and preserves corrections", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60_000);
   const apiBaseUrl =
     process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000";
   await page.request.put(`${apiBaseUrl}/settings/privacy`, {
@@ -128,7 +139,7 @@ test("completes the guarded diagnostic preview and preserves corrections", async
 
   await page.getByRole("link", { name: "进入学习面板" }).click();
   await expect(
-    page.getByRole("heading", { name: "计划可以调整，依据必须留下。" }),
+    page.getByRole("heading", { name: "一次只推进一个明确任务。" }),
   ).toBeVisible();
   const generateButton = page.getByRole("button", {
     name: "生成本地规划预览",
@@ -197,7 +208,57 @@ test("completes the guarded diagnostic preview and preserves corrections", async
   await page.getByRole("button", { name: "提交追加修正" }).click();
 
   await expect(page.getByRole("heading", { name: "输入规模与增长率" })).toBeVisible();
-  await expect(page.getByText("六维证据，不是掌握百分比")).toBeVisible();
+  await expect(page.getByRole("link", { name: "打开六维证据中心" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "六维证据，不是掌握百分比" })).toHaveCount(0);
+  await page.getByRole("link", { name: "打开六维证据中心" }).click();
+  await expect(page.getByRole("heading", { name: "六维能力证据" })).toBeVisible();
+  await expect(
+    page.getByLabel("证据适用范围").getByText("最新学习执行", { exact: true }),
+  ).toBeVisible();
+  const latestRunResponse = await page.request.get(
+    `${apiBaseUrl}/learning-run-latest?skill_id=algorithm&skill_version=0.2.2`,
+  );
+  expect(latestRunResponse.ok()).toBe(true);
+  const latestRun = (await latestRunResponse.json()) as { id: string };
+  const evidenceResponse = await page.request.get(
+    `${apiBaseUrl}/learning-runs/${latestRun.id}/evidence`,
+  );
+  expect(evidenceResponse.ok()).toBe(true);
+  const evidenceSnapshot = (await evidenceResponse.json()) as {
+    dimensions: Array<{
+      dimension: string;
+      evidence_count: number;
+      evidence_level: string;
+    }>;
+  };
+  const dimensionTitles: Record<string, string> = {
+    understanding: "知识理解",
+    operation: "操作能力",
+    transfer: "迁移能力",
+    artifact: "作品证据",
+    retention: "保持程度",
+    correction: "纠错能力",
+  };
+  const levelTitles: Record<string, string> = {
+    none: "尚无证据",
+    limited: "有限证据",
+    supported: "确定性支持",
+    verified: "Runner 范围验证",
+    retained: "延迟保持证据",
+  };
+  for (const dimension of evidenceSnapshot.dimensions) {
+    const card = page
+      .locator(".evidence-dimension")
+      .filter({ hasText: dimensionTitles[dimension.dimension] });
+    await expect(card).toContainText(levelTitles[dimension.evidence_level]);
+    await expect(card).toContainText(`${dimension.evidence_count} 条`);
+  }
+  await expect(page.getByRole("heading", { name: "当前不能证明什么" })).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("m7d-evidence-center.png"),
+    fullPage: true,
+  });
+  await page.goto("/learning");
   await page.getByRole("button", { name: "明确结束本次学习执行" }).click();
   await expect(page.getByText(/本次执行已明确结束且不可恢复/)).toBeVisible();
 
