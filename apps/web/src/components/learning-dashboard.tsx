@@ -201,7 +201,7 @@ export function LearningDashboard({
   }
 
   return (
-    <div className="learning-layout">
+    <div className={`learning-layout ${candidates.some((item) => item.status === "pending") ? "has-sidebar" : ""}`}>
       <section className="learning-main">
         {error ? (
           <div className="error-banner" role="alert">
@@ -210,10 +210,16 @@ export function LearningDashboard({
           </div>
         ) : null}
 
-        <section className="panel learning-control">
+        <LearningExecutionPanel
+          key={`${proposal?.id ?? "no-plan"}:${proposal?.updated_at ?? "none"}`}
+          skillId={skillId}
+          skillVersion={skillVersion}
+        />
+
+        <section className="panel learning-control" aria-labelledby="learning-basis-title">
           <div>
-            <span className="preview-badge">草稿规划预览 · 本地模拟</span>
-            <h2>今天从可信记录开始</h2>
+            <span className="preview-badge">规划与来源依据</span>
+            <h2 id="learning-basis-title">开始前复核受管来源</h2>
             <p>
               开始学习时会检查当前预览引用的受监测来源。远程失败不会阻止学习，但会明确标记风险。
             </p>
@@ -275,12 +281,6 @@ export function LearningDashboard({
               ))}
           </section>
         ) : null}
-
-        <LearningExecutionPanel
-          key={`${proposal?.id ?? "no-plan"}:${proposal?.updated_at ?? "none"}`}
-          skillId={skillId}
-          skillVersion={skillVersion}
-        />
 
         {!diagnostic ? (
           <section className="panel empty-state learning-empty">
@@ -508,8 +508,8 @@ export function LearningDashboard({
         ) : null}
       </section>
 
-      <aside className="learning-sidebar">
-        {candidates.some((item) => item.status === "pending") ? (
+      {candidates.some((item) => item.status === "pending") ? (
+        <aside className="learning-sidebar">
           <section className="panel candidate-list">
             <span className="eyebrow">Review required</span>
             <h2>来源变化候选</h2>
@@ -544,9 +544,8 @@ export function LearningDashboard({
                 </article>
               ))}
           </section>
-        ) : null}
-
-      </aside>
+        </aside>
+      ) : null}
     </div>
   );
 }
