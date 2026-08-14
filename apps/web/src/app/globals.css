@@ -626,9 +626,13 @@ textarea::placeholder {
 
 .learning-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(290px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 24px;
+}
+
+.learning-layout.has-sidebar {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.32fr);
 }
 
 .learning-main,
@@ -649,6 +653,10 @@ textarea::placeholder {
   justify-content: space-between;
   gap: 28px;
   padding: 28px;
+}
+
+.learning-main > .execution-panel {
+  margin-top: 0;
 }
 
 .learning-control h2,
@@ -1103,7 +1111,6 @@ textarea::placeholder {
 .execution-start,
 .run-summary,
 .today-control,
-.mastery-grid > header,
 .self-review-list article {
   display: flex;
   align-items: flex-start;
@@ -1113,7 +1120,6 @@ textarea::placeholder {
 
 .execution-header h2,
 .execution-start h3,
-.mastery-grid h3,
 .self-review-list h3,
 .review-timeline h3 {
   margin: 6px 0 8px;
@@ -1122,7 +1128,6 @@ textarea::placeholder {
 .execution-header p,
 .execution-start p,
 .today-control p,
-.mastery-grid p,
 .self-review-list p {
   margin: 0;
   color: var(--muted);
@@ -1133,6 +1138,19 @@ textarea::placeholder {
   display: grid;
   flex: 0 0 auto;
   gap: 7px;
+}
+
+.execution-header__aside {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.execution-header__aside > a {
+  color: var(--deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-underline-offset: 4px;
 }
 
 .execution-guardrails span,
@@ -1379,39 +1397,10 @@ textarea::placeholder {
   font-size: 0.85rem;
 }
 
-.mastery-grid,
 .self-review-list,
 .review-timeline {
   padding-top: 22px;
   border-top: 1px solid var(--line);
-}
-
-.mastery-grid > div {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 16px 0;
-}
-
-.mastery-grid article {
-  display: grid;
-  gap: 7px;
-  min-height: 150px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  background: white;
-}
-
-.mastery-grid article span,
-.mastery-grid article small {
-  color: var(--muted);
-}
-
-.mastery-grid article ul {
-  margin: 4px 0 0;
-  padding-left: 18px;
-  color: var(--warm);
-  font-size: 0.76rem;
 }
 
 .self-review-list article {
@@ -2132,7 +2121,6 @@ textarea::placeholder {
     min-width: 0;
   }
 
-  .mastery-grid > div,
   .activity-workspace nav {
     grid-template-columns: 1fr;
   }
@@ -2809,6 +2797,273 @@ textarea::placeholder {
   border: 0 !important;
 }
 
+.evidence-center {
+  display: grid;
+  gap: 28px;
+}
+
+.evidence-scope-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.evidence-scope-bar > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 18px 20px;
+  border-right: 1px solid var(--line);
+}
+
+.evidence-scope-bar > div:last-child {
+  border-right: 0;
+}
+
+.evidence-scope-bar span,
+.evidence-scope-bar small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.evidence-scope-bar strong {
+  color: var(--deep);
+  overflow-wrap: anywhere;
+}
+
+.evidence-board,
+.evidence-followups,
+.evidence-limitations {
+  display: grid;
+  gap: 20px;
+}
+
+.evidence-board__header,
+.evidence-followups > header,
+.evidence-limitations {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.evidence-board__header h2,
+.evidence-followups h2,
+.evidence-limitations h2 {
+  margin: 7px 0 0;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  font-weight: 600;
+}
+
+.evidence-board__header > p {
+  max-width: 480px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+.evidence-dimension-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.evidence-dimension {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.evidence-dimension > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.evidence-dimension header span,
+.evidence-dimension > p,
+.evidence-dimension dt,
+.evidence-dimension details span,
+.evidence-dimension details small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.evidence-dimension h3 {
+  margin: 4px 0 0;
+  font-size: 1.15rem;
+}
+
+.evidence-dimension header > strong {
+  color: var(--deep);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 1.4rem;
+}
+
+.evidence-dimension header > strong small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.evidence-dimension > p {
+  margin: 0;
+}
+
+.evidence-meter {
+  height: 4px;
+  overflow: hidden;
+  background: var(--mist);
+}
+
+.evidence-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--deep);
+}
+
+.evidence-dimension dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin: 0;
+}
+
+.evidence-dimension dl > div {
+  display: grid;
+  gap: 2px;
+}
+
+.evidence-dimension dd {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.evidence-boundary {
+  padding-left: 12px;
+  border-left: 2px solid var(--warm);
+}
+
+.evidence-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence-flags li,
+.evidence-no-flag {
+  width: fit-content;
+  padding: 5px 8px;
+  border: 1px solid #dec6b8;
+  background: #f8f0ea;
+  color: #7f4a2c;
+  font-size: 0.7rem;
+}
+
+.evidence-no-flag {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.evidence-dimension details {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.evidence-dimension summary {
+  color: var(--deep);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.evidence-dimension details ol {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence-dimension details li {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  background: var(--mist);
+}
+
+.evidence-followups > header > span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.evidence-followups__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.evidence-followups__grid article {
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.evidence-followups__grid h3 {
+  margin: 0 0 12px;
+}
+
+.evidence-followups__grid p,
+.evidence-followups__grid ul {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.evidence-followups__grid ul {
+  display: grid;
+  gap: 10px;
+  padding-left: 18px;
+}
+
+.evidence-followups__grid li strong,
+.evidence-followups__grid li span,
+.evidence-followups__grid li small {
+  display: block;
+}
+
+.evidence-limitations {
+  align-items: start;
+  padding: 24px;
+  border-left: 3px solid var(--warm);
+  background: #f7f1ec;
+}
+
+.evidence-limitations ul {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.evidence-empty-state h2 {
+  margin-bottom: 8px;
+}
+
 @media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 208px minmax(0, 1fr);
@@ -2835,12 +3090,43 @@ textarea::placeholder {
   .m7-dimension-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .learning-layout.has-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-sidebar {
+    position: static;
+  }
 }
 
 @media (max-width: 760px) {
   .app-shell {
     display: block;
     padding-bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+
+  .evidence-scope-bar,
+  .evidence-dimension-board,
+  .evidence-followups__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-scope-bar > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .evidence-scope-bar > div:last-child {
+    border-bottom: 0;
+  }
+
+  .evidence-board__header,
+  .evidence-followups > header,
+  .evidence-limitations,
+  .execution-header__aside {
+    display: grid;
+    justify-items: start;
   }
 
   .desktop-sidebar {
