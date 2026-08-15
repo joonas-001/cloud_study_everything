@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   DiagnosticSessionResponse,
   LearningActivityResponse,
@@ -112,13 +113,13 @@ export function TodayDashboard() {
       />
 
       {error ? (
-        <p className="error-banner" role="alert">
-          今日聚合读取失败：{error}
-        </p>
+        <StatusMessage tone="error" title="今日聚合读取失败">
+          {error}
+        </StatusMessage>
       ) : null}
 
       {!data && !error ? (
-        <section className="panel loading-panel" aria-live="polite">
+        <section className="panel loading-panel" role="status" aria-live="polite" aria-busy="true">
           <span className="loading-dot" aria-hidden="true" />
           正在聚合本地任务、复习和变化……
         </section>

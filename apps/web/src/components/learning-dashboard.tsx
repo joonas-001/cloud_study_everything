@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   DiagnosticSessionResponse,
   PlanningProposalResponse,
@@ -193,7 +194,7 @@ export function LearningDashboard({
 
   if (busy && !diagnostic && !proposal) {
     return (
-      <section className="panel loading-panel" aria-live="polite">
+        <section className="panel loading-panel" role="status" aria-live="polite" aria-busy="true">
         <span className="loading-dot" aria-hidden="true" />
         正在读取本地规划和来源……
       </section>
@@ -204,10 +205,9 @@ export function LearningDashboard({
     <div className={`learning-layout ${candidates.some((item) => item.status === "pending") ? "has-sidebar" : ""}`}>
       <section className="learning-main">
         {error ? (
-          <div className="error-banner" role="alert">
-            <strong>暂时无法完成操作</strong>
-            <span>{error}</span>
-          </div>
+          <StatusMessage tone="error" title="暂时无法完成操作">
+            {error}
+          </StatusMessage>
         ) : null}
 
         <LearningExecutionPanel

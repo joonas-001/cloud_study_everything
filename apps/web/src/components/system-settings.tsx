@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   AiProviderProfileResponse,
   AiProviderResponse,
@@ -193,15 +194,12 @@ export function SystemSettings() {
   return (
     <div className="settings-layout">
       {error ? (
-        <div className="error-banner" role="alert">
-          <strong>设置未保存</strong>
-          <span>{error}</span>
-        </div>
+        <StatusMessage tone="error" title="设置未保存">
+          {error}
+        </StatusMessage>
       ) : null}
       {status ? (
-        <div className="success-banner" role="status">
-          {status}
-        </div>
+        <StatusMessage tone="success">{status}</StatusMessage>
       ) : null}
 
       <section className="panel settings-section">
@@ -248,7 +246,7 @@ export function SystemSettings() {
             站内通知始终保留。必要邮件立即发送；需要处理和异常警告按偏好延迟，若提前在站内阅读则取消邮件。
           </p>
         </header>
-        <form className="settings-form" onSubmit={saveEmail}>
+        <form className="settings-form" aria-busy={busy} onSubmit={saveEmail}>
           <label className="checkbox-row">
             <input
               type="checkbox"
@@ -356,6 +354,7 @@ export function SystemSettings() {
                 type="password"
                 value={emailForm.smtpPassword}
                 disabled={busy}
+                aria-describedby="smtp-password-hint"
                 placeholder={
                   preferences?.credential_reference
                     ? "已保存；留空表示不替换"
@@ -370,6 +369,13 @@ export function SystemSettings() {
                   })
                 }
               />
+              <small className="field-hint" id="smtp-password-hint">
+                {preferences?.credential_reference
+                  ? "已保存凭据引用；留空不会替换现有密码。"
+                  : deployment?.mode === "private_preview"
+                    ? "私有预发布凭据由主机只读挂载，不会返回页面。"
+                    : "本地阶段保存到 Windows 凭据管理器，不写入 SQLite 或日志。"}
+              </small>
             </label>
             <label>
               延迟分钟
@@ -461,7 +467,11 @@ export function SystemSettings() {
           ))}
         </div>
 
-        <form className="settings-form provider-form" onSubmit={saveProviderProfile}>
+        <form
+          className="settings-form provider-form"
+          aria-busy={busy}
+          onSubmit={saveProviderProfile}
+        >
           <div className="form-grid">
             <label>
               供应商
@@ -522,6 +532,7 @@ export function SystemSettings() {
                 value={apiKey}
                 disabled={busy || providerId === "local-deterministic"}
                 required={providerId === "deepseek"}
+                aria-describedby="provider-api-key-hint"
                 placeholder={
                   deployment?.mode === "private_preview"
                     ? "私有预发布凭据由主机只读挂载"
@@ -529,6 +540,11 @@ export function SystemSettings() {
                 }
                 onChange={(event) => setApiKey(event.target.value)}
               />
+              <small className="field-hint" id="provider-api-key-hint">
+                {providerId === "deepseek"
+                  ? "DeepSeek 档案需要密钥；保存后页面只保留不可直接调用的凭据引用。"
+                  : "本地确定性供应商不需要 API 密钥。"}
+              </small>
             </label>
           </div>
           <button className="primary-button" type="submit" disabled={busy}>

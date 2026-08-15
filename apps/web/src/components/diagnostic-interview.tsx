@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   DiagnosticAnswerResponse,
   DiagnosticSessionResponse,
@@ -168,7 +169,7 @@ export function DiagnosticInterview() {
 
   if (busy && !privacy && !session) {
     return (
-      <section className="panel loading-panel" aria-live="polite">
+      <section className="panel loading-panel" role="status" aria-live="polite" aria-busy="true">
         <span className="loading-dot" aria-hidden="true" />
         正在连接本地学习引擎……
       </section>
@@ -222,10 +223,9 @@ export function DiagnosticInterview() {
 
       <section className="panel interview-panel" aria-live="polite">
         {error ? (
-          <div className="error-banner" role="alert">
-            <strong>暂时无法继续</strong>
-            <span>{error}</span>
-          </div>
+          <StatusMessage tone="error" title="暂时无法继续">
+            {error}
+          </StatusMessage>
         ) : null}
 
         {!session ? (
