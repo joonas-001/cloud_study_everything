@@ -87,6 +87,80 @@ test("keeps the shell usable at an effective 200% zoom", async ({ page }) => {
     .toBe(true);
 });
 
+test("applies the milestone 7E accessibility baseline", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/settings");
+
+  const saveButton = page.getByRole("button", { name: "保存邮件设置" });
+  await expect(saveButton).toBeVisible();
+  await expect(saveButton).toBeEnabled();
+  await saveButton.focus();
+  await expect(saveButton).toBeFocused();
+  await expect(saveButton).toHaveCSS("outline-style", "solid");
+  await expect(saveButton).toHaveCSS("outline-width", "3px");
+  const transitionDurationSeconds = await saveButton.evaluate((element) => {
+    const value = getComputedStyle(element).transitionDuration;
+    return value.endsWith("ms") ? Number.parseFloat(value) / 1000 : Number.parseFloat(value);
+  });
+  expect(transitionDurationSeconds).toBeLessThanOrEqual(0.001);
+
+  const recipient = page.getByLabel("收件邮箱");
+  await recipient.fill("not-an-email");
+  expect(
+    await recipient.evaluate((element) => (element as HTMLInputElement).validity.valid),
+  ).toBe(false);
+  const smtpPassword = page.getByLabel("SMTP 密码或应用专用密码");
+  await expect(smtpPassword).toHaveAttribute("aria-describedby", "smtp-password-hint");
+  await expect(page.locator("#smtp-password-hint")).toBeVisible();
+
+  const contrast = await page.evaluate(() => {
+    const styles = getComputedStyle(document.documentElement);
+    const parse = (value: string) => {
+      const hex = value.trim().replace("#", "");
+      return [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16));
+    };
+    const luminance = (value: string) => {
+      const channels = parse(value).map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.03928
+          ? normalized / 12.92
+          : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    const ratio = (foreground: string, background: string) => {
+      const lighter = Math.max(luminance(foreground), luminance(background));
+      const darker = Math.min(luminance(foreground), luminance(background));
+      return (lighter + 0.05) / (darker + 0.05);
+    };
+    const surface = styles.getPropertyValue("--color-surface");
+    return {
+      body: ratio(styles.getPropertyValue("--color-text"), surface),
+      muted: ratio(styles.getPropertyValue("--color-text-muted"), surface),
+      action: ratio(styles.getPropertyValue("--color-action"), surface),
+    };
+  });
+  expect(contrast.body).toBeGreaterThanOrEqual(4.5);
+  expect(contrast.muted).toBeGreaterThanOrEqual(4.5);
+  expect(contrast.action).toBeGreaterThanOrEqual(4.5);
+
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
+  await expect(
+    page.getByRole("heading", { name: "外发之前，先把边界说清楚。" }),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
+  const buttonBox = await saveButton.boundingBox();
+  expect(buttonBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+});
+
 test("completes the guarded diagnostic preview and preserves corrections", async ({
   page,
 }, testInfo) => {

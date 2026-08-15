@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { NotificationResponse } from "@/generated/api-schema";
 import { PageHeader } from "@/components/page-header";
+import { StatusMessage } from "@/components/status-message";
 import { getNotifications, markNotificationRead, messageForError, processEmailOutbox } from "@/lib/api";
 import {
   announceInboxUpdated,
@@ -126,9 +127,9 @@ export function InboxCenter() {
       />
 
       {error ? (
-        <p className="error-banner" role="alert">
-          收件箱读取失败：{error}
-        </p>
+        <StatusMessage tone="error" title="收件箱读取失败">
+          {error}
+        </StatusMessage>
       ) : null}
 
       <section className="m7-hub-section" aria-labelledby="inbox-categories-title" aria-busy={loading}>
@@ -141,7 +142,7 @@ export function InboxCenter() {
         </div>
 
         {loading ? (
-          <div className="panel loading-panel" aria-live="polite">
+        <div className="panel loading-panel" role="status" aria-live="polite" aria-busy="true">
             <span className="loading-dot" aria-hidden="true" />
             正在读取站内通知……
           </div>

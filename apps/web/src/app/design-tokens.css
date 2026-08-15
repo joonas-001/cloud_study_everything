@@ -1,0 +1,80 @@
+:root {
+  color-scheme: light;
+
+  /* Typography */
+  --font-sans: Inter, "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", system-ui,
+    -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: "Noto Serif SC", "Songti SC", SimSun, serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --line-height-tight: 1.3;
+  --line-height-body: 1.7;
+  --line-height-reading: 1.82;
+  --reading-measure: 72ch;
+
+  /* Evidence-first light theme. Text and interactive pairs target WCAG AA. */
+  --color-canvas: #edf2ef;
+  --color-canvas-raised: #f4f7f5;
+  --color-surface: #fbfcfb;
+  --color-surface-subtle: #e5ede9;
+  --color-surface-muted: #f0f4f2;
+  --color-text: #172624;
+  --color-text-muted: #52635f;
+  --color-text-subtle: #667671;
+  --color-border: #c7d2cd;
+  --color-border-strong: #9dafaa;
+  --color-action: #175b5d;
+  --color-action-hover: #0d4244;
+  --color-action-soft: #dcebea;
+  --color-accent: #8a4f2d;
+  --color-accent-soft: #f6ece5;
+  --color-accent-border: #c99b80;
+  --color-danger: #8f342c;
+  --color-danger-soft: #f9eae7;
+  --color-danger-border: #c99088;
+  --color-success: #236447;
+  --color-success-soft: #e3f1e9;
+  --color-success-border: #82ad9b;
+  --color-warning: #7a5617;
+  --color-warning-soft: #fbf1d8;
+  --color-focus: #087f7a;
+  --color-on-action: #ffffff;
+  --color-code-surface: #101b1b;
+  --color-on-code: #e9f2ef;
+
+  /* Layout and component geometry */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-pill: 999px;
+  --control-size: 2.75rem;
+  --shadow-low: 0 0.75rem 2.5rem rgb(24 47 45 / 7%);
+  --shadow-focus: 0 0 0 0.25rem rgb(8 127 122 / 18%);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-standard: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-text-muted: #33423f;
+    --color-border: #71847e;
+    --color-border-strong: #435650;
+    --color-focus: #005f5b;
+  }
+}
