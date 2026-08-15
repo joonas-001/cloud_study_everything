@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   LearningActivityResponse,
   LearningRunResponse,
@@ -288,10 +289,9 @@ export function LearningExecutionPanel({
       </header>
 
       {error ? (
-        <div className="error-banner" role="alert">
-          <strong>学习执行暂时无法继续</strong>
-          <span>{error}</span>
-        </div>
+        <StatusMessage tone="error" title="学习执行暂时无法继续">
+          {error}
+        </StatusMessage>
       ) : null}
 
       {!run || ["completed", "ended"].includes(run.status) ? (

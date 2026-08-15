@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   AiProviderProfileResponse,
   MarketResearchHistoryResponse,
@@ -341,10 +342,9 @@ export function MarketResearchPanel() {
   return (
     <div className="market-research-layout">
       {error ? (
-        <div className="error-banner" role="alert">
-          <strong>研究未继续</strong>
-          <span>{error}</span>
-        </div>
+        <StatusMessage tone="error" title="研究未继续">
+          {error}
+        </StatusMessage>
       ) : null}
 
       <section className="panel research-governance">
@@ -410,11 +410,11 @@ export function MarketResearchPanel() {
           )}
         </div>
         {warningRatios.length ? (
-          <div className="warning-banner" role="status">
+          <StatusMessage tone="warning">
             本月预算已达到{" "}
             {Math.round(Math.max(...warningRatios) * 100)}
             % 告警线；达到 100% 后系统会硬停止。
-          </div>
+          </StatusMessage>
         ) : null}
         <p className="audit-note">
           不自动充值；达到费用上限、官方价格改变或无法核验、余额不足、网络超时、模型异常时立即停止，不重试、不换模型。
@@ -462,17 +462,17 @@ export function MarketResearchPanel() {
           小时。首版不提供人工绕过，重建研究也不能跳过该规则。
         </p>
         {sourceAccessBlocked ? (
-          <div className="warning-banner" role="status">
+          <StatusMessage tone="warning">
             当前所有来源仍在冷却中，最早可于{" "}
             {localTime(sourceAccessPolicy?.next_allowed_at ?? null)}
             再次检查（{remainingTime(sourceAccessPolicy?.remaining_seconds ?? 0)}
             ）。失败原因和历史快照仍可查看。
-          </div>
+          </StatusMessage>
         ) : sourceAccessPolicy?.blocked_source_ids.length ? (
-          <div className="warning-banner" role="status">
+          <StatusMessage tone="warning">
             {sourceAccessPolicy.blocked_source_ids.length} 个来源仍在冷却中；本次只访问已到期来源，
             其余来源复用既有快照，不会重复请求站点。
-          </div>
+          </StatusMessage>
         ) : null}
       </section>
 
@@ -551,9 +551,9 @@ export function MarketResearchPanel() {
         ) : null}
 
         {!contexts.length ? (
-          <div className="warning-banner" role="status">
+          <StatusMessage tone="warning">
             当前没有与受管研究目录匹配的变现目标。请先在“目标与准备度”页明确选择就业、接单或产品化目标；系统不会默认你希望变现。
-          </div>
+          </StatusMessage>
         ) : null}
 
         {run?.status === "synthesis_pending" ? (
@@ -564,10 +564,10 @@ export function MarketResearchPanel() {
               ¥0.0600；实际按返回 token 记账。
             </p>
             {!externalAiEnabled ? (
-              <div className="warning-banner" role="status">
+              <StatusMessage tone="warning">
                 外部 AI 总开关当前关闭。请先在“诊断”页明确开启“允许外部
                 AI”；系统不会绕过。
-              </div>
+              </StatusMessage>
             ) : null}
             <div className="outbound-preview" aria-label="本次外发材料预览">
               <strong>发送前最终材料预览</strong>
@@ -634,10 +634,10 @@ export function MarketResearchPanel() {
 
         {canRecoverPreDispatch ? (
           <div className="research-action">
-            <div className="warning-banner" role="alert">
+            <StatusMessage tone="warning" priority="assertive">
               上一次操作在 DeepSeek 请求发出前因官方价格表无法解析而停止，发送、响应、token
               和费用记录均为 0。恢复只会重新进入“等待 AI 综合”，不会在此步骤调用模型。
-            </div>
+            </StatusMessage>
             <label className="checkbox-row">
               <input
                 type="checkbox"
@@ -750,9 +750,9 @@ export function MarketResearchPanel() {
 
         {run?.status === "recovery_required" ? (
           <div className="research-action">
-            <div className="warning-banner" role="alert">
+            <StatusMessage tone="warning" priority="assertive">
               上一次付费调用的租约已过期。系统没有自动重试；若请求是否收费无法确认，预算已按最坏费用保守计入。
-            </div>
+            </StatusMessage>
             <button
               className="primary-button"
               type="button"
@@ -774,10 +774,10 @@ export function MarketResearchPanel() {
         {run?.status === "failed" &&
         run.failure_code &&
         invalidSynthesisFailureCodes.has(run.failure_code) ? (
-          <div className="warning-banner" role="alert">
+          <StatusMessage tone="warning" priority="assertive">
             DeepSeek 已响应，但内容没有通过受限协议校验，因此未生成、保存或开放任何可采纳的市场结论。
             审计只保留失败阶段、结构摘要、token 与费用，不保存无效响应原文。
-          </div>
+          </StatusMessage>
         ) : null}
 
         {run ? (
@@ -832,9 +832,9 @@ export function MarketResearchPanel() {
         ) : null}
 
         {run?.synthesis && !run.synthesis_valid ? (
-          <div className="warning-banner" role="alert">
+          <StatusMessage tone="warning" priority="assertive">
             该综合结果所依赖的来源已撤回，只保留审计记录，不能继续采纳。
-          </div>
+          </StatusMessage>
         ) : null}
 
         <details className="research-audit">

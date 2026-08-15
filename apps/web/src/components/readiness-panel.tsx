@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   CapabilityScopeResponse,
   MarketSnapshotResponse,
@@ -212,7 +213,7 @@ export function ReadinessPanel() {
 
   if (loading) {
     return (
-      <section className="readiness-shell" aria-busy="true">
+      <section className="readiness-shell" role="status" aria-live="polite" aria-busy="true">
         <p className="empty-state">正在读取本地能力证据与合成夹具…</p>
       </section>
     );
@@ -240,9 +241,7 @@ export function ReadinessPanel() {
       </div>
 
       {error ? (
-        <div className="error-banner" role="alert">
-          {error}
-        </div>
+        <StatusMessage tone="error">{error}</StatusMessage>
       ) : null}
 
       <div className="readiness-form-grid">

@@ -1,8 +1,8 @@
 # 云奕学初版视觉方向
 
-> 状态：方向 A 组合方案已用于 7B 应用外壳；仍是可修改方向，不构成最终品牌规范
+> 状态：方向 A 组合方案已在 7E 收敛为设计令牌与无障碍基线；仍不是最终品牌规范
 > 提案日期：2026-07-27
-> 最近决定：2026-08-12 已确认方向 A 为全局骨架、B/C 为局部页面模式
+> 最近决定：2026-08-14 已授权并实施 7E，保持零新增依赖
 > 适用阶段：本地单用户验证
 > 不包含：Logo、商标、公开宣传资产和最终品牌规范
 
@@ -19,8 +19,9 @@
 用于全局骨架，方向 B 的专注布局和方向 C 的紧凑状态列表只用于适合的局部页面。详细范围、
 信息架构和阶段见
 [`milestone-7-frontend-redesign.md`](milestone-7-frontend-redesign.md)，7A 审计与可比较方向稿见
-[`milestone-7a-experience-baseline.md`](milestone-7a-experience-baseline.md)。7B 保持零新增
-依赖，未安装、执行或复制外部设计技能；7C 至 7F 仍须逐阶段确认。
+[`milestone-7a-experience-baseline.md`](milestone-7a-experience-baseline.md)，7E 令牌与组件契约见
+[`milestone-7e-design-system.md`](milestone-7e-design-system.md)。7E 保持零新增依赖，未安装、
+执行或复制外部设计技能；7F 仍须单独确认，实际体验验证可以继续调整令牌和组件。
 
 ## 2. 核心原则
 

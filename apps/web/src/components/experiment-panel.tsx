@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   CapabilityScopeResponse,
   ExperimentResponse,
@@ -404,7 +405,11 @@ export function ExperimentPanel() {
   }
 
   if (loading) {
-    return <p className="empty-state">正在读取本地实验记录…</p>;
+    return (
+      <p className="empty-state" role="status" aria-live="polite" aria-busy="true">
+        正在读取本地实验记录…
+      </p>
+    );
   }
   if (scopes.length === 0) {
     return <p className="empty-state">请先创建 algorithm@0.2.2 学习记录。</p>;
@@ -421,9 +426,7 @@ export function ExperimentPanel() {
       </div>
 
       {error ? (
-        <div className="error-banner" role="alert">
-          {error}
-        </div>
+        <StatusMessage tone="error">{error}</StatusMessage>
       ) : null}
 
       <div className="experiment-context">
