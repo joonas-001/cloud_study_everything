@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { StatusMessage } from "@/components/status-message";
 import type {
   ExperimentResponse,
   LearningEvidenceResponse,
@@ -96,7 +97,7 @@ export function EvidenceCenter({
 
   if (loading) {
     return (
-      <section className="panel loading-panel" aria-live="polite">
+      <section className="panel loading-panel" role="status" aria-live="polite" aria-busy="true">
         <span className="loading-dot" aria-hidden="true" />
         正在读取最新执行证据……
       </section>
@@ -105,10 +106,9 @@ export function EvidenceCenter({
 
   if (error) {
     return (
-      <div className="error-banner" role="alert">
-        <strong>证据中心暂时无法读取</strong>
-        <span>{error}</span>
-      </div>
+      <StatusMessage tone="error" title="证据中心暂时无法读取">
+        {error}
+      </StatusMessage>
     );
   }
 
