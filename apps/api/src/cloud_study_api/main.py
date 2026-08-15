@@ -26,6 +26,7 @@ from cloud_study_api.notifications import NotificationService
 from cloud_study_api.providers import ProviderRegistry
 from cloud_study_api.readiness import ReadinessService
 from cloud_study_api.routes import router
+from cloud_study_api.runner import UnixSocketRunnerBackend
 from cloud_study_api.security import enforce_deployment_security
 
 
@@ -60,6 +61,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         session_factory=session_factory,
         notification_service=notification_service,
     )
+    runner_backend = None
+    if settings.deployment.mode == "private_preview" and settings.deployment.remote_runner_enabled:
+        runner_socket_path = settings.deployment.runner_socket_path
+        if runner_socket_path is None:
+            raise RuntimeError("remote Runner is enabled without a broker socket")
+        runner_backend = UnixSocketRunnerBackend(runner_socket_path)
     learning_execution_service = LearningExecutionService(
         repository_root=settings.repository_root,
         packages=packages,
@@ -68,6 +75,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         runner_execution_enabled=(
             settings.deployment.mode == "local" or settings.deployment.remote_runner_enabled
         ),
+        runner_backend=runner_backend,
     )
     learning_execution_service.recover_stale_runner_invocations()
     app.state.learning_execution_service = learning_execution_service
