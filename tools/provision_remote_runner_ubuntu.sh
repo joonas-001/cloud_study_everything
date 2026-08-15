@@ -20,7 +20,8 @@ if [[ "${ID:-}" != "ubuntu" || "${VERSION_ID:-}" != "24.04" ]]; then
   echo "Remote Runner provisioning is locked to Ubuntu 24.04." >&2
   exit 1
 fi
-if [[ "$(pwd -P)" != "/opt/cloud-study/runner/current" ]]; then
+expected_release="$(readlink -f /opt/cloud-study/runner/current)"
+if [[ -z "${expected_release}" || "$(pwd -P)" != "${expected_release}" ]]; then
   echo "Run this script from the isolated /opt/cloud-study/runner/current release." >&2
   exit 1
 fi
