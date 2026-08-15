@@ -56,6 +56,25 @@ if ! id -nG cloud-study-runner | tr ' ' '\n' | grep -Fxq docker; then
   usermod --append --groups docker cloud-study-runner
 fi
 
+broker_python="${expected_release}/apps/api/.venv/bin/python"
+if ! runuser -u cloud-study-runner -- test -x "${broker_python}"; then
+  echo "Runner candidate Python must be executable by cloud-study-runner; do not link the virtual environment into /root." >&2
+  exit 1
+fi
+python_version="$(
+  runuser -u cloud-study-runner -- \
+    "${broker_python}" -c 'import platform; print(platform.python_version())'
+)"
+if [[ "${python_version}" != "3.14.3" ]]; then
+  echo "Runner candidate Python must remain locked to 3.14.3; observed ${python_version}." >&2
+  exit 1
+fi
+if ! runuser -u cloud-study-runner -- \
+  "${broker_python}" -c 'from cloud_study_api.runner_broker import serve_runner_broker'; then
+  echo "Runner candidate dependencies are not importable by cloud-study-runner." >&2
+  exit 1
+fi
+
 cpp_image='gcc@sha256:c101370f78e4a30be178c11dd18aeee64c65d617908a98157db2392ca73ab04f'
 python_image='python@sha256:843ef86c4efef6d065c1767855730cc974e4998e66d65d6739449f0bc0ae4d93'
 docker pull --platform linux/amd64 "${cpp_image}"
@@ -70,6 +89,21 @@ install \
   /etc/systemd/system/cloud-study-runner.service
 systemctl daemon-reload
 systemctl start cloud-study-runner.service
+
+broker_ready=false
+for _attempt in {1..20}; do
+  if systemctl is-active --quiet cloud-study-runner.service \
+    && [[ -S /run/cloud-study-runner/runner.sock ]]; then
+    broker_ready=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "${broker_ready}" != "true" ]]; then
+  systemctl stop cloud-study-runner.service
+  echo "Remote Runner broker did not become active with a ready Unix socket." >&2
+  exit 1
+fi
 
 if id -nG cloud-study | tr ' ' '\n' | grep -Fxq docker; then
   echo "FastAPI identity unexpectedly gained Docker access." >&2

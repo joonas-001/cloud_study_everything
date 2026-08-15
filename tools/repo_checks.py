@@ -1205,6 +1205,9 @@ def check_deployment_policy(root: Path) -> None:
     runner_unit = (root / "deployment/systemd/cloud-study-runner.service").read_text(
         encoding="utf-8"
     )
+    runner_provision = (
+        root / "tools/provision_remote_runner_ubuntu.sh"
+    ).read_text(encoding="utf-8")
     env_template = (root / "deployment/private-preview.env.example").read_text(
         encoding="utf-8"
     )
@@ -1229,6 +1232,11 @@ def check_deployment_policy(root: Path) -> None:
         ("CapabilityBoundingSet=", runner_unit),
         ("--socket /run/cloud-study-runner/runner.sock", runner_unit),
         ("WorkingDirectory=/opt/cloud-study/runner/current", runner_unit),
+        ("runuser -u cloud-study-runner -- test -x", runner_provision),
+        ('python_version}" != "3.14.3', runner_provision),
+        ("from cloud_study_api.runner_broker import serve_runner_broker", runner_provision),
+        ("systemctl is-active --quiet cloud-study-runner.service", runner_provision),
+        ("-S /run/cloud-study-runner/runner.sock", runner_provision),
         ("NEXT_PUBLIC_API_BASE_URL=/api", env_template),
         ("CLOUD_STUDY_DEPLOYMENT_MODE=private_preview", env_template),
     ]
