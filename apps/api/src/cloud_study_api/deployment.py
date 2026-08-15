@@ -109,6 +109,7 @@ class DeploymentSettings:
     policy: dict[str, Any] | None
     owner_login: str | None
     allowed_origin: str | None
+    runner_socket_path: Path | None
 
     @classmethod
     def from_environment(cls, repository_root: Path) -> DeploymentSettings:
@@ -119,7 +120,13 @@ class DeploymentSettings:
             )
         mode = cast(DeploymentMode, raw_mode)
         if mode == "local":
-            return cls(mode=mode, policy=None, owner_login=None, allowed_origin=None)
+            return cls(
+                mode=mode,
+                policy=None,
+                owner_login=None,
+                allowed_origin=None,
+                runner_socket_path=None,
+            )
 
         policy = load_deployment_policy(
             repository_root,
@@ -134,6 +141,15 @@ class DeploymentSettings:
             raise DeploymentConfigurationError(
                 "CLOUD_STUDY_SECRET_DIRECTORY must be an absolute mounted path"
             )
+        remote_runner_enabled = bool(policy["runner"]["remote_enabled"])
+        runner_socket_path: Path | None = None
+        if remote_runner_enabled:
+            configured_socket = Path(_required_environment("CLOUD_STUDY_RUNNER_SOCKET"))
+            if not configured_socket.is_absolute():
+                raise DeploymentConfigurationError(
+                    "CLOUD_STUDY_RUNNER_SOCKET must be an absolute Unix socket path"
+                )
+            runner_socket_path = configured_socket
         return cls(
             mode=mode,
             policy=policy,
@@ -141,6 +157,7 @@ class DeploymentSettings:
             allowed_origin=_validate_private_origin(
                 _required_environment("CLOUD_STUDY_ALLOWED_ORIGIN")
             ),
+            runner_socket_path=runner_socket_path,
         )
 
     @property

@@ -1,0 +1,42 @@
+[Unit]
+Description=云奕学 isolated remote Runner broker
+After=docker.service
+Requires=docker.service
+ConditionPathExists=/opt/cloud-study/runner/current
+
+[Service]
+Type=simple
+User=cloud-study-runner
+Group=cloud-study
+SupplementaryGroups=docker
+WorkingDirectory=/opt/cloud-study/runner/current
+RuntimeDirectory=cloud-study-runner
+RuntimeDirectoryMode=0750
+ExecStart=/opt/cloud-study/runner/current/apps/api/.venv/bin/python tools/run_remote_runner_broker.py --socket /run/cloud-study-runner/runner.sock --data-root /var/lib/docker --disk-root /
+Restart=on-failure
+RestartSec=5
+UMask=0007
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadOnlyPaths=/opt/cloud-study/runner/current
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+LogNamespace=cloud-study
+
+# Deliberately no installation section: validation starts this broker explicitly,
+# and production enablement remains blocked until the separate 6D decision.

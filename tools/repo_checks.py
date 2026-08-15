@@ -120,6 +120,8 @@ def check_structure(root: Path) -> None:
         "apps/api/src/cloud_study_api/main.py",
         "apps/api/src/cloud_study_api/backups.py",
         "apps/api/src/cloud_study_api/deployment.py",
+        "apps/api/src/cloud_study_api/migration_rehearsal.py",
+        "apps/api/src/cloud_study_api/runner_broker.py",
         "apps/api/src/cloud_study_api/security.py",
         "apps/api/src/cloud_study_api/experiments.py",
         "apps/api/src/cloud_study_api/readiness.py",
@@ -157,6 +159,9 @@ def check_structure(root: Path) -> None:
         "tools/provision_runner_images.ps1",
         "tools/manage_backup.py",
         "tools/deployment_preflight.py",
+        "tools/provision_remote_runner_ubuntu.sh",
+        "tools/run_migration_rehearsal.py",
+        "tools/run_remote_runner_broker.py",
         "tools/run_private_preview_web.mjs",
         "tools/run_web_check.mjs",
         "tools/credential_file_name.py",
@@ -166,6 +171,7 @@ def check_structure(root: Path) -> None:
         "deployment/systemd/cloud-study-web.service",
         "deployment/systemd/cloud-study-backup.service",
         "deployment/systemd/cloud-study-backup.timer",
+        "deployment/systemd/cloud-study-runner.service",
         "deployment/systemd/journald-cloud-study.conf",
         "docs/architecture/internet-deployment.md",
         "contracts/skill-pack/manifest.schema.json",
@@ -1157,12 +1163,12 @@ def check_deployment_policy(root: Path) -> None:
     authorization = policy["authorization"]
     if authorization != {
         "code_implementation": True,
-        "cloud_resource_creation": False,
-        "paid_service": False,
+        "cloud_resource_creation": True,
+        "paid_service": True,
         "public_release": False,
     }:
         raise CheckFailure(
-            "deployment authorization exceeds the confirmed 6A code-only scope"
+            "deployment authorization does not match the confirmed 6B resource scope"
         )
     budget = policy["budget"]
     if budget["expected_monthly"] > budget["monthly_hard_limit"]:
@@ -1196,6 +1202,12 @@ def check_deployment_policy(root: Path) -> None:
     backup_unit = (root / "deployment/systemd/cloud-study-backup.service").read_text(
         encoding="utf-8"
     )
+    runner_unit = (root / "deployment/systemd/cloud-study-runner.service").read_text(
+        encoding="utf-8"
+    )
+    runner_provision = (root / "tools/provision_remote_runner_ubuntu.sh").read_text(
+        encoding="utf-8"
+    )
     env_template = (root / "deployment/private-preview.env.example").read_text(
         encoding="utf-8"
     )
@@ -1210,6 +1222,24 @@ def check_deployment_policy(root: Path) -> None:
         ("IPAddressDeny=any", web_unit),
         ("tools/manage_backup.py scheduled", backup_unit),
         ("RestrictAddressFamilies=AF_UNIX", backup_unit),
+        ("User=cloud-study-runner", runner_unit),
+        ("Group=cloud-study", runner_unit),
+        ("SupplementaryGroups=docker", runner_unit),
+        ("RestrictAddressFamilies=AF_UNIX", runner_unit),
+        ("IPAddressDeny=any", runner_unit),
+        ("NoNewPrivileges=true", runner_unit),
+        ("ProtectSystem=strict", runner_unit),
+        ("CapabilityBoundingSet=", runner_unit),
+        ("--socket /run/cloud-study-runner/runner.sock", runner_unit),
+        ("WorkingDirectory=/opt/cloud-study/runner/current", runner_unit),
+        ("runuser -u cloud-study-runner -- test -x", runner_provision),
+        ('python_version}" != "3.14.3', runner_provision),
+        (
+            "from cloud_study_api.runner_broker import serve_runner_broker",
+            runner_provision,
+        ),
+        ("systemctl is-active --quiet cloud-study-runner.service", runner_provision),
+        ("-S /run/cloud-study-runner/runner.sock", runner_provision),
         ("NEXT_PUBLIC_API_BASE_URL=/api", env_template),
         ("CLOUD_STUDY_DEPLOYMENT_MODE=private_preview", env_template),
     ]
@@ -1229,6 +1259,8 @@ def check_deployment_policy(root: Path) -> None:
         raise CheckFailure(
             f"private deployment units contain forbidden exposure: {found_forbidden}"
         )
+    if "[Install]" in runner_unit:
+        raise CheckFailure("remote Runner broker must not be enabled before 6D")
 
 
 def find_secrets(root: Path) -> list[str]:

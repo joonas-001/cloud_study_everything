@@ -168,6 +168,22 @@ def test_runner_concurrency_one_returns_stable_infrastructure_result() -> None:
     assert result["tests"] == []
 
 
+def test_linux_runner_accounts_only_managed_digest_pinned_images(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    backend = DockerRunnerBackend(REPOSITORY_ROOT)
+
+    def fake_run(args: list[str], **_kwargs: Any) -> subprocess.CompletedProcess[bytes]:
+        image = args[3]
+        size = b"1073741824" if image.startswith("gcc@") else b"536870912"
+        image_id = b"sha256:gcc" if image.startswith("gcc@") else b"sha256:python"
+        return subprocess.CompletedProcess(args, 0, image_id + b" " + size + b"\n", b"")
+
+    monkeypatch.setattr(backend, "_command_runner", fake_run)
+
+    assert backend._managed_image_usage_gb("docker") == 1.5
+
+
 def test_cleanup_failure_is_never_reported_as_success() -> None:
     def fake_run(args: list[str], **_kwargs: Any) -> subprocess.CompletedProcess[bytes]:
         return subprocess.CompletedProcess(args, 1, b"", b"still present")

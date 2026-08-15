@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import stat
 import subprocess
 import sys
 from contextlib import closing
@@ -11,6 +12,7 @@ from pathlib import Path
 from cloud_study_api.config import Settings
 from cloud_study_api.database import read_schema_version
 from cloud_study_api.deployment import DeploymentConfigurationError
+from cloud_study_api.runner import RunnerProtocolError, UnixSocketRunnerBackend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -51,8 +53,30 @@ def run_preflight() -> dict[str, object]:
         raise PreflightError(str(error)) from error
     if settings.deployment.mode != "private_preview":
         raise PreflightError("deployment preflight requires private_preview mode")
+    runner_availability: dict[str, object] | None = None
     if settings.deployment.remote_runner_enabled:
-        raise PreflightError("remote Runner must remain disabled")
+        socket_path = settings.deployment.runner_socket_path
+        if socket_path is None or not socket_path.exists() or socket_path.is_symlink():
+            raise PreflightError("remote Runner broker socket is unavailable")
+        if os.name == "nt" or not stat.S_ISSOCK(socket_path.stat().st_mode):
+            raise PreflightError("remote Runner broker path must be a Unix socket")
+        docker_socket = Path("/var/run/docker.sock")
+        if docker_socket.exists() and os.access(docker_socket, os.R_OK | os.W_OK):
+            raise PreflightError(
+                "FastAPI service identity must not access the Docker socket"
+            )
+        try:
+            availability = UnixSocketRunnerBackend(
+                socket_path, timeout_seconds=10
+            ).availability()
+        except RunnerProtocolError as error:
+            raise PreflightError("remote Runner broker preflight failed") from error
+        if not availability.get("available"):
+            raise PreflightError("remote Runner broker is not ready")
+        runner_availability = {
+            "available": True,
+            "reason_code": availability.get("reason_code"),
+        }
     if settings.deployment.external_calls_enabled:
         raise PreflightError("external calls must remain disabled")
 
@@ -115,7 +139,8 @@ def run_preflight() -> dict[str, object]:
         "mode": settings.deployment.mode,
         "region": policy["platform"]["region"],
         "database_revision": "0010",
-        "remote_runner_enabled": False,
+        "remote_runner_enabled": settings.deployment.remote_runner_enabled,
+        "runner_broker": runner_availability,
         "external_calls_enabled": False,
         "node": node_version,
         "node_executable": node_command,
