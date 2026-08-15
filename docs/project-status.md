@@ -7,8 +7,8 @@
 
 - 6A 已交付，6B 合成数据私有预发布已在现有新加坡单实例完成当前范围验收；
 - 6C 真实数据库加密副本迁移与回滚演练已通过，唯一真实库未替换、未迁入云端；
-- 远程 Runner 已完成独立 Unix Socket Broker 代码和后端门禁，云端实机矩阵仍在进行；
-- 验证通过前及验证结束后，生产策略均保持 `remote_enabled=false`；
+- 远程 Runner 精确候选 `f1d78f8` 已通过云端十项真实安全与资源矩阵；
+- 验证结束后 Broker 已停止且保持 `static`，生产策略继续 `remote_enabled=false`；
 - 6D、真实 AI、真实来源、邮件、公开发布、扩容和新增付费资源均未授权。
 
 ## 6C 证据
@@ -18,16 +18,14 @@
 | 真实数据演练 | 通过 | 47 张表、54 行；Schema、逐表语义摘要、外键、事件顺序、内容锁和反向恢复一致 |
 | 本地服务恢复 | 通过 | 写入冻结后原 API/Web 已恢复健康 |
 | 临时明文副本 | 未保留 | 只保留本机安全目录中的加密制品和无正文报告 |
-| Runner 代码门禁 | 通过 | Ruff、mypy、部署策略、Runner 安全检查和后端全量测试成功 |
+| Runner 代码门禁 | 通过 | 最终 `release-readiness`：114 项后端通过、1 项按预期跳过，42 项前端、生产构建、8 项 E2E、契约与密钥扫描成功 |
 | 本机 Runner 复测 | 未执行 | Docker Desktop 未启动，探针在容器创建前停止；历史 4B 证据不受影响 |
-| 云端 Runner 实测 | 进行中 | 候选将与 live app 隔离部署，API 身份不得拥有 Docker 权限 |
+| 云端 Runner 实测 | 通过 | Docker 29.1.3；锁定的 GCC 15.2.0 与 Python 3.14.3 镜像；Unix Socket 十项矩阵全部符合预期 |
+| 云端权限与清理 | 通过 | FastAPI 身份不在 Docker 组且不能读取 Docker Socket；验证后项目容器为零，Broker 为 `inactive + static` |
+| 云端资源与 live 回归 | 通过 | 根盘使用 31%，镜像 3.785 GB，可用内存 1.3 GiB、Swap 1.8 GiB；API、Web、备份计时器与 Tailnet HTTPS 正常 |
 
 ## 下一步
 
-1. 形成并部署精确 6C Runner 候选提交到独立云端目录；
-2. 安装并记录 Ubuntu 官方安全仓库 Docker 版本，核验精确运行时镜像摘要；
-3. 通过 Unix Socket 执行十项真实安全与资源限制矩阵；
-4. 停止 Broker，复核 live 服务、备份、网络、磁盘、内存及无容器残留；
-5. 完整本地 `release-readiness` 和远程 CI 通过后再判断 6C 是否完成；
-6. 6D 继续保持阻塞，等待项目所有者最后一次授权。
-
+1. 合并前执行远程 CI 并复核结果；
+2. 6D 继续保持阻塞，等待项目所有者最后一次授权；
+3. 在 6D 明确决定前，不启动 Broker、不接入 live API，也不启用远程 Runner。

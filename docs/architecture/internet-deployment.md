@@ -116,6 +116,11 @@
 保持关闭。Runner 使用独立 Unix Socket Broker，FastAPI 身份不得拥有 Docker 权限；
 候选发布与 live app 分离，验证完成后 Broker 停止，是否进入 6D 启用范围仍需再次决定。
 
+当前范围已完成：真实数据库加密副本迁移与回滚演练通过；远程 Runner 精确候选
+`f1d78f8` 已在云端通过十项安全与资源限制矩阵。验证结束后 Broker 为 `inactive + static`、
+项目容器残留为零，生产策略保持 `remote_enabled=false`。详细证据见
+`docs/operations/milestone-6c-validation.md`。
+
 迁移必须：
 
 - 在迁移前停止写入并生成带时间、Schema 版本和摘要的备份；
