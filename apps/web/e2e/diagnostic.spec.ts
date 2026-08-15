@@ -159,6 +159,13 @@ test("applies the milestone 7E accessibility baseline", async ({ page }) => {
     .toBe(true);
   const buttonBox = await saveButton.boundingBox();
   expect(buttonBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+  await page.goto("/diagnostic");
+  const externalAiSwitch = page.getByRole("switch", { name: "允许外部 AI" });
+  await expect(externalAiSwitch).toBeEnabled();
+  const switchBox = await externalAiSwitch.boundingBox();
+  expect(switchBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+  expect(switchBox?.height ?? 0).toBeGreaterThanOrEqual(44);
 });
 
 test("completes the guarded diagnostic preview and preserves corrections", async ({

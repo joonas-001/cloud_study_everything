@@ -355,20 +355,31 @@ a[aria-disabled="true"] {
 .switch {
   position: relative;
   flex: 0 0 auto;
-  width: 42px;
-  height: 23px;
+  width: var(--control-size);
+  min-width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
   padding: 0;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 999px;
-  background: var(--color-surface-subtle);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
   cursor: pointer;
+}
+
+.switch::before {
+  position: absolute;
+  inset: 10px 1px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  content: "";
   transition: background var(--duration-standard) var(--ease-standard);
 }
 
 .switch span {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 14px;
+  left: 5px;
   width: 15px;
   height: 15px;
   border-radius: 50%;
@@ -378,6 +389,10 @@ a[aria-disabled="true"] {
 }
 
 .switch[aria-checked="true"] {
+  background: transparent;
+}
+
+.switch[aria-checked="true"]::before {
   border-color: var(--deep);
   background: var(--deep);
 }
@@ -3380,11 +3395,14 @@ th {
   .primary-button,
   .secondary-button,
   .decision-actions button,
-  .switch,
   .status-message,
   .error-banner,
   .success-banner,
   .warning-banner {
+    border: 2px solid ButtonText;
+  }
+
+  .switch::before {
     border: 2px solid ButtonText;
   }
 
