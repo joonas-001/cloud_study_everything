@@ -3,7 +3,10 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import shutil
+import socket
+import struct
 import subprocess
 import tarfile
 import threading
@@ -20,6 +23,7 @@ RUNNER_PROTOCOL_VERSION = "1.1.0"
 RUNNER_LABEL = "cloud-study.runner=1.1.0"
 OUTPUT_LIMIT_BYTES = 65536
 COMPILED_ARTIFACT_LIMIT_BYTES = 16 * 1024 * 1024
+BROKER_MESSAGE_LIMIT_BYTES = 4 * 1024 * 1024
 
 
 class RunnerProtocolError(RuntimeError):
@@ -36,6 +40,92 @@ class RunnerBackend(Protocol):
     def execute(self, invocation: dict[str, Any]) -> dict[str, Any]: ...
 
     def cleanup_stale(self) -> list[str]: ...
+
+
+def _read_socket_frame(connection: socket.socket) -> bytes:
+    header = _receive_exact(connection, 4)
+    length = struct.unpack(">I", header)[0]
+    if length == 0 or length > BROKER_MESSAGE_LIMIT_BYTES:
+        raise RunnerProtocolError("Runner broker message length is invalid")
+    return _receive_exact(connection, length)
+
+
+def _receive_exact(connection: socket.socket, length: int) -> bytes:
+    value = bytearray()
+    while len(value) < length:
+        chunk = connection.recv(length - len(value))
+        if not chunk:
+            raise RunnerProtocolError("Runner broker connection closed early")
+        value.extend(chunk)
+    return bytes(value)
+
+
+def _write_socket_frame(connection: socket.socket, value: bytes) -> None:
+    if not value or len(value) > BROKER_MESSAGE_LIMIT_BYTES:
+        raise RunnerProtocolError("Runner broker message length is invalid")
+    connection.sendall(struct.pack(">I", len(value)) + value)
+
+
+class UnixSocketRunnerBackend:
+    """Call the separately sandboxed Docker broker without exposing Docker to FastAPI."""
+
+    def __init__(self, socket_path: Path, *, timeout_seconds: int = 90) -> None:
+        if not socket_path.is_absolute():
+            raise RunnerProtocolError("Runner broker socket path must be absolute")
+        self._socket_path = socket_path
+        self._timeout_seconds = timeout_seconds
+
+    def availability(self) -> dict[str, Any]:
+        response = self._call({"operation": "availability"})
+        result = response.get("result")
+        if not isinstance(result, dict):
+            raise RunnerProtocolError("Runner broker availability response is invalid")
+        return cast(dict[str, Any], result)
+
+    def execute(self, invocation: dict[str, Any]) -> dict[str, Any]:
+        response = self._call({"operation": "execute", "invocation": invocation})
+        result = response.get("result")
+        if not isinstance(result, dict):
+            raise RunnerProtocolError("Runner broker execution response is invalid")
+        return cast(dict[str, Any], result)
+
+    def cleanup_stale(self) -> list[str]:
+        response = self._call({"operation": "cleanup_stale"})
+        result = response.get("result")
+        if not isinstance(result, list) or not all(isinstance(item, str) for item in result):
+            raise RunnerProtocolError("Runner broker cleanup response is invalid")
+        return cast(list[str], result)
+
+    def _call(self, request: dict[str, Any]) -> dict[str, Any]:
+        payload = json.dumps(
+            request,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        try:
+            with socket.socket(
+                socket.AF_UNIX,  # type: ignore[attr-defined]
+                socket.SOCK_STREAM,
+            ) as connection:
+                connection.settimeout(self._timeout_seconds)
+                connection.connect(str(self._socket_path))
+                _write_socket_frame(connection, payload)
+                response_payload = _read_socket_frame(connection)
+        except (OSError, TimeoutError) as error:
+            raise RunnerProtocolError("Runner broker is unavailable") from error
+        try:
+            response = json.loads(response_payload)
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise RunnerProtocolError("Runner broker returned invalid JSON") from error
+        if not isinstance(response, dict) or not isinstance(response.get("ok"), bool):
+            raise RunnerProtocolError("Runner broker response envelope is invalid")
+        if not response["ok"]:
+            code = response.get("error_code")
+            if not isinstance(code, str):
+                code = "runner_broker_error"
+            raise RunnerProtocolError(f"Runner broker rejected the request: {code}")
+        return cast(dict[str, Any], response)
 
 
 def utc_iso() -> str:
@@ -75,10 +165,14 @@ class DockerRunnerBackend:
         repository_root: Path,
         *,
         command_runner: Callable[..., subprocess.CompletedProcess[bytes]] = subprocess.run,
+        data_root: Path | None = None,
+        disk_root: Path | None = None,
     ) -> None:
         self._repository_root = repository_root
         self._command_runner = command_runner
         self._registry = RuntimeRegistry(repository_root)
+        self._data_root = data_root or Path(cast(str, self._registry.registry["data_root"]))
+        self._disk_root = disk_root
         self._invocation_validator = Draft202012Validator(
             json.loads(
                 (
@@ -99,19 +193,22 @@ class DockerRunnerBackend:
 
     def availability(self) -> dict[str, Any]:
         docker_path = shutil.which("docker")
-        data_root = Path(cast(str, self._registry.registry["data_root"]))
-        drive_root = Path(f"{data_root.drive}\\")
+        data_root = self._data_root
+        drive_root = self._disk_root or Path(f"{data_root.drive}\\")
+        if os.name != "nt" and self._disk_root is None:
+            drive_root = Path("/")
         free_gb: float | None = None
         used_gb: float | None = None
-        if drive_root.drive:
+        if drive_root.drive or drive_root.is_absolute():
             try:
                 free_gb = round(shutil.disk_usage(drive_root).free / (1024**3), 2)
             except OSError:
                 free_gb = None
-        try:
-            used_gb = round(self._tree_size_bytes(data_root) / (1024**3), 3)
-        except OSError:
-            used_gb = None
+        if data_root.exists():
+            try:
+                used_gb = round(self._tree_size_bytes(data_root) / (1024**3), 3)
+            except OSError:
+                used_gb = None
         if docker_path is None:
             return {
                 "available": False,
@@ -121,6 +218,8 @@ class DockerRunnerBackend:
                 "free_gb": free_gb,
                 "used_gb": used_gb,
             }
+        if os.name != "nt":
+            used_gb = self._managed_image_usage_gb(docker_path)
         result = self._command_runner(
             [docker_path, "version", "--format", "{{.Server.Version}}"],
             capture_output=True,
@@ -159,6 +258,36 @@ class DockerRunnerBackend:
                 result.stdout.decode("utf-8", errors="replace").strip() if available else None
             ),
         }
+
+    def _managed_image_usage_gb(self, docker_path: str) -> float | None:
+        observed: dict[str, int] = {}
+        for profile in self._registry.profiles.values():
+            try:
+                result = self._command_runner(
+                    [
+                        docker_path,
+                        "image",
+                        "inspect",
+                        cast(str, profile["image"]),
+                        "--format",
+                        "{{.Id}} {{.Size}}",
+                    ],
+                    capture_output=True,
+                    check=False,
+                    timeout=10,
+                )
+            except OSError, subprocess.SubprocessError:
+                return None
+            if result.returncode != 0:
+                continue
+            parts = result.stdout.decode("utf-8", errors="replace").strip().split()
+            if len(parts) != 2:
+                return None
+            try:
+                observed[parts[0]] = int(parts[1])
+            except ValueError:
+                return None
+        return round(sum(observed.values()) / (1024**3), 3)
 
     def cleanup_stale(self) -> list[str]:
         docker_path = shutil.which("docker")

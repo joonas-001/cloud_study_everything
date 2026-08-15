@@ -47,6 +47,7 @@ def test_private_preview_requires_complete_exact_configuration(
     assert settings.owner_login == OWNER_LOGIN
     assert settings.allowed_origin == PRIVATE_ORIGIN
     assert settings.remote_runner_enabled is False
+    assert settings.runner_socket_path is None
     assert settings.external_calls_enabled is False
 
     monkeypatch.setenv("CLOUD_STUDY_ALLOWED_ORIGIN", "https://example.com")

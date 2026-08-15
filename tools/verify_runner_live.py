@@ -7,14 +7,20 @@ digest-pinned local Docker images.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from cloud_study_api.runner import DockerRunnerBackend
+from cloud_study_api.runner import (
+    DockerRunnerBackend,
+    RunnerBackend,
+    UnixSocketRunnerBackend,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 LIMITS = {
@@ -72,7 +78,7 @@ def invocation(language: str, source: str, expected_stdout: str) -> dict[str, An
 
 
 def assert_case(
-    backend: DockerRunnerBackend,
+    backend: RunnerBackend,
     *,
     name: str,
     language: str,
@@ -104,8 +110,30 @@ def assert_case(
     }
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Run the governed live Runner matrix.")
+    parser.add_argument(
+        "--socket",
+        type=Path,
+        help="validate through the remote Runner Unix broker instead of direct Docker",
+    )
+    return parser
+
+
 def main() -> int:
-    backend = DockerRunnerBackend(REPOSITORY_ROOT)
+    arguments = build_parser().parse_args()
+    backend: RunnerBackend
+    transport = "direct_docker"
+    if arguments.socket is None:
+        backend = DockerRunnerBackend(REPOSITORY_ROOT)
+    else:
+        if os.name == "nt":
+            raise RuntimeError("remote Runner broker validation requires a POSIX host")
+        docker_socket = Path("/var/run/docker.sock")
+        if docker_socket.exists() and os.access(docker_socket, os.R_OK | os.W_OK):
+            raise RuntimeError("validation identity must not access the Docker socket")
+        backend = UnixSocketRunnerBackend(arguments.socket)
+        transport = "unix_broker"
     availability = backend.availability()
     if not availability["available"]:
         print(
@@ -262,7 +290,18 @@ def main() -> int:
         ),
     ]
     print(
-        json.dumps({"ok": True, "availability": availability, "cases": cases}, indent=2)
+        json.dumps(
+            {
+                "ok": True,
+                "transport": transport,
+                "api_identity_docker_socket_access": False
+                if transport == "unix_broker"
+                else None,
+                "availability": availability,
+                "cases": cases,
+            },
+            indent=2,
+        )
     )
     return 0
 
