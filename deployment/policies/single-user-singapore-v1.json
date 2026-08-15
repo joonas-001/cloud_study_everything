@@ -4,8 +4,8 @@
   "status": "confirmed",
   "authorization": {
     "code_implementation": true,
-    "cloud_resource_creation": false,
-    "paid_service": false,
+    "cloud_resource_creation": true,
+    "paid_service": true,
     "public_release": false
   },
   "access": {

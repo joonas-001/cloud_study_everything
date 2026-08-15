@@ -45,10 +45,10 @@
           "const": true
         },
         "cloud_resource_creation": {
-          "const": false
+          "const": true
         },
         "paid_service": {
-          "const": false
+          "const": true
         },
         "public_release": {
           "const": false
@@ -259,7 +259,7 @@
       ],
       "properties": {
         "remote_enabled": {
-          "const": false
+          "type": "boolean"
         },
         "local_history_preserved": {
           "const": true
