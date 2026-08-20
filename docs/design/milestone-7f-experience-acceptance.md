@@ -1,6 +1,6 @@
 # 第七里程碑 7F：全站体验验收
 
-> 状态：Windows 本地代码与自动验收完成；Linux CI 与人工体验待确认
+> 状态：Windows 本地与 Linux CI 自动验收完成；人工体验待确认
 > 授权日期：2026-08-15
 > 基线：`main@60bf8e6`（PR #15 合并 7E）
 > 当前重放基线：`origin/main@b213a91`（包含已交付 6C，以远端为准）
@@ -22,7 +22,7 @@
 | --- | --- | --- | --- |
 | 全站主路由 | Playwright 逐页检查标题、主要内容、导航和横向溢出 | 本地通过 | 11 个产品页面已在接受的 Windows 本地项目中逐页通过 |
 | 桌面／平板／移动 | Playwright 固定视口与阅读顺序检查 | 本地通过 | Chromium 桌面、Pixel 7 移动视口和 834×1194 平板视口通过 |
-| 多浏览器 | Chromium、Firefox、WebKit 的全站只读旅程 | 部分通过 | Windows Chromium／WebKit 通过；Firefox 保留在 Linux CI，尚待分支 CI 证明 |
+| 多浏览器 | Chromium、Firefox、WebKit 的全站只读旅程 | 自动化通过 | Windows Chromium／WebKit 通过；PR #18 Linux CI 中 Firefox 3 项通过、2 项按范围跳过 |
 | 空／加载／错误状态 | 初始数据库与受控网络挂起／失败 | 本地通过 | 真实空态及受控加载、API 错误场景通过，且没有把无记录表述为无能力 |
 | 键盘与语义 | skip link、焦点、landmark、标题与表单可访问名称 | 本地通过 | Chromium 验证真实 Tab 入口；WebKit 验证程序化焦点与同一语义边界 |
 | 强制色彩与 200% 文本 | Playwright 媒体模拟、真实根字号与溢出检查 | 自动化通过 | forced-colors 代理检查与 11 页 200% 根字号、横向溢出检查通过 |
@@ -83,5 +83,7 @@ WebKit 的 skip link 使用程序化聚焦验证，因为其键盘 Tab 行为与
 
 Windows 本机 Firefox headless 启动失败，错误为
 `RenderCompositorSWGL failed mapping default framebuffer`。没有通过关闭沙箱规避；Firefox
-项目只在 Linux CI 启用，当前尚无本分支 CI 通过证据。Windows 本地精确工作树 E2E 为
-22 项通过、6 项按项目范围预期跳过。没有实际发生的人工验证不得写成已通过。
+项目只在 Linux CI 启用。Draft PR #18 的 GitHub Actions 运行 `32348007780` 共 22 项成功；
+Linux `end-to-end` 日志显示 Firefox 153 已安装，最终 25 项通过、8 项按范围跳过，相比 Windows
+本地 22 项通过、6 项跳过精确增加 Firefox 的 3 项通过与 2 项跳过。没有实际发生的人工验证
+不得写成已通过。
