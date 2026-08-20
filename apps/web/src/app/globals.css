@@ -1639,10 +1639,24 @@ select[aria-invalid="true"] {
 .readiness-form-grid label,
 .synthetic-selector label {
   display: grid;
+  min-width: 0;
   gap: 8px;
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 650;
+}
+
+.readiness-form-grid :is(input, select),
+.synthetic-selector :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.readiness-form-grid select,
+.synthetic-selector select {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .secondary-button,
@@ -2144,7 +2158,13 @@ select[aria-invalid="true"] {
   }
 
   .learning-control {
+    display: grid;
     align-items: flex-start;
+  }
+
+  .learning-control-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .grid {
@@ -2329,7 +2349,7 @@ select[aria-invalid="true"] {
 /* Milestone 7B: unified application shell and evidence-first page hierarchy. */
 .app-shell {
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
+  grid-template-columns: min(30vw, 14.75rem) minmax(0, 1fr);
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -3391,6 +3411,18 @@ th {
   min-width: 0;
 }
 
+.app-shell label:has(> :is(input, select, textarea)) {
+  min-width: 0;
+  margin: -6px;
+  padding: 6px;
+  overflow: hidden;
+}
+
+.app-shell :is(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
 @media (forced-colors: active) {
   .primary-button,
   .secondary-button,
@@ -3419,7 +3451,7 @@ th {
 
 @media (max-width: 1080px) {
   .app-shell {
-    grid-template-columns: 208px minmax(0, 1fr);
+    grid-template-columns: min(30vw, 13rem) minmax(0, 1fr);
   }
 
   .desktop-sidebar {
@@ -3438,6 +3470,11 @@ th {
   .page-context__item {
     grid-template-columns: 1fr;
     gap: 3px;
+  }
+
+  .readiness-form-grid,
+  .synthetic-selector {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .m7-dimension-grid {

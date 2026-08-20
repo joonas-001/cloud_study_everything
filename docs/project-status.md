@@ -1,6 +1,6 @@
 # 云奕学项目状态
 
-> 状态更新时间：2026-08-15（Asia/Shanghai）。本文件记录当前证据、边界和下一步，
+> 状态更新时间：2026-08-20（Asia/Shanghai）。本文件记录当前证据、边界和下一步，
 > 不替代 `AGENTS.md` 中的项目所有者指令。
 
 ## 当前结论
@@ -11,6 +11,7 @@
 - 验证结束后 Broker 已停止且保持 `static`，生产策略继续 `remote_enabled=false`；
 - 6C 已通过 PR #16 合并到 `main@65529de`，PR 与合并后主线 CI 均为 22 项成功；
 - 项目所有者已确认将远程 Runner 纳入 6D 启用范围，但该决定不构成 6D 实施授权；
+- 7A–7E 已进入主线；7F 已重放到 `origin/main@b213a91`，Windows 本地完整自动门禁通过；
 - 6D、真实 AI、真实来源、邮件、公开发布、扩容和新增付费资源均未授权。
 
 ## 6C 证据
@@ -20,14 +21,30 @@
 | 真实数据演练 | 通过 | 47 张表、54 行；Schema、逐表语义摘要、外键、事件顺序、内容锁和反向恢复一致 |
 | 本地服务恢复 | 通过 | 写入冻结后原 API/Web 已恢复健康 |
 | 临时明文副本 | 未保留 | 只保留本机安全目录中的加密制品和无正文报告 |
-| Runner 代码门禁 | 通过 | 最终 `release-readiness`：114 项后端通过、1 项按预期跳过，42 项前端、生产构建、8 项 E2E、契约与密钥扫描成功 |
+| Runner 代码门禁 | 通过 | 6C 最终 `release-readiness`：114 项后端通过、1 项按预期跳过，42 项前端、生产构建、8 项 E2E、契约与密钥扫描成功 |
 | 本机 Runner 复测 | 未执行 | Docker Desktop 未启动，探针在容器创建前停止；历史 4B 证据不受影响 |
 | 云端 Runner 实测 | 通过 | Docker 29.1.3；锁定的 GCC 15.2.0 与 Python 3.14.3 镜像；Unix Socket 十项矩阵全部符合预期 |
 | 云端权限与清理 | 通过 | FastAPI 身份不在 Docker 组且不能读取 Docker Socket；验证后项目容器为零，Broker 为 `inactive + static` |
 | 云端资源与 live 回归 | 通过 | 根盘使用 31%，镜像 3.785 GB，可用内存 1.3 GiB、Swap 1.8 GiB；API、Web、备份计时器与 Tailnet HTTPS 正常 |
 
+## 7F 当前证据
+
+- Windows 本地覆盖 Chromium 桌面／移动／平板与 WebKit，11 个产品页面的 200% 文本、
+  横向溢出、可访问名称、键盘入口、空／加载／错误、forced-colors 和重复导航已通过；
+- 重放后完整本地 `release-readiness` 通过：114 项后端通过、1 项按预期跳过，42 项前端、
+  生产构建、22 项 E2E、契约无漂移和密钥扫描成功；
+- 代表性截图已复核；针对发现只调整平板学习操作区、干净数据库下的 WebKit 长表单控件／
+  准备度双列网格和缩放侧栏布局；
+- 7F 保持零新增依赖，不修改第六里程碑实现、服务器或部署状态；
+- Windows Firefox 因 `RenderCompositorSWGL failed mapping default framebuffer` 未能启动，
+  没有关闭沙箱规避；Firefox 只在 Linux CI 启用，尚待本分支 CI 证明；
+- Windows Narrator 实际听感、Windows 实际高对比度和连续两小时阅读疲劳仍须项目所有者
+  人工执行并明确确认；当前不得声称完整人工验收或 WCAG 合规认证。
+
 ## 下一步
 
-1. 6D 继续保持阻塞，等待项目所有者最后一次授权；
-2. 6D 获得授权前，不启动 Broker、不接入 live API，也不启用远程 Runner；
-3. 6D 实施时按已确认范围重新完成 Runner 上线预检、安全矩阵、资源和回滚复核。
+1. 提交并推送 7F Draft PR，使用 Linux CI 验证 Firefox；
+2. 项目所有者按 7F 人工脚本确认 Narrator、实际高对比度与连续两小时阅读疲劳；
+3. 6D 继续保持阻塞，等待项目所有者最后一次授权；
+4. 6D 获得授权前，不启动 Broker、不接入 live API，也不启用远程 Runner；
+5. 6D 实施时按已确认范围重新完成 Runner 上线预检、安全矩阵、资源和回滚复核。

@@ -55,13 +55,16 @@
 | 隔离代码运行 | 4B 已合并并验证 | PR #6 已合并到 `main@0efdb4d`，合并后 CI `30696741469` 共 21 项成功；Runner 纵向切片、离线门禁与真实 Docker 十项安全／资源限制矩阵均已通过 |
 | 第五里程碑 5C | 已合并并验证 | PR #8 已合并到 `main@9928e23`，合并后 CI `30701908365` 共 21 项成功；就业优先实验、分级证据门禁、外部真人评审、用户手动作记录、隐私收入记录与学习回流已形成纵向切片；当前用户真实求职动作证据补齐暂时阻塞 |
 | 第六里程碑 6A–6C | 当前范围已合并并验证 | 6B 已在新加坡单实例完成 Tailnet-only 合成数据私有预发布。6C 真实数据库迁移与回滚演练及远程 Runner 云端十项矩阵已通过，Broker 验证后停止，生产策略仍关闭；PR #16 已合并到 `main@65529de`，PR CI `31886478208` 和主线 CI `31886598716` 均为 22 项成功。Runner 已确认纳入 6D 范围，但 6D 未授权 |
-| 第七里程碑 7A–7E | 7A–7D 已进入主线；7E 已完成 | 7D 已通过 PR #14 合并为 `main@809a6c5`，合并后主线 CI `31801013282` 共 22 项成功。7E 以零新增依赖建立语义设计令牌、共享反馈状态、统一焦点／控件／空态／加载基线，并补齐程序化表单提示、强制色彩、减少动效和 200% 文本缩放验证。完整本地 `release-readiness` 通过：108 项后端测试通过、1 项按预期跳过，42 项前端测试、生产构建、13 个静态页面、桌面／移动 8 项 E2E、契约无漂移和密钥扫描成功。7F 未授权 |
+| 第七里程碑 7A–7F | 7A–7E 已进入主线；7F 本地自动验收完成、人工待确认 | 7D 已通过 PR #14 合并为 `main@809a6c5`，7E 已通过 PR #15 合并为 `main@60bf8e6`；7F 在独立 `codex/milestone-7f` 分支保持零新增依赖完成 Windows 本地代码与自动验收，不修改第六里程碑工作区、服务器或部署状态。Linux CI Firefox、Windows Narrator、实际高对比度和连续两小时疲劳仍待确认 |
 
 当前 Web 页面提供算法诊断、规划、学习执行和目标准备度的本地受限流程。规划、确定性练习和 5A 准备度比较由本地规则处理；自由文本和代码文本只做结构校验，不能据此判断内容正确，也不代表算法技能包已经激活、用户已经掌握相关能力或已经具备真实交付资格。
 
 第四里程碑的详细边界见 [`docs/architecture/learning-execution.md`](docs/architecture/learning-execution.md)，第五里程碑目标见
 [`docs/architecture/monetization-and-continuous-update.md`](docs/architecture/monetization-and-continuous-update.md)，后续门禁和实施事项见根目录
 [`TODO.md`](TODO.md)。
+
+新窗口读取项目现状时，先查看 [`docs/project-status.md`](docs/project-status.md)，再读取
+[`AGENTS.md`](AGENTS.md) 和 [`TODO.md`](TODO.md)；状态入口不替代项目约束和用户授权。
 
 ## 架构概览
 
@@ -295,8 +298,11 @@ pnpm release-readiness
     - 7E 在独立分支以零新增依赖建立语义设计令牌和共享反馈组件，统一全站焦点、表单、状态、
       空态、加载、表格和响应式基线，并以桌面／移动 E2E 验证 AA 令牌对比度、200% 文本缩放
       与减少动效；完整本地 `release-readiness` 已通过；
+    - 7F 在独立 `codex/milestone-7f` 分支进行全站体验验收，只允许小范围前端修复，不得
+      修改后端、6B 工作区、服务器或部署状态；屏幕阅读器实际听感和连续两小时疲劳验证
+      不得由自动化检查代替；
     - `Leonxlnx/taste-skill`、Shadcn/UI、Radix Themes、Tremor、Cal.com、Outline、Magic UI
-      等仅作只读方法参考，未安装、执行或复制；7F 未授权。
+      等仅作只读方法参考，未安装、执行或复制；7F 已授权但仍在验收中。
 
 ## 项目约束与设计文档
 

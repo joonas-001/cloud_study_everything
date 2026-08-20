@@ -12,6 +12,7 @@ const runDatabase = path.join(
 const externalServers = process.env.PLAYWRIGHT_EXTERNAL_SERVERS === "1";
 const completionFile = process.env.PLAYWRIGHT_COMPLETION_FILE;
 const apiSourcePath = path.join(repositoryRoot, "apps", "api", "src");
+const experienceAcceptance = /experience-acceptance\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -43,6 +44,28 @@ export default defineConfig({
     {
       name: "mobile-chromium",
       use: { ...devices["Pixel 7"] },
+    },
+    {
+      name: "tablet-chromium",
+      testMatch: experienceAcceptance,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 834, height: 1194 },
+      },
+    },
+    ...(process.platform === "win32"
+      ? []
+      : [
+          {
+            name: "firefox",
+            testMatch: experienceAcceptance,
+            use: { ...devices["Desktop Firefox"] },
+          },
+        ]),
+    {
+      name: "webkit",
+      testMatch: experienceAcceptance,
+      use: { ...devices["Desktop Safari"] },
     },
   ],
   webServer: externalServers
