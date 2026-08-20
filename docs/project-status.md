@@ -11,7 +11,7 @@
 - 验证结束后 Broker 已停止且保持 `static`，生产策略继续 `remote_enabled=false`；
 - 6C 已通过 PR #16 合并到 `main@65529de`，PR 与合并后主线 CI 均为 22 项成功；
 - 项目所有者已确认将远程 Runner 纳入 6D 启用范围，但该决定不构成 6D 实施授权；
-- 7A–7E 已进入主线；7F 已重放到 `origin/main@b213a91`，Windows 本地完整自动门禁通过；
+- 7A–7E 已进入主线；7F Draft PR #18 的本地完整门禁与 Linux CI 均已通过；
 - 6D、真实 AI、真实来源、邮件、公开发布、扩容和新增付费资源均未授权。
 
 ## 6C 证据
@@ -37,14 +37,14 @@
   准备度双列网格和缩放侧栏布局；
 - 7F 保持零新增依赖，不修改第六里程碑实现、服务器或部署状态；
 - Windows Firefox 因 `RenderCompositorSWGL failed mapping default framebuffer` 未能启动，
-  没有关闭沙箱规避；Firefox 只在 Linux CI 启用，尚待本分支 CI 证明；
+  没有关闭沙箱规避；PR #18 的 CI 运行 `32348007780` 共 22 项成功，Linux E2E 为 25 项通过、
+  8 项按范围跳过，精确包含 Firefox 的 3 项通过与 2 项跳过；
 - Windows Narrator 实际听感、Windows 实际高对比度和连续两小时阅读疲劳仍须项目所有者
   人工执行并明确确认；当前不得声称完整人工验收或 WCAG 合规认证。
 
 ## 下一步
 
-1. 提交并推送 7F Draft PR，使用 Linux CI 验证 Firefox；
-2. 项目所有者按 7F 人工脚本确认 Narrator、实际高对比度与连续两小时阅读疲劳；
-3. 6D 继续保持阻塞，等待项目所有者最后一次授权；
-4. 6D 获得授权前，不启动 Broker、不接入 live API，也不启用远程 Runner；
-5. 6D 实施时按已确认范围重新完成 Runner 上线预检、安全矩阵、资源和回滚复核。
+1. 项目所有者按 7F 人工脚本确认 Narrator、实际高对比度与连续两小时阅读疲劳；
+2. 6D 继续保持阻塞，等待项目所有者最后一次授权；
+3. 6D 获得授权前，不启动 Broker、不接入 live API，也不启用远程 Runner；
+4. 6D 实施时按已确认范围重新完成 Runner 上线预检、安全矩阵、资源和回滚复核。
