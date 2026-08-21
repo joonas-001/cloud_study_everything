@@ -26,7 +26,10 @@
       "const": "single-user-singapore"
     },
     "version": {
-      "const": "1.0.0"
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ]
     },
     "status": {
       "const": "confirmed"

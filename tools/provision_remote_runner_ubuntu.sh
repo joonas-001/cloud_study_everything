@@ -88,6 +88,7 @@ install \
   deployment/systemd/cloud-study-runner.service \
   /etc/systemd/system/cloud-study-runner.service
 systemctl daemon-reload
+systemctl disable cloud-study-runner.service >/dev/null 2>&1 || true
 systemctl start cloud-study-runner.service
 
 broker_ready=false
@@ -109,8 +110,8 @@ if id -nG cloud-study | tr ' ' '\n' | grep -Fxq docker; then
   echo "FastAPI identity unexpectedly gained Docker access." >&2
   exit 1
 fi
-if [[ "$(systemctl is-enabled cloud-study-runner.service 2>&1 || true)" != "static" ]]; then
-  echo "Remote Runner broker must remain non-enableable before 6D." >&2
+if [[ "$(systemctl is-enabled cloud-study-runner.service 2>&1 || true)" != "disabled" ]]; then
+  echo "Remote Runner broker must remain disabled until controlled activation." >&2
   exit 1
 fi
 

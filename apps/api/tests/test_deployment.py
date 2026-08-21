@@ -55,6 +55,25 @@ def test_private_preview_requires_complete_exact_configuration(
         DeploymentSettings.from_environment(REPOSITORY_ROOT)
 
 
+def test_controlled_live_policy_requires_explicit_runner_socket(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    _configure_private_preview(tmp_path, monkeypatch)
+    policy_path = REPOSITORY_ROOT / "deployment" / "policies" / "single-user-singapore-v2.json"
+    monkeypatch.setenv("CLOUD_STUDY_DEPLOYMENT_POLICY_PATH", str(policy_path))
+
+    with pytest.raises(DeploymentConfigurationError, match="CLOUD_STUDY_RUNNER_SOCKET"):
+        DeploymentSettings.from_environment(REPOSITORY_ROOT)
+
+    runner_socket = (tmp_path / "runner.sock").resolve()
+    monkeypatch.setenv("CLOUD_STUDY_RUNNER_SOCKET", str(runner_socket))
+    settings = DeploymentSettings.from_environment(REPOSITORY_ROOT)
+    assert settings.remote_runner_enabled is True
+    assert settings.runner_socket_path == runner_socket
+    assert settings.external_calls_enabled is False
+
+
 def test_private_preview_enforces_proxy_owner_origin_and_capability_stops(
     tmp_path: Path,
     monkeypatch: MonkeyPatch,
