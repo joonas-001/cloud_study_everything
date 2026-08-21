@@ -13,6 +13,10 @@
 跟踪文件的 Git blob 哈希进一步确认当前应用为 7F 提交 `6acdaca`。项目所有者确认精确应用
 基线前，不得部署应用、迁移真实数据库、启动 Broker 或修改 live API 配置。
 
+首个 6D 本地提交为 `6c246c5`。向 `joonas-001/cloud_study_everything` 推送以启动 CI 时，
+安全审查因缺少对该具体远端外发源码和文档的明确授权而拒绝；不得绕过，须等待项目所有者
+明确批准推送与 Draft PR 创建。
+
 ## 版本化启用边界
 
 - 保留 `single-user-singapore-v1.json` 作为 6B／6C 的不可变关闭策略；
