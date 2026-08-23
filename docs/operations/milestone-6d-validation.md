@@ -89,5 +89,25 @@
 - Node 24.19.0 下完整本地 `release-readiness` 已通过：115 项后端测试通过、1 项按预期
   跳过，43 项前端测试、生产构建、桌面／移动 8 项 E2E、契约无漂移和密钥扫描成功；最终
   浏览器产物中本机 API 地址匹配数为 0；
-- 本节只证明本地修复候选及其门禁；在新 PR CI 成功、受控重部署和 Tailnet 真实浏览器复验
-  前，云端缺陷仍未关闭，6D 继续为“已激活、观察中”。
+- 修复提交 `c781fe19abdba990388e5d047cfadfc3402be2e9` 的 Git 归档 SHA-256 为
+  `5d0c72d7bc917460600315a85a6a13c5391f8a043c26e862ee1e32942b6464d3`；PR CI
+  `32623662266` 共 22 项成功；
+- 2026-08-23 15:14（Asia/Shanghai）受控切换成功，旧 release `5b4af16` 保留为回滚点。
+  候选构建准备期间多次因 pnpm／Corepack 继承 SSH 目录权限而在切换前停止；改用锁定
+  `node_modules` 内 Next.js 16.2.11 CLI 后生产构建成功。首次切换因把业务页面预期 401
+  同时错误套用于公开 `/health` 200 而触发自动回滚，复核旧 release 和三项服务恢复后按
+  精确状态码重新切换成功；
+- 部署后 API、Web、Runner、备份计时器均为 `active + enabled`，自动重启计数均为 0；
+  回环 `/health` 为 200，无身份业务 Web 为 401，所有者 Tailnet HTTPS 的首页、学习、证据、
+  设置、隐私设置 API、部署状态 API 和 Runner 可用性 API 共七条路由均为 200；
+- 实际下发的 9 个浏览器 JavaScript 中本机 API 地址不存在，同源 `/api` 和修正后的通用连接
+  错误文案均存在；Headless Chromium 仍在页面导航时得到 `ERR_CONNECTION_CLOSED`，不能
+  代替真实手机浏览器确认；
+- 部署后再次执行 Runner 十项矩阵，`ok=true`、`transport=unix_broker`，C++／Python、断网、
+  只读根、无宿主仓库、无 Docker Socket、进程、超时、合并输出和内存限制结果均符合预期；
+  FastAPI 仍无 Docker Socket 权限，验证后项目容器残留为 0；
+- 2026-08-23 00:09 日备份执行成功；复验时根盘剩余约 24 GB、可用内存约 1.2 GiB、Swap
+  可用约 1.9 GiB。部署后唯一 warning 是计划停止 Web 时 Node 包装进程退出的既有 systemd
+  记录，当前 API、Web 和 Runner 均为运行状态且重启计数为 0；
+- 云端浏览器 API 地址缺陷已按自动化证据修复；6D 仍保持“已激活、观察中”，直到项目所有者
+  完成真实手机浏览器复验、确认观察期结束时间并提供腾讯云账单侧实际消耗证据。
