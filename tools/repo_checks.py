@@ -159,6 +159,7 @@ def check_structure(root: Path) -> None:
         "tools/provision_runner_images.ps1",
         "tools/manage_backup.py",
         "tools/deployment_preflight.py",
+        "tools/activate_controlled_live_ubuntu.sh",
         "tools/provision_remote_runner_ubuntu.sh",
         "tools/run_migration_rehearsal.py",
         "tools/run_remote_runner_broker.py",
@@ -166,7 +167,9 @@ def check_structure(root: Path) -> None:
         "tools/run_web_check.mjs",
         "tools/credential_file_name.py",
         "deployment/policies/single-user-singapore-v1.json",
+        "deployment/policies/single-user-singapore-v2.json",
         "deployment/private-preview.env.example",
+        "deployment/controlled-live.env.example",
         "deployment/systemd/cloud-study-api.service",
         "deployment/systemd/cloud-study-web.service",
         "deployment/systemd/cloud-study-backup.service",
@@ -174,6 +177,7 @@ def check_structure(root: Path) -> None:
         "deployment/systemd/cloud-study-runner.service",
         "deployment/systemd/journald-cloud-study.conf",
         "docs/architecture/internet-deployment.md",
+        "docs/operations/milestone-6d.md",
         "contracts/skill-pack/manifest.schema.json",
         "contracts/skill-pack/registry.schema.json",
         ".github/actions/setup-project/action.yml",
@@ -1114,18 +1118,32 @@ def check_deployment_policy(root: Path) -> None:
     schema = _read_json(
         root / "contracts/deployment/private-deployment-policy.schema.json"
     )
-    policy = _read_json(root / "deployment/policies/single-user-singapore-v1.json")
-    Draft202012Validator.check_schema(schema)
-    errors = sorted(
-        Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(
-            policy
-        ),
-        key=lambda error: tuple(str(part) for part in error.absolute_path),
+    preview_policy = _read_json(
+        root / "deployment/policies/single-user-singapore-v1.json"
     )
-    if errors:
-        raise CheckFailure(
-            f"deployment policy failed schema validation: {errors[0].message}"
+    live_policy = _read_json(root / "deployment/policies/single-user-singapore-v2.json")
+    Draft202012Validator.check_schema(schema)
+    for policy in (preview_policy, live_policy):
+        errors = sorted(
+            Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(
+                policy
+            ),
+            key=lambda error: tuple(str(part) for part in error.absolute_path),
         )
+        if errors:
+            raise CheckFailure(
+                f"deployment policy failed schema validation: {errors[0].message}"
+            )
+
+    if (
+        preview_policy["version"] != "1.0.0"
+        or preview_policy["runner"]["remote_enabled"]
+    ):
+        raise CheckFailure(
+            "the immutable 6B preview policy must remain disabled at 1.0.0"
+        )
+    if live_policy["version"] != "1.1.0" or not live_policy["runner"]["remote_enabled"]:
+        raise CheckFailure("the authorized 6D policy must enable the Runner at 1.1.0")
 
     required_values = {
         ("status",): "confirmed",
@@ -1141,7 +1159,6 @@ def check_deployment_policy(root: Path) -> None:
         ("runtime", "node_major"): 24,
         ("runtime", "python"): "3.14.3",
         ("storage", "database"): "sqlite",
-        ("runner", "remote_enabled"): False,
         ("external_calls", "enabled_by_default"): False,
         ("backup", "frequency"): "daily",
         ("backup", "daily_retention"): 7,
@@ -1149,38 +1166,45 @@ def check_deployment_policy(root: Path) -> None:
         ("logs", "operations_retention_days"): 7,
         ("logs", "sensitive_body_logging"): False,
     }
-    for path, expected in required_values.items():
-        current: Any = policy
-        for part in path:
-            if not isinstance(current, dict) or part not in current:
-                raise CheckFailure(f"deployment policy is missing {'.'.join(path)}")
-            current = current[part]
-        if current != expected:
-            raise CheckFailure(
-                f"deployment policy {'.'.join(path)} must remain {expected!r}"
-            )
+    for policy in (preview_policy, live_policy):
+        for path, expected in required_values.items():
+            current: Any = policy
+            for part in path:
+                if not isinstance(current, dict) or part not in current:
+                    raise CheckFailure(f"deployment policy is missing {'.'.join(path)}")
+                current = current[part]
+            if current != expected:
+                raise CheckFailure(
+                    f"deployment policy {'.'.join(path)} must remain {expected!r}"
+                )
 
-    authorization = policy["authorization"]
-    if authorization != {
-        "code_implementation": True,
-        "cloud_resource_creation": True,
-        "paid_service": True,
-        "public_release": False,
-    }:
-        raise CheckFailure(
-            "deployment authorization does not match the confirmed 6B resource scope"
-        )
-    budget = policy["budget"]
-    if budget["expected_monthly"] > budget["monthly_hard_limit"]:
-        raise CheckFailure("expected deployment cost exceeds the monthly hard limit")
-    if budget["monthly_hard_limit"] != 50 or budget["alert_percentages"] != [50, 80]:
-        raise CheckFailure("deployment cost stop or warning thresholds drifted")
-    if budget["automatic_top_up"] or budget["automatic_scaling"]:
-        raise CheckFailure("automatic spend expansion must remain disabled")
+    for policy in (preview_policy, live_policy):
+        authorization = policy["authorization"]
+        if authorization != {
+            "code_implementation": True,
+            "cloud_resource_creation": True,
+            "paid_service": True,
+            "public_release": False,
+        }:
+            raise CheckFailure(
+                "deployment authorization does not match the confirmed private scope"
+            )
+        budget = policy["budget"]
+        if budget["expected_monthly"] > budget["monthly_hard_limit"]:
+            raise CheckFailure(
+                "expected deployment cost exceeds the monthly hard limit"
+            )
+        if budget["monthly_hard_limit"] != 50 or budget["alert_percentages"] != [
+            50,
+            80,
+        ]:
+            raise CheckFailure("deployment cost stop or warning thresholds drifted")
+        if budget["automatic_top_up"] or budget["automatic_scaling"]:
+            raise CheckFailure("automatic spend expansion must remain disabled")
 
     source_hosts = {
         urlsplit(item["url"]).hostname
-        for item in policy["sources"]
+        for item in live_policy["sources"]
         if isinstance(item, dict) and isinstance(item.get("url"), str)
     }
     required_source_hosts = {"cloud.tencent.com", "tailscale.com", "www.miit.gov.cn"}
@@ -1208,7 +1232,13 @@ def check_deployment_policy(root: Path) -> None:
     runner_provision = (root / "tools/provision_remote_runner_ubuntu.sh").read_text(
         encoding="utf-8"
     )
+    controlled_activation = (
+        root / "tools/activate_controlled_live_ubuntu.sh"
+    ).read_text(encoding="utf-8")
     env_template = (root / "deployment/private-preview.env.example").read_text(
+        encoding="utf-8"
+    )
+    live_env_template = (root / "deployment/controlled-live.env.example").read_text(
         encoding="utf-8"
     )
     required_runtime_guards = [
@@ -1221,6 +1251,7 @@ def check_deployment_policy(root: Path) -> None:
         ('"--hostname", "127.0.0.1"', web_launcher),
         ("IPAddressDeny=any", web_unit),
         ("tools/manage_backup.py scheduled", backup_unit),
+        ("--policy-version 1.1.0", backup_unit),
         ("RestrictAddressFamilies=AF_UNIX", backup_unit),
         ("User=cloud-study-runner", runner_unit),
         ("Group=cloud-study", runner_unit),
@@ -1230,6 +1261,7 @@ def check_deployment_policy(root: Path) -> None:
         ("NoNewPrivileges=true", runner_unit),
         ("ProtectSystem=strict", runner_unit),
         ("CapabilityBoundingSet=", runner_unit),
+        ("WantedBy=multi-user.target", runner_unit),
         ("--socket /run/cloud-study-runner/runner.sock", runner_unit),
         ("WorkingDirectory=/opt/cloud-study/runner/current", runner_unit),
         ("runuser -u cloud-study-runner -- test -x", runner_provision),
@@ -1240,6 +1272,12 @@ def check_deployment_policy(root: Path) -> None:
         ),
         ("systemctl is-active --quiet cloud-study-runner.service", runner_provision),
         ("-S /run/cloud-study-runner/runner.sock", runner_provision),
+        ("systemctl enable --now cloud-study-runner.service", controlled_activation),
+        ("verify_runner_live.py", controlled_activation),
+        ("systemctl disable --now cloud-study-runner.service", controlled_activation),
+        ("single-user-singapore-v2.json", controlled_activation),
+        ("CLOUD_STUDY_RUNNER_SOCKET", live_env_template),
+        ("single-user-singapore-v2.json", live_env_template),
         ("NEXT_PUBLIC_API_BASE_URL=/api", env_template),
         ("CLOUD_STUDY_DEPLOYMENT_MODE=private_preview", env_template),
     ]
@@ -1259,8 +1297,10 @@ def check_deployment_policy(root: Path) -> None:
         raise CheckFailure(
             f"private deployment units contain forbidden exposure: {found_forbidden}"
         )
-    if "[Install]" in runner_unit:
-        raise CheckFailure("remote Runner broker must not be enabled before 6D")
+    if "[Install]" not in runner_unit:
+        raise CheckFailure(
+            "the authorized 6D Runner broker must support persistent enablement"
+        )
 
 
 def find_secrets(root: Path) -> list[str]:
