@@ -79,6 +79,12 @@ describe("diagnostic API helpers", () => {
     );
   });
 
+  it("does not mislabel a browser connection failure as a local-only error", () => {
+    expect(messageForError(new TypeError("Failed to fetch"))).toBe(
+      "无法连接 API。请检查当前网络与应用服务后重试。",
+    );
+  });
+
   it("requires the caller to send the explicit market synthesis confirmation", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
