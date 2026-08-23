@@ -12,10 +12,10 @@
 跟踪文件的 Git blob 哈希进一步确认当前应用为 7F 提交 `6acdaca`。项目所有者已确认采用
 独立 6D 基线，并接受正式部署后云端界面回到当前主线基线。
 
-精确提交 `5b4af16` 已部署，Draft PR #19 最新 GitHub Actions 运行 `32445151440` 共 22 项
-成功；真实数据库已一致迁移，Broker 已持久启用并接入 live API，十项矩阵、身份、备份、
-资源和回滚点均通过。当前处于观察期，远端 Headless 浏览器限制和待人工确认事项见
-`milestone-6d-validation.md`。
+浏览器同源 API 修复精确提交 `c781fe1` 已部署，旧 `5b4af16` 保留为回滚点；Draft PR #19
+对应 GitHub Actions 运行 `32623662266` 共 22 项成功。真实数据库保持一致，Broker 继续持久
+启用并接入 live API；十项矩阵、身份、备份、资源和自动回滚已复验。当前仍处于观察期，
+远端 Headless 浏览器限制和待人工确认事项见 `milestone-6d-validation.md`。
 
 ## 版本化启用边界
 
