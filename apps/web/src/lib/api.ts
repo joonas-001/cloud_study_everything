@@ -68,9 +68,11 @@ import type {
   UserGoalResponse,
 } from "@/generated/api-schema";
 
+const DEFAULT_API_BASE_URL =
+  process.env.NODE_ENV === "production" ? "/api" : "http://127.0.0.1:8000";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
-  "http://127.0.0.1:8000";
+  DEFAULT_API_BASE_URL;
 
 interface ApiErrorBody {
   detail?: {
@@ -789,7 +791,7 @@ export function messageForError(error: unknown): string {
     return error.message;
   }
   if (error instanceof TypeError) {
-    return "无法连接本地 API。请确认 FastAPI 已在 127.0.0.1:8000 启动。";
+    return "无法连接 API。请检查当前网络与应用服务后重试。";
   }
   return "发生未知错误，请稍后重试。";
 }
