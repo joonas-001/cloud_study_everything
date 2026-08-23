@@ -38,5 +38,5 @@ AmbientCapabilities=
 SystemCallArchitectures=native
 LogNamespace=cloud-study
 
-# Deliberately no installation section: validation starts this broker explicitly,
-# and production enablement remains blocked until the separate 6D decision.
+[Install]
+WantedBy=multi-user.target
