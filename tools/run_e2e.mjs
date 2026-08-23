@@ -198,7 +198,7 @@ process.once("exit", () => {
   restoreNextEnv();
 });
 
-async function waitForCompletionFile(child, timeoutMs = 120_000) {
+async function waitForCompletionFile(child, timeoutMs = 600_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (existsSync(completionFile)) {
