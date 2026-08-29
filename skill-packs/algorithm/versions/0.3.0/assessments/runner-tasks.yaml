@@ -1,0 +1,812 @@
+schema_version: 2.0.0
+id: algorithm-common-core-runner-tasks
+skill_id: algorithm
+skill_version: 0.3.0
+tasks:
+- id: p-runner-cpp-task
+  activity_id: p-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id001
+  - p-control-flow
+  tests:
+  - id: zero
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: zero 代表用例
+  - id: one
+    stdin: '1
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: one 代表用例
+  - id: five
+    stdin: '5
+
+      '
+    expected_stdout: '15
+
+      '
+    purpose: five 代表用例
+- id: p-runner-python-task
+  activity_id: p-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id001
+  tests:
+  - id: zero
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: zero 代表用例
+  - id: one
+    stdin: '1
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: one 代表用例
+  - id: five
+    stdin: '5
+
+      '
+    expected_stdout: '15
+
+      '
+    purpose: five 代表用例
+- id: a-runner-cpp-task
+  activity_id: a-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id002
+  - a-asymptotic
+  tests:
+  - id: unit
+    stdin: '1
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: unit 代表用例
+  - id: two
+    stdin: '2
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: two 代表用例
+  - id: eight
+    stdin: '8
+
+      '
+    expected_stdout: '3
+
+      '
+    purpose: eight 代表用例
+- id: a-runner-python-task
+  activity_id: a-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id002
+  tests:
+  - id: unit
+    stdin: '1
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: unit 代表用例
+  - id: two
+    stdin: '2
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: two 代表用例
+  - id: eight
+    stdin: '8
+
+      '
+    expected_stdout: '3
+
+      '
+    purpose: eight 代表用例
+- id: l-runner-cpp-task
+  activity_id: l-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id003
+  - l-array-sequence
+  tests:
+  - id: empty
+    stdin: '0
+
+      '
+    expected_stdout: '
+
+      '
+    purpose: empty 代表用例
+  - id: one
+    stdin: '1
+
+      7
+
+      '
+    expected_stdout: '7
+
+      '
+    purpose: one 代表用例
+  - id: many
+    stdin: '4
+
+      1 2 3 4
+
+      '
+    expected_stdout: '4 3 2 1
+
+      '
+    purpose: many 代表用例
+- id: l-runner-python-task
+  activity_id: l-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id003
+  tests:
+  - id: empty
+    stdin: '0
+
+      '
+    expected_stdout: '
+
+      '
+    purpose: empty 代表用例
+  - id: one
+    stdin: '1
+
+      7
+
+      '
+    expected_stdout: '7
+
+      '
+    purpose: one 代表用例
+  - id: many
+    stdin: '4
+
+      1 2 3 4
+
+      '
+    expected_stdout: '4 3 2 1
+
+      '
+    purpose: many 代表用例
+- id: h-runner-cpp-task
+  activity_id: h-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id004
+  - h-map-set
+  tests:
+  - id: empty
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: empty 代表用例
+  - id: repeat
+    stdin: '5
+
+      1 1 2 2 2
+
+      '
+    expected_stdout: '2
+
+      '
+    purpose: repeat 代表用例
+  - id: mixed
+    stdin: '4
+
+      -1 0 1 -1
+
+      '
+    expected_stdout: '3
+
+      '
+    purpose: mixed 代表用例
+- id: h-runner-python-task
+  activity_id: h-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id004
+  tests:
+  - id: empty
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: empty 代表用例
+  - id: repeat
+    stdin: '5
+
+      1 1 2 2 2
+
+      '
+    expected_stdout: '2
+
+      '
+    purpose: repeat 代表用例
+  - id: mixed
+    stdin: '4
+
+      -1 0 1 -1
+
+      '
+    expected_stdout: '3
+
+      '
+    purpose: mixed 代表用例
+- id: s-runner-cpp-task
+  activity_id: s-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id005
+  - s-linear-binary-search
+  tests:
+  - id: missing
+    stdin: '3 4
+
+      1 3 5
+
+      '
+    expected_stdout: '-1
+
+      '
+    purpose: missing 代表用例
+  - id: first
+    stdin: '4 1
+
+      1 1 2 3
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: first 代表用例
+  - id: last
+    stdin: '3 5
+
+      1 3 5
+
+      '
+    expected_stdout: '2
+
+      '
+    purpose: last 代表用例
+- id: s-runner-python-task
+  activity_id: s-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id005
+  tests:
+  - id: missing
+    stdin: '3 4
+
+      1 3 5
+
+      '
+    expected_stdout: '-1
+
+      '
+    purpose: missing 代表用例
+  - id: first
+    stdin: '4 1
+
+      1 1 2 3
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: first 代表用例
+  - id: last
+    stdin: '3 5
+
+      1 3 5
+
+      '
+    expected_stdout: '2
+
+      '
+    purpose: last 代表用例
+- id: r-runner-cpp-task
+  activity_id: r-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id006
+  - r-recursion-state
+  tests:
+  - id: base
+    stdin: '0
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: base 代表用例
+  - id: one
+    stdin: '1
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: one 代表用例
+  - id: five
+    stdin: '5
+
+      '
+    expected_stdout: '120
+
+      '
+    purpose: five 代表用例
+- id: r-runner-python-task
+  activity_id: r-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id006
+  tests:
+  - id: base
+    stdin: '0
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: base 代表用例
+  - id: one
+    stdin: '1
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: one 代表用例
+  - id: five
+    stdin: '5
+
+      '
+    expected_stdout: '120
+
+      '
+    purpose: five 代表用例
+- id: t-runner-cpp-task
+  activity_id: t-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id007
+  - t-heap-priority
+  tests:
+  - id: one
+    stdin: '1
+
+      7
+
+      '
+    expected_stdout: '7
+
+      '
+    purpose: one 代表用例
+  - id: mixed
+    stdin: '4
+
+      3 -1 8 2
+
+      '
+    expected_stdout: '-1
+
+      '
+    purpose: mixed 代表用例
+  - id: repeat
+    stdin: '3
+
+      5 5 5
+
+      '
+    expected_stdout: '5
+
+      '
+    purpose: repeat 代表用例
+- id: t-runner-python-task
+  activity_id: t-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id007
+  tests:
+  - id: one
+    stdin: '1
+
+      7
+
+      '
+    expected_stdout: '7
+
+      '
+    purpose: one 代表用例
+  - id: mixed
+    stdin: '4
+
+      3 -1 8 2
+
+      '
+    expected_stdout: '-1
+
+      '
+    purpose: mixed 代表用例
+  - id: repeat
+    stdin: '3
+
+      5 5 5
+
+      '
+    expected_stdout: '5
+
+      '
+    purpose: repeat 代表用例
+- id: g-runner-cpp-task
+  activity_id: g-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id008
+  - g-bfs-dfs
+  tests:
+  - id: same
+    stdin: '1 0 0 0
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: same 代表用例
+  - id: reachable
+    stdin: '3 2 0 2
+
+      0 1
+
+      1 2
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: reachable 代表用例
+  - id: blocked
+    stdin: '4 2 0 3
+
+      0 1
+
+      2 3
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: blocked 代表用例
+- id: g-runner-python-task
+  activity_id: g-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id008
+  tests:
+  - id: same
+    stdin: '1 0 0 0
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: same 代表用例
+  - id: reachable
+    stdin: '3 2 0 2
+
+      0 1
+
+      1 2
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: reachable 代表用例
+  - id: blocked
+    stdin: '4 2 0 3
+
+      0 1
+
+      2 3
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: blocked 代表用例
+- id: y-runner-cpp-task
+  activity_id: y-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id009
+  - y-greedy-choice
+  tests:
+  - id: empty
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: empty 代表用例
+  - id: chain
+    stdin: '3
+
+      0 1
+
+      1 2
+
+      2 3
+
+      '
+    expected_stdout: '3
+
+      '
+    purpose: chain 代表用例
+  - id: overlap
+    stdin: '3
+
+      0 3
+
+      1 2
+
+      2 4
+
+      '
+    expected_stdout: '2
+
+      '
+    purpose: overlap 代表用例
+- id: y-runner-python-task
+  activity_id: y-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id009
+  tests:
+  - id: empty
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: empty 代表用例
+  - id: chain
+    stdin: '3
+
+      0 1
+
+      1 2
+
+      2 3
+
+      '
+    expected_stdout: '3
+
+      '
+    purpose: chain 代表用例
+  - id: overlap
+    stdin: '3
+
+      0 3
+
+      1 2
+
+      2 4
+
+      '
+    expected_stdout: '2
+
+      '
+    purpose: overlap 代表用例
+- id: d-runner-cpp-task
+  activity_id: d-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id010
+  - d-state-transition
+  tests:
+  - id: zero
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: zero 代表用例
+  - id: one
+    stdin: '1
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: one 代表用例
+  - id: ten
+    stdin: '10
+
+      '
+    expected_stdout: '55
+
+      '
+    purpose: ten 代表用例
+- id: d-runner-python-task
+  activity_id: d-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id010
+  tests:
+  - id: zero
+    stdin: '0
+
+      '
+    expected_stdout: '0
+
+      '
+    purpose: zero 代表用例
+  - id: one
+    stdin: '1
+
+      '
+    expected_stdout: '1
+
+      '
+    purpose: one 代表用例
+  - id: ten
+    stdin: '10
+
+      '
+    expected_stdout: '55
+
+      '
+    purpose: ten 代表用例
+- id: q-runner-cpp-task
+  activity_id: q-runner-cpp
+  runtime_profile_id: cpp-gcc-15-2
+  runtime_profile_version: 1.0.0
+  language: cpp
+  source_field_id: source
+  capability_ids: &id011
+  - q-testing-debugging
+  tests:
+  - id: one
+    stdin: '1
+
+      4
+
+      '
+    expected_stdout: '4 4
+
+      '
+    purpose: one 代表用例
+  - id: mixed
+    stdin: '4
+
+      3 -1 8 2
+
+      '
+    expected_stdout: '-1 8
+
+      '
+    purpose: mixed 代表用例
+  - id: negative
+    stdin: '3
+
+      -5 -2 -9
+
+      '
+    expected_stdout: '-9 -2
+
+      '
+    purpose: negative 代表用例
+- id: q-runner-python-task
+  activity_id: q-runner-python
+  runtime_profile_id: python-3-14-3
+  runtime_profile_version: 1.0.0
+  language: python
+  source_field_id: source
+  capability_ids: *id011
+  tests:
+  - id: one
+    stdin: '1
+
+      4
+
+      '
+    expected_stdout: '4 4
+
+      '
+    purpose: one 代表用例
+  - id: mixed
+    stdin: '4
+
+      3 -1 8 2
+
+      '
+    expected_stdout: '-1 8
+
+      '
+    purpose: mixed 代表用例
+  - id: negative
+    stdin: '3
+
+      -5 -2 -9
+
+      '
+    expected_stdout: '-9 -2
+
+      '
+    purpose: negative 代表用例

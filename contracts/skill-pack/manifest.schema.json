@@ -20,7 +20,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "1.1.0"]
     },
     "id": {
       "type": "string",
@@ -77,7 +77,11 @@
               "rubric_definition",
               "review_policy",
               "mastery_scope",
-              "runner_task_definition"
+              "runner_task_definition",
+              "capability_graph",
+              "diagnostic_policy",
+              "content_coverage",
+              "branch_gate_policy"
             ]
           },
           "path": {
@@ -122,6 +126,46 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.1.0"}}
+      },
+      "then": {
+        "properties": {
+          "content_files": {
+            "allOf": [
+              {"contains": {"properties": {"kind": {"const": "capability_graph"}}, "required": ["kind"]}},
+              {"contains": {"properties": {"kind": {"const": "diagnostic_policy"}}, "required": ["kind"]}},
+              {"contains": {"properties": {"kind": {"const": "content_coverage"}}, "required": ["kind"]}},
+              {"contains": {"properties": {"kind": {"const": "branch_gate_policy"}}, "required": ["kind"]}}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.0.0"}}
+      },
+      "then": {
+        "properties": {
+          "content_files": {
+            "not": {
+              "contains": {
+                "properties": {
+                  "kind": {
+                    "enum": ["capability_graph", "diagnostic_policy", "content_coverage", "branch_gate_policy"]
+                  }
+                },
+                "required": ["kind"]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "versionRequirement": {
       "type": "object",

@@ -1,0 +1,278 @@
+schema_version: 1.0.0
+id: algorithm-common-core-content-coverage
+skill_id: algorithm
+skill_version: 0.3.0
+budgets:
+  domain_count: 12
+  capability_max: 48
+  unit_max: 36
+  total_unit_minutes_max: 5000
+  diagnostic_item_max: 84
+  runner_task_max: 72
+  rubric_max: 18
+domains:
+- domain_id: p
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  - cpp-reference-containers
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - p-control-flow
+- domain_id: m
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - proof
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids: []
+- domain_id: a
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - proof
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - a-asymptotic
+- domain_id: l
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  - python-tutorial-314
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - l-array-sequence
+- domain_id: h
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  - cpp-reference-containers
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - h-map-set
+- domain_id: s
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - s-linear-binary-search
+- domain_id: r
+  source_ids:
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - r-recursion-state
+- domain_id: t
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  - cpp-reference-containers
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - t-heap-priority
+- domain_id: g
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - g-bfs-dfs
+- domain_id: y
+  source_ids:
+  - erickson-algorithms
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - proof
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - y-greedy-choice
+- domain_id: d
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - mit-mathematics-for-cs
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - retention
+  - correction
+  runner_capability_ids:
+  - d-state-transition
+- domain_id: q
+  source_ids:
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  - python-tutorial-314
+  - wg21-public-materials
+  required_activity_roles:
+  - study
+  - active_recall
+  - structured_check
+  - correction
+  - runner_cpp
+  - runner_python
+  - transfer
+  - project
+  - review
+  evidence_dimensions:
+  - understanding
+  - operation
+  - transfer
+  - artifact
+  - retention
+  - correction
+  runner_capability_ids:
+  - q-testing-debugging

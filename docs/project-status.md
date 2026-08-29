@@ -17,9 +17,11 @@
   本地库均保留回滚点；Runner 十项矩阵通过且项目容器残留为 0；
 - 7A–7F 已进入主线；PR #18 已合并为 `main@90e16e2`。7F 代码、PR CI 自动验收和项目
   所有者完成确认均已完成；合并后 push CI `32806434805` 共 22 项成功；
-- 第八里程碑 M8-D01–D15 已确认，8A 规格已完成：12 域、46 能力、34 单元、4,740 分钟，
-  离线规格、Ruff、Markdown、结构和差异检查通过；未创建 `algorithm@0.3.0`、数据库、API、
-  依赖或入口；项目所有者于 2026-08-29 授权 8B，8C–8G 未授权；
+- 第八里程碑 M8-D01–D15 与 8A 已完成；8B 已在独立分支实现通用契约及关闭入口的
+  `algorithm@0.3.0` 草稿，固定 12 域、46 能力、34 单元、4,740 分钟、166 活动、64 题和
+  22 个 Runner 任务；完整本地门禁通过 121 项后端、1 项按预期跳过、43 项前端、生产构建、
+  22 项 E2E、契约无漂移和密钥扫描。历史版本、默认入口、数据库、依赖和运行状态未改，
+  8C–8G 未授权；
 - 真实 AI、真实来源、邮件、公开发布、扩容和新增付费资源仍未授权。
 
 ## 6C 证据
@@ -52,13 +54,14 @@
 
 ## 下一步
 
-1. 从已验证 `main@90e16e2` 建立独立 8B 分支，先实现通用契约和兼容适配器，再创建
-   未开放入口的 `algorithm@0.3.0` 草稿；
+1. 保持 `algorithm@0.3.0` 关闭入口；远程来源实质复核、强制第二评审和锁定镜像 Runner
+   全量复验继续按 `TODO.md` 等待相应授权或 8G，不因本地结构门禁通过而自动解除；
 2. 保持真实 AI、个人知识工作台、文件导入、完整富文本、通用插件平台、四分支课程及产品
    扩展为明确后续待办，不在 8A–8G 中实施；
 3. 后续由项目所有者按需完成 Windows 实际高对比度与连续两小时阅读疲劳记录，并保持 6D
    回滚点、日备份、Runner 安全矩阵和费用边界的常规运维复核。
 
 完整 6D 证据见 `docs/operations/milestone-6d-validation.md`；7F 证据见
-`docs/design/milestone-7f-experience-acceptance.md`；8A 规格见
-`docs/architecture/milestone-8a-learning-core-spec.md`。
+`docs/design/milestone-7f-experience-acceptance.md`；8A 规格及 8B 证据见
+`docs/architecture/milestone-8a-learning-core-spec.md` 和
+`docs/architecture/milestone-8b-validation.md`。

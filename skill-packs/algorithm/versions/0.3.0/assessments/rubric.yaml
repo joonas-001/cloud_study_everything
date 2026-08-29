@@ -1,0 +1,83 @@
+schema_version: 1.0.0
+id: algorithm-common-core-rubrics
+skill_id: algorithm
+skill_version: 0.3.0
+criteria:
+- id: understanding-rubric
+  title: understanding 有限自评量表
+  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  levels:
+  - value: not_yet
+    label: 尚未满足
+    observable_description: 缺少两个以上要素。
+  - value: uncertain
+    label: 不确定
+    observable_description: 结构存在但技术内容需要复核。
+  - value: meets
+    label: 自评满足
+    observable_description: 结构要素齐全；仍不是独立验证。
+- id: operation-rubric
+  title: operation 有限自评量表
+  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  levels:
+  - value: not_yet
+    label: 尚未满足
+    observable_description: 缺少两个以上要素。
+  - value: uncertain
+    label: 不确定
+    observable_description: 结构存在但技术内容需要复核。
+  - value: meets
+    label: 自评满足
+    observable_description: 结构要素齐全；仍不是独立验证。
+- id: transfer-rubric
+  title: transfer 有限自评量表
+  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  levels:
+  - value: not_yet
+    label: 尚未满足
+    observable_description: 缺少两个以上要素。
+  - value: uncertain
+    label: 不确定
+    observable_description: 结构存在但技术内容需要复核。
+  - value: meets
+    label: 自评满足
+    observable_description: 结构要素齐全；仍不是独立验证。
+- id: artifact-rubric
+  title: artifact 有限自评量表
+  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  levels:
+  - value: not_yet
+    label: 尚未满足
+    observable_description: 缺少两个以上要素。
+  - value: uncertain
+    label: 不确定
+    observable_description: 结构存在但技术内容需要复核。
+  - value: meets
+    label: 自评满足
+    observable_description: 结构要素齐全；仍不是独立验证。
+- id: retention-rubric
+  title: retention 有限自评量表
+  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  levels:
+  - value: not_yet
+    label: 尚未满足
+    observable_description: 缺少两个以上要素。
+  - value: uncertain
+    label: 不确定
+    observable_description: 结构存在但技术内容需要复核。
+  - value: meets
+    label: 自评满足
+    observable_description: 结构要素齐全；仍不是独立验证。
+- id: correction-rubric
+  title: correction 有限自评量表
+  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  levels:
+  - value: not_yet
+    label: 尚未满足
+    observable_description: 缺少两个以上要素。
+  - value: uncertain
+    label: 不确定
+    observable_description: 结构存在但技术内容需要复核。
+  - value: meets
+    label: 自评满足
+    observable_description: 结构要素齐全；仍不是独立验证。

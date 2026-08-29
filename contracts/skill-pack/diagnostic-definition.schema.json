@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "2.0.0"]
     },
     "id": {
       "type": "string",
@@ -29,6 +29,10 @@
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
     },
     "start_question_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "policy_id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]*$"
     },
@@ -55,6 +59,39 @@
           "response_type": {
             "enum": ["free_text", "code_text", "single_choice"]
           },
+          "question_version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+          },
+          "capability_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}
+          },
+          "prerequisite_capability_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}
+          },
+          "difficulty": {"enum": ["entry", "core", "transfer"]},
+          "signal_kind": {"enum": ["deterministic_choice", "free_text_structure", "code_structure"]},
+          "deterministic_answer_values": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}
+          },
+          "critical_misconception_values": {
+            "type": "array", "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}
+          },
+          "selection_reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "allows_early_stop": {"type": "boolean"},
+          "estimated_minutes": {"type": "integer", "minimum": 1, "maximum": 10},
+          "source_ids": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}
+          },
+          "ambiguity_review_status": {"enum": ["pending", "reviewed"]},
           "options": {
             "type": "array",
             "minItems": 2,

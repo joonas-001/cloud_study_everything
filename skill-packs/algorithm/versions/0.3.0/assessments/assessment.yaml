@@ -1,0 +1,700 @@
+schema_version: 2.0.0
+id: algorithm-common-core-assessment
+skill_id: algorithm
+skill_version: 0.3.0
+criteria:
+- id: p-understanding-criterion
+  activity_id: p-structured-check
+  description: 只评价双语言编程基础中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id001
+  - p-control-flow
+  - p-functions-io
+  - p-cpp-stl
+  - p-python-runtime
+  language: none
+- id: p-operation-criterion
+  activity_id: p-runner-cpp
+  description: 只评价双语言编程基础中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - p-control-flow
+  language: cpp
+- id: p-transfer-criterion
+  activity_id: p-transfer
+  description: 只评价双语言编程基础中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id001
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: p-retention-criterion
+  activity_id: p-review
+  description: 只评价双语言编程基础中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id001
+  language: none
+- id: p-correction-criterion
+  activity_id: p-correction
+  description: 只评价双语言编程基础中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id001
+  language: none
+- id: m-understanding-criterion
+  activity_id: m-structured-check
+  description: 只评价必要数学与逻辑中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id002
+  - m-logic-sets
+  - m-functions-relations
+  - m-induction-sums-logs
+  - m-counting-probability
+  language: none
+- id: m-transfer-criterion
+  activity_id: m-transfer
+  description: 只评价必要数学与逻辑中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id002
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: m-retention-criterion
+  activity_id: m-review
+  description: 只评价必要数学与逻辑中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id002
+  language: none
+- id: m-correction-criterion
+  activity_id: m-correction
+  description: 只评价必要数学与逻辑中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id002
+  language: none
+- id: a-understanding-criterion
+  activity_id: a-structured-check
+  description: 只评价算法分析与正确性中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id003
+  - a-asymptotic
+  - a-case-analysis
+  - a-recurrence
+  - a-correctness
+  language: none
+- id: a-operation-criterion
+  activity_id: a-runner-cpp
+  description: 只评价算法分析与正确性中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - a-asymptotic
+  language: cpp
+- id: a-transfer-criterion
+  activity_id: a-transfer
+  description: 只评价算法分析与正确性中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id003
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: a-retention-criterion
+  activity_id: a-review
+  description: 只评价算法分析与正确性中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id003
+  language: none
+- id: a-correction-criterion
+  activity_id: a-correction
+  description: 只评价算法分析与正确性中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id003
+  language: none
+- id: l-understanding-criterion
+  activity_id: l-structured-check
+  description: 只评价线性结构中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id004
+  - l-array-sequence
+  - l-linked-list
+  - l-stack-queue-deque
+  - l-selection
+  language: none
+- id: l-operation-criterion
+  activity_id: l-runner-cpp
+  description: 只评价线性结构中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - l-array-sequence
+  language: cpp
+- id: l-transfer-criterion
+  activity_id: l-transfer
+  description: 只评价线性结构中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id004
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: l-retention-criterion
+  activity_id: l-review
+  description: 只评价线性结构中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id004
+  language: none
+- id: l-correction-criterion
+  activity_id: l-correction
+  description: 只评价线性结构中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id004
+  language: none
+- id: h-understanding-criterion
+  activity_id: h-structured-check
+  description: 只评价哈希与集合中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id005
+  - h-map-set
+  - h-collision-load
+  - h-application
+  language: none
+- id: h-operation-criterion
+  activity_id: h-runner-cpp
+  description: 只评价哈希与集合中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - h-map-set
+  language: cpp
+- id: h-transfer-criterion
+  activity_id: h-transfer
+  description: 只评价哈希与集合中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id005
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: h-retention-criterion
+  activity_id: h-review
+  description: 只评价哈希与集合中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id005
+  language: none
+- id: h-correction-criterion
+  activity_id: h-correction
+  description: 只评价哈希与集合中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id005
+  language: none
+- id: s-understanding-criterion
+  activity_id: s-structured-check
+  description: 只评价搜索与排序中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id006
+  - s-linear-binary-search
+  - s-elementary-sort
+  - s-comparison-stability
+  - s-selection
+  language: none
+- id: s-operation-criterion
+  activity_id: s-runner-cpp
+  description: 只评价搜索与排序中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - s-linear-binary-search
+  language: cpp
+- id: s-transfer-criterion
+  activity_id: s-transfer
+  description: 只评价搜索与排序中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id006
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: s-retention-criterion
+  activity_id: s-review
+  description: 只评价搜索与排序中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id006
+  language: none
+- id: s-correction-criterion
+  activity_id: s-correction
+  description: 只评价搜索与排序中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id006
+  language: none
+- id: r-understanding-criterion
+  activity_id: r-structured-check
+  description: 只评价递归与分治中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id007
+  - r-recursion-state
+  - r-recurrence-divide
+  - r-stack-conversion
+  language: none
+- id: r-operation-criterion
+  activity_id: r-runner-cpp
+  description: 只评价递归与分治中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - r-recursion-state
+  language: cpp
+- id: r-transfer-criterion
+  activity_id: r-transfer
+  description: 只评价递归与分治中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id007
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: r-retention-criterion
+  activity_id: r-review
+  description: 只评价递归与分治中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id007
+  language: none
+- id: r-correction-criterion
+  activity_id: r-correction
+  description: 只评价递归与分治中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id007
+  language: none
+- id: t-understanding-criterion
+  activity_id: t-structured-check
+  description: 只评价树与堆中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id008
+  - t-tree-representation
+  - t-traversal
+  - t-bst-invariant
+  - t-heap-priority
+  language: none
+- id: t-operation-criterion
+  activity_id: t-runner-cpp
+  description: 只评价树与堆中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - t-heap-priority
+  language: cpp
+- id: t-transfer-criterion
+  activity_id: t-transfer
+  description: 只评价树与堆中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id008
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: t-retention-criterion
+  activity_id: t-review
+  description: 只评价树与堆中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id008
+  language: none
+- id: t-correction-criterion
+  activity_id: t-correction
+  description: 只评价树与堆中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id008
+  language: none
+- id: g-understanding-criterion
+  activity_id: g-structured-check
+  description: 只评价图基础中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id009
+  - g-model-representation
+  - g-bfs-dfs
+  - g-topological-cycle
+  - g-shortest-path
+  - g-mst
+  language: none
+- id: g-operation-criterion
+  activity_id: g-runner-cpp
+  description: 只评价图基础中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - g-bfs-dfs
+  language: cpp
+- id: g-transfer-criterion
+  activity_id: g-transfer
+  description: 只评价图基础中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id009
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: g-retention-criterion
+  activity_id: g-review
+  description: 只评价图基础中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id009
+  language: none
+- id: g-correction-criterion
+  activity_id: g-correction
+  description: 只评价图基础中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id009
+  language: none
+- id: y-understanding-criterion
+  activity_id: y-structured-check
+  description: 只评价贪心中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id010
+  - y-greedy-choice
+  - y-exchange-proof
+  - y-counterexample
+  language: none
+- id: y-operation-criterion
+  activity_id: y-runner-cpp
+  description: 只评价贪心中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - y-greedy-choice
+  language: cpp
+- id: y-transfer-criterion
+  activity_id: y-transfer
+  description: 只评价贪心中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id010
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: y-retention-criterion
+  activity_id: y-review
+  description: 只评价贪心中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id010
+  language: none
+- id: y-correction-criterion
+  activity_id: y-correction
+  description: 只评价贪心中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id010
+  language: none
+- id: d-understanding-criterion
+  activity_id: d-structured-check
+  description: 只评价动态规划中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id011
+  - d-state-transition
+  - d-order-memoization
+  - d-optimization
+  - d-transfer
+  language: none
+- id: d-operation-criterion
+  activity_id: d-runner-cpp
+  description: 只评价动态规划中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - d-state-transition
+  language: cpp
+- id: d-transfer-criterion
+  activity_id: d-transfer
+  description: 只评价动态规划中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id011
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: d-retention-criterion
+  activity_id: d-review
+  description: 只评价动态规划中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id011
+  language: none
+- id: d-correction-criterion
+  activity_id: d-correction
+  description: 只评价动态规划中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id011
+  language: none
+- id: q-understanding-criterion
+  activity_id: q-structured-check
+  description: 只评价综合建模与质量中已声明能力的 understanding 维度。
+  dimension: understanding
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: &id012
+  - q-modeling
+  - q-testing-debugging
+  - q-performance-quality
+  - q-integrated-artifact
+  language: none
+- id: q-operation-criterion
+  activity_id: q-runner-cpp
+  description: 只评价综合建模与质量中已声明能力的 operation 维度。
+  dimension: operation
+  evaluation_method: runner
+  passing_result: passed
+  evidence_strength: verified
+  review_flags: []
+  capability_ids:
+  - q-testing-debugging
+  language: cpp
+- id: q-transfer-criterion
+  activity_id: q-transfer
+  description: 只评价综合建模与质量中已声明能力的 transfer 维度。
+  dimension: transfer
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id012
+  language: none
+  self_review_rubric_id: transfer-rubric
+- id: q-artifact-criterion
+  activity_id: q-project
+  description: 只评价综合建模与质量中已声明能力的 artifact 维度。
+  dimension: artifact
+  evaluation_method: self_review
+  passing_result: submitted
+  evidence_strength: limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id012
+  language: none
+  self_review_rubric_id: artifact-rubric
+- id: q-retention-criterion
+  activity_id: q-review
+  description: 只评价综合建模与质量中已声明能力的 retention 维度。
+  dimension: retention
+  evaluation_method: review_pending
+  passing_result: submitted
+  evidence_strength: retained_limited
+  review_flags:
+  - manual_review_pending
+  capability_ids: *id012
+  language: none
+- id: q-correction-criterion
+  activity_id: q-correction
+  description: 只评价综合建模与质量中已声明能力的 correction 维度。
+  dimension: correction
+  evaluation_method: deterministic
+  passing_result: passed
+  evidence_strength: supported
+  review_flags: []
+  capability_ids: *id012
+  language: none

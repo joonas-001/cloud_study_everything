@@ -1,0 +1,25 @@
+schema_version: 1.0.0
+id: algorithm-common-core-mastery-scope
+skill_id: algorithm
+skill_version: 0.3.0
+scope_statement: 只评价 12 域共同主干中精确能力、活动、语言和测试范围的证据。
+dimensions:
+- understanding
+- operation
+- transfer
+- artifact
+- retention
+- correction
+allowed_evidence_levels:
+- limited
+- supported
+- retained_limited
+- verified
+- retained
+prohibited_claims:
+- scope_criteria_met
+- mastered
+limitations:
+- verified 仅表示锁定 Runner 中对应任务的完整确定性测试通过。
+- retained 仅表示延迟后的同范围 Runner 复测通过，不表示永久保持。
+- 结构校验、自由文本、自评和流程完成均不证明整门算法掌握。

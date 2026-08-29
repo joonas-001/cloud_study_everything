@@ -28,3 +28,10 @@ packages:
     availability: available
     intake: open
     manifest_sha256: 384d1c275dfccbc2eb748c0bbb90e1e25106601ef2d8e711a6ce7538be075336
+  - id: algorithm
+    version: 0.3.0
+    path: skill-packs/algorithm/versions/0.3.0
+    state: draft
+    availability: available
+    intake: closed
+    manifest_sha256: 7bfbcbfce074793bba6ce3b0caf707b5af478cdd9827f5b665c049dc9d666664

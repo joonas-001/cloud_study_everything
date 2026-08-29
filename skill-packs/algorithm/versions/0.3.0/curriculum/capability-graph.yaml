@@ -1,0 +1,529 @@
+schema_version: 1.0.0
+id: algorithm-common-core-capability-graph
+skill_id: algorithm
+skill_version: 0.3.0
+domains:
+- id: p
+  title: 双语言编程基础
+  excludes:
+  - 语言高级元编程
+  - 框架开发
+  - 完整语言教程
+- id: m
+  title: 必要数学与逻辑
+  excludes:
+  - 完整离散数学课程
+  - 高等概率论
+  - 与算法无关的微积分深化
+- id: a
+  title: 算法分析与正确性
+  excludes:
+  - 高级摊还分析
+  - 随机算法严格分析
+  - 复杂性理论深化
+- id: l
+  title: 线性结构
+  excludes:
+  - 并发容器
+  - 持久化数据结构
+  - 语言框架专属容器
+- id: h
+  title: 哈希与集合
+  excludes:
+  - 密码学哈希
+  - 分布式哈希
+  - 数据库索引工程
+- id: s
+  title: 搜索与排序
+  excludes:
+  - 外存排序
+  - 并行排序
+  - 高级字符串搜索
+- id: r
+  title: 递归与分治
+  excludes:
+  - 主定理全部边界证明
+  - 高级递归消除编译技术
+- id: t
+  title: 树与堆
+  excludes:
+  - 高级平衡树实现
+  - B 树家族
+  - 持久化树
+- id: g
+  title: 图基础
+  excludes:
+  - 网络流
+  - 匹配
+  - 高级图论与竞赛专题
+- id: y
+  title: 贪心
+  excludes:
+  - 拟阵理论
+  - 近似算法专题
+  - 竞赛技巧合集
+- id: d
+  title: 动态规划
+  excludes:
+  - 状态压缩专题
+  - 树形与数位 DP
+  - 高级优化技巧
+- id: q
+  title: 综合建模与质量
+  excludes:
+  - 大型工程框架
+  - 生产运维体系
+  - 自动求职或商业交付
+capabilities:
+- id: p-control-flow
+  domain_id: p
+  title: 控制流与边界
+  prerequisite_capability_ids: []
+  diagnostic_signal: 跟踪含空输入和边界分支的小程序
+  remediation_unit_id: p-programming-core
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: p-functions-io
+  domain_id: p
+  title: 函数、输入输出与契约
+  prerequisite_capability_ids:
+  - p-control-flow
+  diagnostic_signal: 补全函数接口并说明输入输出约定
+  remediation_unit_id: p-programming-core
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: p-cpp-stl
+  domain_id: p
+  title: C++ 基础与 STL
+  prerequisite_capability_ids:
+  - p-functions-io
+  diagnostic_signal: 选择并使用 vector、string、迭代器和常用算法
+  remediation_unit_id: p-cpp-stl
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: p-python-runtime
+  domain_id: p
+  title: Python 容器与运行特征
+  prerequisite_capability_ids:
+  - p-functions-io
+  diagnostic_signal: 使用 list、dict、set 并解释与 C++ 的关键差异
+  remediation_unit_id: p-python-contrast
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: m-logic-sets
+  domain_id: m
+  title: 命题逻辑与集合
+  prerequisite_capability_ids: []
+  diagnostic_signal: 判断命题、量词、集合运算和反例
+  remediation_unit_id: m-logic-sets
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: m-functions-relations
+  domain_id: m
+  title: 函数与关系
+  prerequisite_capability_ids:
+  - m-logic-sets
+  diagnostic_signal: 识别函数、关系及其算法建模含义
+  remediation_unit_id: m-logic-sets
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: m-induction-sums-logs
+  domain_id: m
+  title: 归纳、求和与对数
+  prerequisite_capability_ids:
+  - m-logic-sets
+  diagnostic_signal: 完成短归纳步骤并比较求和与对数增长
+  remediation_unit_id: m-induction-growth
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: m-counting-probability
+  domain_id: m
+  title: 基础组合与概率
+  prerequisite_capability_ids:
+  - m-functions-relations
+  diagnostic_signal: 完成计数和有限样本空间概率题
+  remediation_unit_id: m-counting-probability
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: a-asymptotic
+  domain_id: a
+  title: 渐近记号与增长率
+  prerequisite_capability_ids:
+  - m-induction-sums-logs
+  - p-control-flow
+  diagnostic_signal: 排序增长率并说明渐近界的含义
+  remediation_unit_id: a-asymptotic-cases
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: a-case-analysis
+  domain_id: a
+  title: 最坏、平均与摊还语境
+  prerequisite_capability_ids:
+  - a-asymptotic
+  diagnostic_signal: 在明确假设下区分最坏与平均情形
+  remediation_unit_id: a-asymptotic-cases
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: a-recurrence
+  domain_id: a
+  title: 递推式与递归代价
+  prerequisite_capability_ids:
+  - a-asymptotic
+  - m-induction-sums-logs
+  diagnostic_signal: 写出简单递归程序的递推式并估计增长
+  remediation_unit_id: a-recurrence
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: a-correctness
+  domain_id: a
+  title: 不变量、归纳与反例
+  prerequisite_capability_ids:
+  - m-logic-sets
+  - m-induction-sums-logs
+  - p-functions-io
+  diagnostic_signal: 识别循环不变量或给出错误策略反例
+  remediation_unit_id: a-correctness
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: l-array-sequence
+  domain_id: l
+  title: 数组与顺序表
+  prerequisite_capability_ids:
+  - p-cpp-stl
+  - p-python-runtime
+  - a-asymptotic
+  diagnostic_signal: 比较随机访问、追加、插入和空间成本
+  remediation_unit_id: l-arrays
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: l-linked-list
+  domain_id: l
+  title: 链式结构
+  prerequisite_capability_ids:
+  - l-array-sequence
+  diagnostic_signal: 跟踪指针或引用变化并说明访问代价
+  remediation_unit_id: l-linked
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: l-stack-queue-deque
+  domain_id: l
+  title: 栈、队列与双端队列
+  prerequisite_capability_ids:
+  - l-array-sequence
+  diagnostic_signal: 根据操作约束选择 LIFO、FIFO 或双端结构
+  remediation_unit_id: l-linear-adt
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: l-selection
+  domain_id: l
+  title: 线性结构选择与迁移
+  prerequisite_capability_ids:
+  - l-linked-list
+  - l-stack-queue-deque
+  - a-case-analysis
+  diagnostic_signal: 在需求变化后重新选择结构并解释假设
+  remediation_unit_id: l-linear-adt
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: h-map-set
+  domain_id: h
+  title: 映射与集合语义
+  prerequisite_capability_ids:
+  - l-array-sequence
+  diagnostic_signal: 区分键值映射、去重集合和序列语义
+  remediation_unit_id: h-hash-semantics
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: h-collision-load
+  domain_id: h
+  title: 冲突、负载与复杂度条件
+  prerequisite_capability_ids:
+  - h-map-set
+  - a-case-analysis
+  diagnostic_signal: 解释冲突与负载对预期复杂度的影响
+  remediation_unit_id: h-hash-semantics
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: h-application
+  domain_id: h
+  title: 哈希应用与边界
+  prerequisite_capability_ids:
+  - h-collision-load
+  diagnostic_signal: 用频次、成员检查或索引问题选择哈希方案
+  remediation_unit_id: h-hash-applications
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: s-linear-binary-search
+  domain_id: s
+  title: 线性与二分搜索
+  prerequisite_capability_ids:
+  - l-array-sequence
+  - a-correctness
+  diagnostic_signal: 维护二分边界并识别适用前提
+  remediation_unit_id: s-search
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: s-elementary-sort
+  domain_id: s
+  title: 基础排序与不变量
+  prerequisite_capability_ids:
+  - l-array-sequence
+  - a-asymptotic
+  diagnostic_signal: 跟踪插入或选择排序并给出复杂度
+  remediation_unit_id: s-elementary-sort
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: s-comparison-stability
+  domain_id: s
+  title: 比较排序、稳定性与下界直觉
+  prerequisite_capability_ids:
+  - s-elementary-sort
+  - r-recurrence-divide
+  diagnostic_signal: 识别稳定性需求并比较 O(n log n) 排序
+  remediation_unit_id: s-comparison-sort
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: s-selection
+  domain_id: s
+  title: 搜索排序方案选择
+  prerequisite_capability_ids:
+  - s-linear-binary-search
+  - s-comparison-stability
+  diagnostic_signal: 根据有序性、稳定性、内存和规模选择算法
+  remediation_unit_id: s-comparison-sort
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: r-recursion-state
+  domain_id: r
+  title: 递归状态、基例与进展
+  prerequisite_capability_ids:
+  - p-functions-io
+  - m-induction-sums-logs
+  diagnostic_signal: 识别基例、状态缩减和不终止风险
+  remediation_unit_id: r-recursion
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: r-recurrence-divide
+  domain_id: r
+  title: 分治设计与递推分析
+  prerequisite_capability_ids:
+  - r-recursion-state
+  - a-recurrence
+  diagnostic_signal: 拆分子问题、合并结果并写出递推式
+  remediation_unit_id: r-divide-conquer
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: r-stack-conversion
+  domain_id: r
+  title: 递归栈风险与迭代转换
+  prerequisite_capability_ids:
+  - r-recursion-state
+  - l-stack-queue-deque
+  diagnostic_signal: 判断栈深风险并用显式栈改写代表任务
+  remediation_unit_id: r-divide-conquer
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: t-tree-representation
+  domain_id: t
+  title: 树表示与术语
+  prerequisite_capability_ids:
+  - r-recursion-state
+  - l-linked-list
+  diagnostic_signal: 从表示中识别根、父子、深度和子树
+  remediation_unit_id: t-tree-basics
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: t-traversal
+  domain_id: t
+  title: 树遍历
+  prerequisite_capability_ids:
+  - t-tree-representation
+  - l-stack-queue-deque
+  diagnostic_signal: 跟踪递归与迭代遍历顺序
+  remediation_unit_id: t-tree-basics
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: t-bst-invariant
+  domain_id: t
+  title: 二叉搜索树不变量
+  prerequisite_capability_ids:
+  - t-traversal
+  - a-correctness
+  diagnostic_signal: 验证查找路径并识别破坏不变量的操作
+  remediation_unit_id: t-bst
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: t-heap-priority
+  domain_id: t
+  title: 堆与优先队列
+  prerequisite_capability_ids:
+  - t-tree-representation
+  - l-array-sequence
+  diagnostic_signal: 跟踪上浮下沉并选择优先队列
+  remediation_unit_id: t-heap
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: g-model-representation
+  domain_id: g
+  title: 图建模与表示
+  prerequisite_capability_ids:
+  - l-selection
+  - h-application
+  diagnostic_signal: 把实体关系映射为顶点、边及邻接结构
+  remediation_unit_id: g-model-traverse
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: g-bfs-dfs
+  domain_id: g
+  title: BFS 与 DFS
+  prerequisite_capability_ids:
+  - g-model-representation
+  - l-stack-queue-deque
+  diagnostic_signal: 跟踪访问状态并选择广度或深度策略
+  remediation_unit_id: g-model-traverse
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: g-topological-cycle
+  domain_id: g
+  title: 拓扑序与环检测
+  prerequisite_capability_ids:
+  - g-bfs-dfs
+  - a-correctness
+  diagnostic_signal: 识别 DAG 前提并判断环对拓扑序的影响
+  remediation_unit_id: g-topological
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: g-shortest-path
+  domain_id: g
+  title: 最短路适用条件
+  prerequisite_capability_ids:
+  - g-bfs-dfs
+  - t-heap-priority
+  - a-correctness
+  diagnostic_signal: 根据权重条件选择 BFS 或 Dijkstra 并拒绝不适用情形
+  remediation_unit_id: g-shortest-path
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: g-mst
+  domain_id: g
+  title: 最小生成树适用条件
+  prerequisite_capability_ids:
+  - g-model-representation
+  - t-heap-priority
+  - a-correctness
+  diagnostic_signal: 区分连通代价与点对点最短路问题
+  remediation_unit_id: g-mst
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: y-greedy-choice
+  domain_id: y
+  title: 贪心选择与子问题
+  prerequisite_capability_ids:
+  - a-correctness
+  - s-comparison-stability
+  diagnostic_signal: 识别局部选择与剩余子问题
+  remediation_unit_id: y-greedy-proof
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: y-exchange-proof
+  domain_id: y
+  title: 交换论证
+  prerequisite_capability_ids:
+  - y-greedy-choice
+  - m-induction-sums-logs
+  diagnostic_signal: 补全代表性交换论证的关键步骤
+  remediation_unit_id: y-greedy-proof
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: y-counterexample
+  domain_id: y
+  title: 错误贪心反例
+  prerequisite_capability_ids:
+  - y-greedy-choice
+  - a-correctness
+  diagnostic_signal: 为不成立的局部策略构造最小反例
+  remediation_unit_id: y-greedy-counterexample
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: d-state-transition
+  domain_id: d
+  title: 状态、转移与边界
+  prerequisite_capability_ids:
+  - r-recurrence-divide
+  - a-correctness
+  diagnostic_signal: 从问题描述定义状态与边界
+  remediation_unit_id: d-state
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: d-order-memoization
+  domain_id: d
+  title: 计算顺序、记忆化与表格
+  prerequisite_capability_ids:
+  - d-state-transition
+  diagnostic_signal: 根据依赖关系选择自顶向下或自底向上
+  remediation_unit_id: d-computation
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: d-optimization
+  domain_id: d
+  title: 时间与空间优化
+  prerequisite_capability_ids:
+  - d-order-memoization
+  - a-case-analysis
+  diagnostic_signal: 识别可丢弃历史状态并说明复杂度变化
+  remediation_unit_id: d-optimization
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: d-transfer
+  domain_id: d
+  title: 动态规划迁移与反例
+  prerequisite_capability_ids:
+  - d-optimization
+  - y-counterexample
+  diagnostic_signal: 把陌生问题映射为状态依赖并拒绝错误贪心
+  remediation_unit_id: d-optimization
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: q-modeling
+  domain_id: q
+  title: 问题建模与约束
+  prerequisite_capability_ids:
+  - a-correctness
+  - p-functions-io
+  diagnostic_signal: 把自然语言需求转成输入、输出、约束和不变量
+  remediation_unit_id: q-model-test
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: q-testing-debugging
+  domain_id: q
+  title: 测试、调试与边界
+  prerequisite_capability_ids:
+  - q-modeling
+  - p-cpp-stl
+  - p-python-runtime
+  diagnostic_signal: 设计正常、边界、退化和反例测试并定位错误
+  remediation_unit_id: q-model-test
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: q-performance-quality
+  domain_id: q
+  title: 性能测量与代码质量
+  prerequisite_capability_ids:
+  - q-testing-debugging
+  - a-case-analysis
+  - s-selection
+  diagnostic_signal: 区分复杂度分析与测量并识别可读性问题
+  remediation_unit_id: q-performance
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握
+- id: q-integrated-artifact
+  domain_id: q
+  title: 综合作品与双语言迁移
+  prerequisite_capability_ids:
+  - q-performance-quality
+  - g-shortest-path
+  - d-transfer
+  diagnostic_signal: 审查小型综合方案的建模、测试、实现差异和限制
+  remediation_unit_id: q-integrated
+  excludes:
+  - 不外推到所属领域的排除项或整门算法掌握

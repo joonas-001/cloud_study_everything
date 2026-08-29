@@ -1,0 +1,352 @@
+schema_version: 1.0.0
+id: algorithm-common-core-planning-preview
+skill_id: algorithm
+skill_version: 0.3.0
+title: 算法共同主干确定性规划预览
+rationale: 每日约两小时，按诊断缺口和前置 DAG 拆分；实际计划必须由运行时重新校验。
+limitations:
+- 这是关闭入口的静态预览，不创建真实学习记录。
+- 完成单元不等于掌握；分支门禁只显示资格，不自动解锁课程。
+units:
+- id: p-programming-core
+  title: 编程控制流、函数与边界
+  objective: 完成 编程控制流、函数与边界 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 120
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id001
+  - python-tutorial-314
+  - wg21-public-materials
+  - cpp-reference-containers
+- id: p-cpp-stl
+  title: C++ 与 STL 基础
+  objective: 完成 C++ 与 STL 基础 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id001
+- id: p-python-contrast
+  title: Python 容器与双语言对照
+  objective: 完成 Python 容器与双语言对照 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id001
+- id: m-logic-sets
+  title: 逻辑、集合、函数与关系
+  objective: 完成 逻辑、集合、函数与关系 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id002
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+- id: m-induction-growth
+  title: 归纳、求和、对数与增长
+  objective: 完成 归纳、求和、对数与增长 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id002
+- id: m-counting-probability
+  title: 基础组合与概率
+  objective: 完成 基础组合与概率 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 165
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id002
+- id: a-asymptotic-cases
+  title: 渐近分析与情形假设
+  objective: 完成 渐近分析与情形假设 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id003
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+- id: a-recurrence
+  title: 递推式分析
+  objective: 完成 递推式分析 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id003
+- id: a-correctness
+  title: 不变量、归纳证明与反例
+  objective: 完成 不变量、归纳证明与反例 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id003
+- id: l-arrays
+  title: 数组与顺序表
+  objective: 完成 数组与顺序表 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id004
+  - open-data-structures-01g
+  - cpp-reference-containers
+  - python-tutorial-314
+- id: l-linked
+  title: 链式结构
+  objective: 完成 链式结构 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id004
+- id: l-linear-adt
+  title: 栈、队列、双端队列与选择
+  objective: 完成 栈、队列、双端队列与选择 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id004
+- id: h-hash-semantics
+  title: 映射、集合、冲突与负载
+  objective: 完成 映射、集合、冲突与负载 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id005
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  - cpp-reference-containers
+- id: h-hash-applications
+  title: 哈希应用与边界
+  objective: 完成 哈希应用与边界 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id005
+- id: s-search
+  title: 线性与二分搜索
+  objective: 完成 线性与二分搜索 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id006
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+- id: s-elementary-sort
+  title: 基础排序与不变量
+  objective: 完成 基础排序与不变量 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id006
+- id: r-recursion
+  title: 递归状态、基例与风险
+  objective: 完成 递归状态、基例与风险 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id007
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+- id: r-divide-conquer
+  title: 分治、递推与迭代转换
+  objective: 完成 分治、递推与迭代转换 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id007
+- id: s-comparison-sort
+  title: 比较排序、稳定性与选择
+  objective: 完成 比较排序、稳定性与选择 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 150
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id006
+- id: t-tree-basics
+  title: 树表示与遍历
+  objective: 完成 树表示与遍历 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 130
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id008
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  - cpp-reference-containers
+- id: t-bst
+  title: 二叉搜索树不变量
+  objective: 完成 二叉搜索树不变量 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 130
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id008
+- id: t-heap
+  title: 堆与优先队列
+  objective: 完成 堆与优先队列 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 130
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id008
+- id: g-model-traverse
+  title: 图建模、表示与遍历
+  objective: 完成 图建模、表示与遍历 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id009
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+- id: g-topological
+  title: 拓扑排序与环检测
+  objective: 完成 拓扑排序与环检测 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id009
+- id: g-shortest-path
+  title: 最短路与适用条件
+  objective: 完成 最短路与适用条件 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id009
+- id: g-mst
+  title: 最小生成树与适用条件
+  objective: 完成 最小生成树与适用条件 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id009
+- id: y-greedy-proof
+  title: 贪心选择与交换论证
+  objective: 完成 贪心选择与交换论证 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id010
+  - erickson-algorithms
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+- id: y-greedy-counterexample
+  title: 贪心反例与适用边界
+  objective: 完成 贪心反例与适用边界 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 135
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id010
+- id: d-state
+  title: 动态规划状态、转移与边界
+  objective: 完成 动态规划状态、转移与边界 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 140
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id011
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - mit-mathematics-for-cs
+- id: d-computation
+  title: 记忆化、表格与计算顺序
+  objective: 完成 记忆化、表格与计算顺序 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 140
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id011
+- id: d-optimization
+  title: 动态规划优化与迁移
+  objective: 完成 动态规划优化与迁移 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 140
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id011
+- id: q-model-test
+  title: 建模、测试与调试
+  objective: 完成 建模、测试与调试 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 140
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: &id012
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  - python-tutorial-314
+  - wg21-public-materials
+- id: q-performance
+  title: 性能测量与代码质量
+  objective: 完成 性能测量与代码质量 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 140
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id012
+- id: q-integrated
+  title: 综合作品与双语言迁移
+  objective: 完成 综合作品与双语言迁移 的学习、提取、检查、迁移与复习活动。
+  reason: 由 8A 固定能力图和前置关系决定。
+  estimated_minutes: 140
+  completion_criteria:
+  - 完成所有必需活动并保留原始证据等级
+  - 阻断复核、来源待办和保持待办不覆盖原证据
+  source_ids: *id012

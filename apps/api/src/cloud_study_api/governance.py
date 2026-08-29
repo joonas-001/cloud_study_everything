@@ -453,6 +453,347 @@ def _validate_learning_content(
         )
 
 
+def _validate_learning_core_contracts(
+    documents: dict[str, dict[str, Any]],
+    schema_root: Path,
+    labels: dict[str, str],
+    package_id: str,
+    package_version: str,
+    source_catalog: dict[str, Any] | None,
+    diagnostic: dict[str, Any] | None,
+) -> None:
+    contract_schemas = {
+        "capability_graph": "capability-graph.schema.json",
+        "diagnostic_policy": "diagnostic-policy.schema.json",
+        "content_coverage": "content-coverage.schema.json",
+        "branch_gate_policy": "branch-gate-policy.schema.json",
+    }
+    present = contract_schemas.keys() & documents.keys()
+    if not present:
+        return
+    if set(present) != set(contract_schemas):
+        missing = sorted(set(contract_schemas) - set(present))
+        raise RepositoryValidationError(
+            f"{package_id}@{package_version}: learning-core contracts are incomplete; "
+            f"missing {missing}"
+        )
+    if source_catalog is None or diagnostic is None:
+        raise RepositoryValidationError(
+            f"{package_id}@{package_version}: learning-core contracts require "
+            "sources and diagnostics"
+        )
+    for kind, schema_name in contract_schemas.items():
+        document = documents[kind]
+        _validate_with_schema(document, schema_root / schema_name, labels[kind])
+        if document["skill_id"] != package_id or document["skill_version"] != package_version:
+            raise RepositoryValidationError(
+                f"{labels[kind]}: skill_id and skill_version must match the package manifest"
+            )
+
+    graph = documents["capability_graph"]
+    domains = graph["domains"]
+    capabilities = graph["capabilities"]
+    domain_ids = [domain["id"] for domain in domains]
+    capability_ids = [capability["id"] for capability in capabilities]
+    if len(domain_ids) != len(set(domain_ids)):
+        raise RepositoryValidationError(f"{labels['capability_graph']}: duplicate domain id")
+    if len(capability_ids) != len(set(capability_ids)):
+        raise RepositoryValidationError(f"{labels['capability_graph']}: duplicate capability id")
+    known_domain_ids = set(domain_ids)
+    known_capability_ids = set(capability_ids)
+    capability_graph: dict[str, list[str]] = {}
+    for capability in capabilities:
+        if capability["domain_id"] not in known_domain_ids:
+            raise RepositoryValidationError(
+                f"{labels['capability_graph']}: capability {capability['id']} has unknown domain"
+            )
+        unknown = set(capability["prerequisite_capability_ids"]) - known_capability_ids
+        if unknown:
+            raise RepositoryValidationError(
+                f"{labels['capability_graph']}: capability {capability['id']} has unknown "
+                f"prerequisites {sorted(unknown)}"
+            )
+        capability_graph[capability["id"]] = capability["prerequisite_capability_ids"]
+
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit_capability(capability_id: str) -> None:
+        if capability_id in visiting:
+            raise RepositoryValidationError(
+                f"{labels['capability_graph']}: cyclic capability dependency at {capability_id}"
+            )
+        if capability_id in visited:
+            return
+        visiting.add(capability_id)
+        for prerequisite in capability_graph[capability_id]:
+            visit_capability(prerequisite)
+        visiting.remove(capability_id)
+        visited.add(capability_id)
+
+    for capability_id in capability_graph:
+        visit_capability(capability_id)
+
+    learning = documents["learning_definition"]
+    assessment = documents["assessment_definition"]
+    runner = documents.get("runner_task_definition", {"tasks": []})
+    if learning["schema_version"] != "2.0.0":
+        raise RepositoryValidationError(
+            f"{labels['learning_definition']}: learning-core package requires schema 2.0.0"
+        )
+    if assessment["schema_version"] != "2.0.0":
+        raise RepositoryValidationError(
+            f"{labels['assessment_definition']}: learning-core package requires schema 2.0.0"
+        )
+    if runner["tasks"] and runner["schema_version"] != "2.0.0":
+        raise RepositoryValidationError(
+            f"{labels['runner_task_definition']}: learning-core package requires schema 2.0.0"
+        )
+    if diagnostic["schema_version"] != "2.0.0":
+        raise RepositoryValidationError("learning-core package requires diagnostic schema 2.0.0")
+
+    unit_ids = {unit["id"] for unit in learning["units"]}
+    covered_capability_ids: set[str] = set()
+    total_unit_minutes = 0
+    for unit in learning["units"]:
+        if not unit.get("capability_ids") or not unit.get("cognitive_load"):
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: unit {unit['id']} lacks capability metadata"
+            )
+        unknown = set(unit["capability_ids"]) - known_capability_ids
+        if unknown:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: unit {unit['id']} references unknown "
+                f"capabilities {sorted(unknown)}"
+            )
+        covered_capability_ids.update(unit["capability_ids"])
+        total_unit_minutes += unit["estimated_minutes"]
+    if covered_capability_ids != known_capability_ids:
+        missing = sorted(known_capability_ids - covered_capability_ids)
+        raise RepositoryValidationError(
+            f"{labels['learning_definition']}: capabilities without units {missing}"
+        )
+    for capability in capabilities:
+        if capability["remediation_unit_id"] not in unit_ids:
+            raise RepositoryValidationError(
+                f"{labels['capability_graph']}: capability {capability['id']} has unknown "
+                "remediation unit"
+            )
+
+    sources_by_id = {source["id"]: source for source in source_catalog["sources"]}
+    known_source_ids = set(sources_by_id)
+    diagnostic_capability_ids: set[str] = set()
+    diagnostic_prompts: list[str] = []
+    for question in diagnostic["questions"]:
+        required_metadata = {
+            "question_version",
+            "capability_ids",
+            "prerequisite_capability_ids",
+            "difficulty",
+            "signal_kind",
+            "selection_reason_code",
+            "allows_early_stop",
+            "estimated_minutes",
+            "source_ids",
+            "ambiguity_review_status",
+        }
+        missing_metadata = sorted(required_metadata - question.keys())
+        if missing_metadata:
+            raise RepositoryValidationError(
+                f"diagnostic question {question['id']} lacks {missing_metadata}"
+            )
+        if set(question["capability_ids"]) - known_capability_ids:
+            raise RepositoryValidationError(
+                f"diagnostic question {question['id']} references unknown capabilities"
+            )
+        diagnostic_capability_ids.update(question["capability_ids"])
+        diagnostic_prompts.append(question["prompt"])
+        if set(question["prerequisite_capability_ids"]) - known_capability_ids:
+            raise RepositoryValidationError(
+                f"diagnostic question {question['id']} references unknown prerequisites"
+            )
+        if set(question["source_ids"]) - known_source_ids:
+            raise RepositoryValidationError(
+                f"diagnostic question {question['id']} references unknown sources"
+            )
+        values = {option["value"] for option in question.get("options", [])}
+        answers = set(question.get("deterministic_answer_values", []))
+        critical = set(question.get("critical_misconception_values", []))
+        if question["signal_kind"] == "deterministic_choice" and not answers:
+            raise RepositoryValidationError(
+                f"diagnostic question {question['id']} lacks deterministic answers"
+            )
+        if (answers | critical) - values or answers & critical:
+            raise RepositoryValidationError(
+                f"diagnostic question {question['id']} has inconsistent answer metadata"
+            )
+    if diagnostic_capability_ids != known_capability_ids:
+        missing = sorted(known_capability_ids - diagnostic_capability_ids)
+        raise RepositoryValidationError(f"diagnostic bank lacks capabilities {missing}")
+    if len(diagnostic_prompts) != len(set(diagnostic_prompts)):
+        raise RepositoryValidationError("diagnostic bank contains duplicate prompts")
+
+    policy = documents["diagnostic_policy"]
+    question_count = len(diagnostic["questions"])
+    if not policy["item_bank_min"] <= question_count <= policy["item_bank_max"]:
+        raise RepositoryValidationError(
+            f"{labels['diagnostic_policy']}: question bank size {question_count} is outside policy"
+        )
+    if diagnostic.get("policy_id") != policy["id"]:
+        raise RepositoryValidationError("diagnostic definition does not lock its policy")
+
+    activities = learning["activities"]
+    activities_by_id = {activity["id"]: activity for activity in activities}
+    roles_by_domain: dict[str, set[str]] = {domain_id: set() for domain_id in domain_ids}
+    dimensions_by_domain: dict[str, set[str]] = {domain_id: set() for domain_id in domain_ids}
+    domain_by_capability = {
+        capability["id"]: capability["domain_id"] for capability in capabilities
+    }
+    for activity in activities:
+        if not activity.get("capability_ids") or not activity.get("activity_roles"):
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: activity {activity['id']} "
+                "lacks coverage metadata"
+            )
+        if "language" not in activity or "evidence_ceiling" not in activity:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: activity {activity['id']} "
+                "lacks language/evidence metadata"
+            )
+        unknown = set(activity["capability_ids"]) - known_capability_ids
+        if unknown:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: activity {activity['id']} "
+                "has unknown capabilities"
+            )
+        for capability_id in activity["capability_ids"]:
+            roles_by_domain[domain_by_capability[capability_id]].update(activity["activity_roles"])
+    for unit_id in unit_ids:
+        required_types = {
+            activity["type"]
+            for activity in activities
+            if activity["unit_id"] == unit_id and activity["required"]
+        }
+        if not {"study", "structured_check"} <= required_types:
+            raise RepositoryValidationError(
+                f"{labels['learning_definition']}: unit {unit_id} lacks required study/check path"
+            )
+
+    for criterion in assessment["criteria"]:
+        activity = activities_by_id[criterion["activity_id"]]
+        if not criterion.get("capability_ids") or "language" not in criterion:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: criterion {criterion['id']} "
+                "lacks scope metadata"
+            )
+        if not set(criterion["capability_ids"]) <= set(activity["capability_ids"]):
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: criterion {criterion['id']} "
+                "exceeds activity scope"
+            )
+        if criterion["language"] != activity["language"]:
+            raise RepositoryValidationError(
+                f"{labels['assessment_definition']}: criterion {criterion['id']} language differs"
+            )
+        for capability_id in criterion["capability_ids"]:
+            dimensions_by_domain[domain_by_capability[capability_id]].add(criterion["dimension"])
+
+    runner_capability_ids: set[str] = set()
+    for task in runner["tasks"]:
+        if not task.get("capability_ids"):
+            raise RepositoryValidationError(
+                f"{labels['runner_task_definition']}: task {task['id']} lacks capability scope"
+            )
+        activity = activities_by_id[task["activity_id"]]
+        if not set(task["capability_ids"]) <= set(activity["capability_ids"]):
+            raise RepositoryValidationError(
+                f"{labels['runner_task_definition']}: task {task['id']} exceeds activity scope"
+            )
+        runner_capability_ids.update(task["capability_ids"])
+
+    coverage = documents["content_coverage"]
+    budgets = coverage["budgets"]
+    actual_counts = {
+        "domain_count": len(domains),
+        "capability_max": len(capabilities),
+        "unit_max": len(learning["units"]),
+        "total_unit_minutes_max": total_unit_minutes,
+        "diagnostic_item_max": question_count,
+        "runner_task_max": len(runner["tasks"]),
+        "rubric_max": len(documents["rubric_definition"]["criteria"]),
+    }
+    for budget_name, actual in actual_counts.items():
+        declared = budgets[budget_name]
+        valid = actual == declared if budget_name == "domain_count" else actual <= declared
+        if not valid:
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {budget_name} actual {actual}, budget {declared}"
+            )
+    coverage_domain_ids = [item["domain_id"] for item in coverage["domains"]]
+    if set(coverage_domain_ids) != known_domain_ids or len(coverage_domain_ids) != len(
+        known_domain_ids
+    ):
+        raise RepositoryValidationError(
+            f"{labels['content_coverage']}: domain coverage differs from capability graph"
+        )
+    for item in coverage["domains"]:
+        domain_id = item["domain_id"]
+        if set(item["source_ids"]) - known_source_ids:
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {domain_id} references unknown sources"
+            )
+        if len(item["source_ids"]) < 2 or not any(
+            sources_by_id[source_id]["authority_tier"] <= 2 for source_id in item["source_ids"]
+        ):
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {domain_id} lacks source diversity or authority"
+            )
+        if not set(item["required_activity_roles"]) <= roles_by_domain[domain_id]:
+            missing = sorted(set(item["required_activity_roles"]) - roles_by_domain[domain_id])
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {domain_id} lacks activity roles {missing}"
+            )
+        if not set(item["evidence_dimensions"]) <= dimensions_by_domain[domain_id]:
+            missing = sorted(set(item["evidence_dimensions"]) - dimensions_by_domain[domain_id])
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {domain_id} lacks evidence dimensions {missing}"
+            )
+        if not set(item["runner_capability_ids"]) <= runner_capability_ids:
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {domain_id} lacks declared Runner coverage"
+            )
+        if any(
+            domain_by_capability[capability_id] != domain_id
+            for capability_id in item["runner_capability_ids"]
+        ):
+            raise RepositoryValidationError(
+                f"{labels['content_coverage']}: {domain_id} declares cross-domain Runner coverage"
+            )
+
+    branch_policy = documents["branch_gate_policy"]
+    gate_ids = [gate["id"] for gate in branch_policy["gates"]]
+    if set(gate_ids) != {"engineering", "interview", "competition", "theory"} or len(gate_ids) != 4:
+        raise RepositoryValidationError(
+            f"{labels['branch_gate_policy']}: four exact branch gates are required"
+        )
+    for gate in branch_policy["gates"]:
+        if set(gate["required_capability_ids"]) - known_capability_ids:
+            raise RepositoryValidationError(
+                f"{labels['branch_gate_policy']}: gate {gate['id']} has unknown capabilities"
+            )
+        if not any("不表示" in limitation for limitation in gate["limitations"]):
+            raise RepositoryValidationError(
+                f"{labels['branch_gate_policy']}: gate {gate['id']} lacks claim limitation"
+            )
+
+
+def _validate_learning_core_intake(
+    documents: dict[str, dict[str, Any]], intake: str, label: str
+) -> None:
+    if "capability_graph" in documents and intake != "closed":
+        raise RepositoryValidationError(f"{label}: a learning-core draft must keep intake closed")
+
+
 def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
     """Load and validate the built-in registry and every registered manifest."""
     skill_root = (repository_root / "skill-packs").resolve()
@@ -512,6 +853,9 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
         diagnostic_definition: dict[str, Any] | None = None
         learning_documents: dict[str, dict[str, Any]] = {}
         learning_labels: dict[str, str] = {}
+        content_kinds = [content["kind"] for content in manifest["content_files"]]
+        if len(content_kinds) != len(set(content_kinds)):
+            raise RepositoryValidationError(f"{manifest_path}: content kinds must be unique")
         for content in manifest["content_files"]:
             content_path = (package_path / content["path"]).resolve()
             if not content_path.is_relative_to(package_path) or not content_path.is_file():
@@ -556,6 +900,10 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
                 "review_policy",
                 "mastery_scope",
                 "runner_task_definition",
+                "capability_graph",
+                "diagnostic_policy",
+                "content_coverage",
+                "branch_gate_policy",
             }:
                 learning_documents[content["kind"]] = _load_yaml(content_path)
                 learning_labels[content["kind"]] = str(content_path)
@@ -586,6 +934,16 @@ def load_skill_packages(repository_root: Path) -> list[SkillPackage]:
             diagnostic_definition,
             cast(list[dict[str, str]], manifest.get("runtime_profiles", [])),
         )
+        _validate_learning_core_contracts(
+            learning_documents,
+            repository_root / "contracts" / "skill-pack",
+            learning_labels,
+            entry["id"],
+            entry["version"],
+            source_catalogs[0] if len(source_catalogs) == 1 else None,
+            diagnostic_definition,
+        )
+        _validate_learning_core_intake(learning_documents, entry["intake"], str(manifest_path))
 
         packages.append(
             SkillPackage(

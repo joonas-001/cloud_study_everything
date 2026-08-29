@@ -1,0 +1,23 @@
+schema_version: 1.0.0
+id: algorithm-deterministic-adaptive-diagnostic
+version: 1.0.0
+skill_id: algorithm
+skill_version: 0.3.0
+item_bank_min: 64
+item_bank_max: 84
+session_question_max: 36
+session_minutes_max: 50
+statuses:
+- ready
+- remediation_required
+- inconclusive
+ready_rule: 能力至少有两个相互独立的确定性正向信号，且所有前置能力不为 remediation_required
+remediation_rule: 出现受管关键错误信号，或至少两个独立负向信号
+inconclusive_rule: 跳过、不确定、只有自述或自由文本结构信号、达到上限但信号不足
+selection_order:
+- 高下游阻断度
+- 能区分补救与继续
+- 最少重复
+- 稳定题目 ID
+fallback: managed_fixed_sequence
+evidence_ceiling: diagnostic_signal_only

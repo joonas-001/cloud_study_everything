@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/capability-graph.schema.json",
+  "title": "Skill package capability graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "skill_id", "skill_version", "domains", "capabilities"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"$ref": "#/$defs/stableId"},
+    "skill_id": {"$ref": "#/$defs/stableId"},
+    "skill_version": {"$ref": "#/$defs/version"},
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "excludes"],
+        "properties": {
+          "id": {"$ref": "#/$defs/stableId"},
+          "title": {"$ref": "#/$defs/nonEmpty"},
+          "excludes": {"$ref": "#/$defs/nonEmptyList"}
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id", "domain_id", "title", "prerequisite_capability_ids", "diagnostic_signal",
+          "remediation_unit_id", "excludes"
+        ],
+        "properties": {
+          "id": {"$ref": "#/$defs/stableId"},
+          "domain_id": {"$ref": "#/$defs/stableId"},
+          "title": {"$ref": "#/$defs/nonEmpty"},
+          "prerequisite_capability_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"$ref": "#/$defs/stableId"}
+          },
+          "diagnostic_signal": {"$ref": "#/$defs/nonEmpty"},
+          "remediation_unit_id": {"$ref": "#/$defs/stableId"},
+          "excludes": {"$ref": "#/$defs/nonEmptyList"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "nonEmptyList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/nonEmpty"}}
+  }
+}

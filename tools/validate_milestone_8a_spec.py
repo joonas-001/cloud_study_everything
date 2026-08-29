@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "docs" / "architecture" / "milestone-8a-spec.json"
@@ -15,7 +16,7 @@ def require(condition: bool, message: str) -> None:
         raise SystemExit(f"milestone-8a-spec: ERROR: {message}")
 
 
-def unique_ids(items: list[dict[str, object]], label: str) -> set[str]:
+def unique_ids(items: list[dict[str, Any]], label: str) -> set[str]:
     ids = [str(item["id"]) for item in items]
     require(len(ids) == len(set(ids)), f"duplicate {label} id")
     require(all(STABLE_ID.fullmatch(item_id) for item_id in ids), f"invalid {label} id")
@@ -23,7 +24,7 @@ def unique_ids(items: list[dict[str, object]], label: str) -> set[str]:
 
 
 def require_acyclic(
-    items: list[dict[str, object]], id_key: str, prerequisite_key: str, label: str
+    items: list[dict[str, Any]], id_key: str, prerequisite_key: str, label: str
 ) -> None:
     graph = {
         str(item[id_key]): [str(value) for value in item[prerequisite_key]]
@@ -216,10 +217,12 @@ def main() -> None:
     for todo_id in spec["deferred_todo_ids"]:
         require(todo_id in todo_text, f"deferred task {todo_id} missing from TODO.md")
 
-    require(
-        not (ROOT / "skill-packs" / "algorithm" / "versions" / "0.3.0").exists(),
-        "8A must not create algorithm@0.3.0",
-    )
+    candidate_path = ROOT / "skill-packs" / "algorithm" / "versions" / "0.3.0"
+    if candidate_path.exists():
+        require(
+            "| M8B-001 | 已完成（当前授权范围） |" in todo_text,
+            "algorithm@0.3.0 requires a recorded 8B completion state",
+        )
     print(
         "milestone-8a-spec: OK "
         f"({len(domain_ids)} domains, {len(capability_ids)} capabilities, "

@@ -1,0 +1,129 @@
+schema_version: 1.0.0
+skill_id: algorithm
+skill_version: 0.3.0
+sources:
+- id: python-tutorial-314
+  title: The Python Tutorial
+  publisher: Python Software Foundation
+  url: https://docs.python.org/3.14/tutorial/
+  source_type: official_documentation
+  authority_tier: 1
+  authority_rationale: Python 3.14 官方教程，是语言与内置容器语义的一手说明。
+  published_version: '3.14'
+  retrieved_at: '2026-07-28'
+  check_mode: http_metadata
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: wg21-public-materials
+  title: WG21 public papers and working drafts
+  publisher: ISO/IEC JTC1/SC22/WG21
+  url: https://www.open-std.org/jtc1/sc22/wg21/
+  source_type: standard
+  authority_tier: 1
+  authority_rationale: C++ 标准委员会公开材料入口；具体规范结论仍需绑定精确文档。
+  retrieved_at: '2026-08-29'
+  check_mode: manual
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: cpp-reference-containers
+  title: Containers library
+  publisher: cppreference.com
+  url: https://en.cppreference.com/w/cpp/container.html
+  source_type: community_reference
+  authority_tier: 2
+  authority_rationale: 社区维护的 C++ 标准库参考；关键规范结论必须与 WG21 材料交叉核对。
+  retrieved_at: '2026-07-28'
+  check_mode: http_metadata
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: mit-ocw-6006-2020
+  title: Introduction to Algorithms
+  publisher: MIT OpenCourseWare
+  url: https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2020/
+  source_type: university_course
+  authority_tier: 2
+  authority_rationale: MIT 发布的算法与数据结构课程材料。
+  published_at: '2020-09-01'
+  retrieved_at: '2026-07-28'
+  check_mode: http_metadata
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: mit-mathematics-for-cs
+  title: Mathematics for Computer Science
+  publisher: MIT OpenCourseWare
+  url: https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/
+  source_type: university_course
+  authority_tier: 2
+  authority_rationale: MIT 发布的计算机科学数学课程材料。
+  published_at: '2015-02-01'
+  retrieved_at: '2026-08-29'
+  check_mode: manual
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: open-data-structures-01g
+  title: Open Data Structures
+  publisher: Pat Morin
+  url: https://opendatastructures.org/
+  source_type: textbook
+  authority_tier: 3
+  authority_rationale: 公开维护且提供版本与许可说明的数据结构教材。
+  published_version: 0.1G
+  retrieved_at: '2026-07-28'
+  check_mode: http_metadata
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: erickson-algorithms
+  title: Algorithms
+  publisher: Jeff Erickson
+  url: https://jeffe.cs.illinois.edu/teaching/algorithms/
+  source_type: textbook
+  authority_tier: 3
+  authority_rationale: 大学算法课程的开放教材，覆盖证明、图、贪心与动态规划。
+  retrieved_at: '2026-08-29'
+  check_mode: manual
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: nist-dads
+  title: Dictionary of Algorithms and Data Structures
+  publisher: National Institute of Standards and Technology
+  url: https://xlinux.nist.gov/dads/
+  source_type: government_guidance
+  authority_tier: 1
+  authority_rationale: NIST 维护的算法与数据结构术语词典，用于术语交叉核对。
+  retrieved_at: '2026-08-29'
+  check_mode: manual
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: ies-study-guide
+  title: Organizing Instruction and Study to Improve Student Learning
+  publisher: U.S. Institute of Education Sciences
+  url: https://ies.ed.gov/ncee/wwc/PracticeGuide/1
+  source_type: government_guidance
+  authority_tier: 1
+  authority_rationale: 教育科学研究院发布并标注证据等级的学习实践指南。
+  published_at: '2007-09-01'
+  retrieved_at: '2026-07-28'
+  check_mode: http_metadata
+  access_note: 8B 仅按仓库已有记录固定引用元数据；未进行远程实质内容复核，入口保持关闭，后续复核前不得据此声称内容已获来源背书。
+- id: spacing-research-set
+  title: Curated spacing-effect research set
+  publisher: 云奕学本地研究记录
+  url: https://local.cloud-study/docs/research/review-policy
+  source_type: peer_reviewed_research
+  authority_tier: 2
+  authority_rationale: 本地记录的同行评审间隔效应研究集合；仅支持透明固定策略及限制。
+  retrieved_at: '2026-07-28'
+  check_mode: manual
+  access_note: 集合仅索引既有研究记录，不代表产生了新研究结论。
+experts:
+- id: mit-algorithms-faculty
+  name: MIT 6.006 课程教师团队
+  expertise_evidence: 由 MIT OpenCourseWare 发布算法与数据结构课程材料。
+  source_ids:
+  - mit-ocw-6006-2020
+  planning_principles:
+  - 把数据结构、算法分析和问题求解放入同一序列。
+  - 用可观察练习连接抽象概念与工程取舍。
+- id: curriculum-source-panel
+  name: 8A 来源组合（非真人评审）
+  expertise_evidence: 由标准、官方文档、大学课程和开放教材组成的可追溯来源组合。
+  source_ids:
+  - wg21-public-materials
+  - python-tutorial-314
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  planning_principles:
+  - 关键结论至少映射两个来源，其中至少一个为权威等级一或二。
+  - 来源映射不代替内容正确性抽审或独立真人评审。
