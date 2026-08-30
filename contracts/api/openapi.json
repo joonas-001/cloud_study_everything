@@ -1067,6 +1067,148 @@
         "title": "DiagnosticAnswerResponse",
         "type": "object"
       },
+      "DiagnosticCapabilityStateResponse": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "inconclusive_signal_count": {
+            "title": "Inconclusive Signal Count",
+            "type": "integer"
+          },
+          "negative_signal_count": {
+            "title": "Negative Signal Count",
+            "type": "integer"
+          },
+          "positive_signal_count": {
+            "title": "Positive Signal Count",
+            "type": "integer"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "remediation_required",
+              "inconclusive"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capability_id",
+          "status",
+          "positive_signal_count",
+          "negative_signal_count",
+          "inconclusive_signal_count",
+          "reason_codes"
+        ],
+        "title": "DiagnosticCapabilityStateResponse",
+        "type": "object"
+      },
+      "DiagnosticDecisionResponse": {
+        "properties": {
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "estimated_minutes": {
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "selected_question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Question Id"
+          },
+          "selection_reason_code": {
+            "title": "Selection Reason Code",
+            "type": "string"
+          },
+          "state_sha256": {
+            "title": "State Sha256",
+            "type": "string"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Reason"
+          },
+          "strategy": {
+            "enum": [
+              "adaptive",
+              "managed_fixed_sequence",
+              "stopped"
+            ],
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "engine_version",
+          "state_sha256",
+          "strategy",
+          "selected_question_id",
+          "selection_reason_code",
+          "explanation",
+          "stop_reason",
+          "question_count",
+          "estimated_minutes"
+        ],
+        "title": "DiagnosticDecisionResponse",
+        "type": "object"
+      },
+      "DiagnosticLimitsResponse": {
+        "properties": {
+          "evidence_ceiling": {
+            "const": "diagnostic_signal_only",
+            "title": "Evidence Ceiling",
+            "type": "string"
+          },
+          "minutes_max": {
+            "title": "Minutes Max",
+            "type": "integer"
+          },
+          "question_max": {
+            "title": "Question Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "question_max",
+          "minutes_max",
+          "evidence_ceiling"
+        ],
+        "title": "DiagnosticLimitsResponse",
+        "type": "object"
+      },
       "DiagnosticQuestionResponse": {
         "properties": {
           "id": {
@@ -1099,6 +1241,28 @@
             ],
             "title": "Response Type",
             "type": "string"
+          },
+          "selection_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Explanation"
+          },
+          "selection_reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Reason Code"
           }
         },
         "required": [
@@ -1123,6 +1287,13 @@
           "can_generate_plan": {
             "title": "Can Generate Plan",
             "type": "boolean"
+          },
+          "capability_states": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticCapabilityStateResponse"
+            },
+            "title": "Capability States",
+            "type": "array"
           },
           "created_at": {
             "format": "date-time",
@@ -1149,6 +1320,24 @@
                 "type": "null"
               }
             ]
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DiagnosticDecisionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "diagnostic_mode": {
+            "enum": [
+              "fixed_sequence",
+              "deterministic_adaptive"
+            ],
+            "title": "Diagnostic Mode",
+            "type": "string"
           },
           "end_reason": {
             "anyOf": [
@@ -1193,6 +1382,16 @@
             "format": "date-time",
             "title": "Last Activity At",
             "type": "string"
+          },
+          "limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DiagnosticLimitsResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "model_id": {
             "title": "Model Id",
@@ -1240,6 +1439,10 @@
           "answers",
           "ready_to_end",
           "can_generate_plan",
+          "diagnostic_mode",
+          "decision",
+          "capability_states",
+          "limits",
           "created_at",
           "last_activity_at",
           "ended_at",

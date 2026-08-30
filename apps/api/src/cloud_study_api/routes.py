@@ -72,6 +72,35 @@ class DiagnosticQuestionResponse(BaseModel):
     reason: str
     response_type: Literal["free_text", "code_text", "single_choice"]
     options: list[dict[str, str]]
+    selection_reason_code: str | None = None
+    selection_explanation: str | None = None
+
+
+class DiagnosticDecisionResponse(BaseModel):
+    engine_version: str
+    state_sha256: str
+    strategy: Literal["adaptive", "managed_fixed_sequence", "stopped"]
+    selected_question_id: str | None
+    selection_reason_code: str
+    explanation: str
+    stop_reason: str | None
+    question_count: int
+    estimated_minutes: int
+
+
+class DiagnosticCapabilityStateResponse(BaseModel):
+    capability_id: str
+    status: Literal["ready", "remediation_required", "inconclusive"]
+    positive_signal_count: int
+    negative_signal_count: int
+    inconclusive_signal_count: int
+    reason_codes: list[str]
+
+
+class DiagnosticLimitsResponse(BaseModel):
+    question_max: int
+    minutes_max: int
+    evidence_ceiling: Literal["diagnostic_signal_only"]
 
 
 class DiagnosticAnswerResponse(BaseModel):
@@ -101,6 +130,10 @@ class DiagnosticSessionResponse(BaseModel):
     answers: list[DiagnosticAnswerResponse]
     ready_to_end: bool
     can_generate_plan: bool
+    diagnostic_mode: Literal["fixed_sequence", "deterministic_adaptive"]
+    decision: DiagnosticDecisionResponse | None
+    capability_states: list[DiagnosticCapabilityStateResponse]
+    limits: DiagnosticLimitsResponse | None
     created_at: datetime
     last_activity_at: datetime
     ended_at: datetime | None

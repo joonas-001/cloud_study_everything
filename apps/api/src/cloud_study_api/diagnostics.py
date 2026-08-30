@@ -12,6 +12,11 @@ from sqlalchemy import Select, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
+from cloud_study_api.adaptive_diagnostics import (
+    AdaptiveDecision,
+    AdaptiveDiagnosticStateError,
+    decide,
+)
 from cloud_study_api.content_locking import ensure_package_content_lock
 from cloud_study_api.governance import RepositoryValidationError, SkillPackage
 from cloud_study_api.models import (
@@ -22,7 +27,9 @@ from cloud_study_api.models import (
     utc_now,
 )
 from cloud_study_api.providers import (
+    AdaptiveDiagnosticPolicy,
     AnswerSnapshot,
+    DiagnosticCapability,
     DiagnosticDefinition,
     DiagnosticProvider,
     DiagnosticQuestion,
@@ -109,6 +116,7 @@ class DiagnosticService:
             settings = self._settings(database)
             self._validate_creation(
                 package=package,
+                definition=definition,
                 preview=preview,
                 provider=provider,
                 credential_reference=credential_reference,
@@ -134,7 +142,11 @@ class DiagnosticService:
                     {"session_id": existing.id},
                 )
 
-            _, current_question_id = provider.question_path(definition, {})
+            adaptive_decision = self._adaptive_decision(definition, {})
+            if adaptive_decision is None:
+                _, current_question_id = provider.question_path(definition, {})
+            else:
+                current_question_id = adaptive_decision.selected_question_id
             session = DiagnosticSession(
                 id=str(uuid4()),
                 skill_id=skill_id,
@@ -165,6 +177,8 @@ class DiagnosticService:
                 },
                 now,
             )
+            if adaptive_decision is not None:
+                self._record_adaptive_decision(database, session.id, adaptive_decision, now)
             try:
                 database.commit()
             except IntegrityError as error:
@@ -184,12 +198,16 @@ class DiagnosticService:
             session = self._active_session(database, skill_id, skill_version)
             if session is None:
                 raise DiagnosticError(404, "active_session_not_found", "No active session.")
-            if self._expire_if_needed(database, session, settings, self._now()):
-                database.commit()
-                raise DiagnosticError(404, "active_session_not_found", "No active session.")
             package = self._package(skill_id, skill_version)
             definition = self._definition(package)
+            now = self._now()
+            if self._end_on_time_limit(
+                database, session, definition, now
+            ) or self._expire_if_needed(database, session, settings, now):
+                database.commit()
+                raise DiagnosticError(404, "active_session_not_found", "No active session.")
             provider = self._provider(session.provider_id, session.model_id)
+            self._validate_adaptive_state(database, session, definition)
             self._event(
                 database,
                 session.id,
@@ -204,9 +222,12 @@ class DiagnosticService:
         with self._session_factory() as database:
             settings = self._settings(database)
             session = self._session(database, session_id)
-            if self._expire_if_needed(database, session, settings, self._now()):
-                database.commit()
             definition = self._definition(self._package(session.skill_id, session.skill_version))
+            now = self._now()
+            if self._end_on_time_limit(
+                database, session, definition, now
+            ) or self._expire_if_needed(database, session, settings, now):
+                database.commit()
             provider = self._provider(session.provider_id, session.model_id)
             return self._session_payload(database, session, definition, provider, settings)
 
@@ -223,9 +244,12 @@ class DiagnosticService:
             )
             if session is None:
                 raise DiagnosticError(404, "session_not_found", "Session not found.")
-            if self._expire_if_needed(database, session, settings, self._now()):
-                database.commit()
             definition = self._definition(self._package(skill_id, skill_version))
+            now = self._now()
+            if self._end_on_time_limit(
+                database, session, definition, now
+            ) or self._expire_if_needed(database, session, settings, now):
+                database.commit()
             provider = self._provider(session.provider_id, session.model_id)
             return self._session_payload(database, session, definition, provider, settings)
 
@@ -401,23 +425,76 @@ class DiagnosticService:
                     (option["value"], option["label"]) for option in item.get("options", [])
                 ),
                 transitions=item["transitions"],
+                question_version=item.get("question_version"),
+                capability_ids=tuple(item.get("capability_ids", [])),
+                prerequisite_capability_ids=tuple(item.get("prerequisite_capability_ids", [])),
+                difficulty=item.get("difficulty"),
+                signal_kind=item.get("signal_kind"),
+                deterministic_answer_values=frozenset(item.get("deterministic_answer_values", [])),
+                critical_misconception_values=frozenset(
+                    item.get("critical_misconception_values", [])
+                ),
+                selection_reason_code=item.get("selection_reason_code"),
+                allows_early_stop=bool(item.get("allows_early_stop", False)),
+                estimated_minutes=int(item.get("estimated_minutes", 1)),
             )
             for item in raw["questions"]
         }
+        policy: AdaptiveDiagnosticPolicy | None = None
+        capabilities: dict[str, DiagnosticCapability] | None = None
+        if raw.get("schema_version") == "2.0.0":
+            policy_raw = self._content_document(package, "diagnostic_policy")
+            graph_raw = self._content_document(package, "capability_graph")
+            if raw.get("policy_id") != policy_raw.get("id"):
+                raise DiagnosticError(
+                    409,
+                    "diagnostic_policy_mismatch",
+                    "The diagnostic definition and policy identifiers do not match.",
+                )
+            policy = AdaptiveDiagnosticPolicy(
+                policy_id=policy_raw["id"],
+                version=policy_raw["version"],
+                session_question_max=int(policy_raw["session_question_max"]),
+                session_minutes_max=int(policy_raw["session_minutes_max"]),
+                fallback=policy_raw["fallback"],
+                evidence_ceiling=policy_raw["evidence_ceiling"],
+            )
+            capabilities = {
+                item["id"]: DiagnosticCapability(
+                    capability_id=item["id"],
+                    prerequisite_capability_ids=tuple(item.get("prerequisite_capability_ids", [])),
+                )
+                for item in graph_raw["capabilities"]
+            }
         definition = DiagnosticDefinition(
             definition_id=raw["id"],
             skill_id=raw["skill_id"],
             skill_version=raw["skill_version"],
             start_question_id=raw["start_question_id"],
             questions=questions,
+            schema_version=raw.get("schema_version", "1.0.0"),
+            policy=policy,
+            capabilities=capabilities,
         )
         self._definitions[identity] = definition
         return definition
+
+    def _content_document(self, package: SkillPackage, kind: str) -> dict[str, Any]:
+        entries = [entry for entry in package.manifest["content_files"] if entry["kind"] == kind]
+        if len(entries) != 1:
+            raise DiagnosticError(
+                409,
+                "diagnostic_metadata_unavailable",
+                f"The skill package must contain exactly one {kind} document.",
+            )
+        path = package.path / entries[0]["path"]
+        return cast(dict[str, Any], yaml.safe_load(path.read_text(encoding="utf-8")))
 
     def _validate_creation(
         self,
         *,
         package: SkillPackage,
+        definition: DiagnosticDefinition,
         preview: bool,
         provider: DiagnosticProvider,
         credential_reference: str | None,
@@ -431,6 +508,15 @@ class DiagnosticService:
                 409,
                 "skill_package_intake_closed",
                 "This package version is read-only and cannot start new diagnostics.",
+            )
+        if (
+            definition.schema_version == "2.0.0"
+            and provider.capabilities.provider_id != "local-deterministic"
+        ):
+            raise DiagnosticError(
+                409,
+                "adaptive_requires_local_provider",
+                "The deterministic adaptive diagnostic cannot use an external provider.",
             )
         if package.state == "draft":
             if not preview:
@@ -531,7 +617,16 @@ class DiagnosticService:
     ]:
         settings = self._settings(database)
         session = self._session(database, session_id)
-        if self._expire_if_needed(database, session, settings, self._now()):
+        definition = self._definition(self._package(session.skill_id, session.skill_version))
+        now = self._now()
+        if self._end_on_time_limit(database, session, definition, now):
+            database.commit()
+            raise DiagnosticError(
+                409,
+                "session_ended",
+                "The session ended because the diagnostic time limit was reached.",
+            )
+        if self._expire_if_needed(database, session, settings, now):
             database.commit()
             raise DiagnosticError(
                 409,
@@ -553,8 +648,8 @@ class DiagnosticService:
                     "conversation_consent_required",
                     "Conversation-level external AI consent is missing.",
                 )
-        definition = self._definition(self._package(session.skill_id, session.skill_version))
         provider = self._provider(session.provider_id, session.model_id)
+        self._validate_adaptive_state(database, session, definition)
         return settings, session, definition, provider
 
     def _validate_answer(
@@ -618,14 +713,20 @@ class DiagnosticService:
         provider: DiagnosticProvider,
         now: datetime,
     ) -> None:
-        snapshots = {
-            question_id: AnswerSnapshot(
-                question_id=question_id,
-                response_kind=answer.response_kind,
+        latest = self._latest_answers(database, session.id)
+        snapshots = self._answer_snapshots(latest)
+        adaptive_decision = self._adaptive_decision(definition, snapshots)
+        if adaptive_decision is None:
+            path, current_question_id = provider.question_path(definition, snapshots)
+        else:
+            path = sorted(snapshots)
+            current_question_id = adaptive_decision.selected_question_id
+            self._record_adaptive_decision(
+                database,
+                session.id,
+                adaptive_decision,
+                now,
             )
-            for question_id, answer in self._latest_answers(database, session.id).items()
-        }
-        path, current_question_id = provider.question_path(definition, snapshots)
         session.current_question_id = current_question_id
         session.last_activity_at = now
         session.updated_at = now
@@ -636,6 +737,21 @@ class DiagnosticService:
             {"path": path, "current_question_id": current_question_id},
             now,
         )
+        if adaptive_decision is not None and adaptive_decision.stop_reason is not None:
+            session.status = "ended"
+            session.end_reason = (
+                "diagnostic_question_limit"
+                if adaptive_decision.stop_reason == "question_limit"
+                else "diagnostic_complete"
+            )
+            session.ended_at = now
+            self._event(
+                database,
+                session.id,
+                "session_ended",
+                {"reason": session.end_reason},
+                now,
+            )
 
     def _session_payload(
         self,
@@ -646,14 +762,19 @@ class DiagnosticService:
         settings: AppSettings,
     ) -> dict[str, Any]:
         latest = self._latest_answers(database, session.id)
-        snapshots = {
-            question_id: AnswerSnapshot(
-                question_id=question_id,
-                response_kind=answer.response_kind,
+        snapshots = self._answer_snapshots(latest)
+        adaptive_decision = self._adaptive_decision(definition, snapshots)
+        if adaptive_decision is None:
+            path, _ = provider.question_path(definition, snapshots)
+        else:
+            self._validate_adaptive_state(
+                database,
+                session,
+                definition,
+                decision=adaptive_decision,
+                latest_answers=latest,
             )
-            for question_id, answer in latest.items()
-        }
-        path, _ = provider.question_path(definition, snapshots)
+            path = sorted(snapshots)
         path_set = set(path)
         current_question = (
             definition.questions[session.current_question_id]
@@ -681,6 +802,14 @@ class DiagnosticService:
                         {"value": value, "label": label}
                         for value, label in current_question.options
                     ],
+                    "selection_reason_code": (
+                        adaptive_decision.selection_reason_code
+                        if adaptive_decision is not None
+                        else None
+                    ),
+                    "selection_explanation": (
+                        adaptive_decision.explanation if adaptive_decision is not None else None
+                    ),
                 }
                 if current_question is not None
                 else None
@@ -700,15 +829,212 @@ class DiagnosticService:
                     "on_current_path": answer.question_id in path_set,
                     "created_at": answer.created_at,
                 }
-                for answer in sorted(latest.values(), key=lambda item: item.created_at)
+                for answer in sorted(latest.values(), key=lambda item: _aware_utc(item.created_at))
             ],
             "ready_to_end": session.status == "active" and session.current_question_id is None,
             "can_generate_plan": False,
+            "diagnostic_mode": (
+                "deterministic_adaptive" if adaptive_decision is not None else "fixed_sequence"
+            ),
+            "decision": (
+                self._decision_payload(adaptive_decision) if adaptive_decision is not None else None
+            ),
+            "capability_states": (
+                [
+                    {
+                        "capability_id": item.capability_id,
+                        "status": item.status,
+                        "positive_signal_count": item.positive_signal_count,
+                        "negative_signal_count": item.negative_signal_count,
+                        "inconclusive_signal_count": item.inconclusive_signal_count,
+                        "reason_codes": list(item.reason_codes),
+                    }
+                    for item in adaptive_decision.capability_states
+                ]
+                if adaptive_decision is not None
+                else []
+            ),
+            "limits": (
+                {
+                    "question_max": definition.policy.session_question_max,
+                    "minutes_max": definition.policy.session_minutes_max,
+                    "evidence_ceiling": definition.policy.evidence_ceiling,
+                }
+                if definition.policy is not None
+                else None
+            ),
             "created_at": session.created_at,
             "last_activity_at": session.last_activity_at,
             "ended_at": session.ended_at,
             "end_reason": session.end_reason,
         }
+
+    def _answer_snapshots(
+        self,
+        latest: dict[str, DiagnosticAnswer],
+    ) -> dict[str, AnswerSnapshot]:
+        return {
+            question_id: AnswerSnapshot(
+                question_id=question_id,
+                response_kind=answer.response_kind,
+                content=answer.content,
+                revision=answer.revision,
+            )
+            for question_id, answer in latest.items()
+        }
+
+    def _adaptive_decision(
+        self,
+        definition: DiagnosticDefinition,
+        snapshots: dict[str, AnswerSnapshot],
+    ) -> AdaptiveDecision | None:
+        if definition.schema_version != "2.0.0":
+            return None
+        try:
+            return decide(definition, snapshots)
+        except AdaptiveDiagnosticStateError as error:
+            raise DiagnosticError(
+                409,
+                "diagnostic_state_invalid",
+                "The adaptive diagnostic state cannot be interpreted safely.",
+                {"reason": str(error)},
+            ) from error
+
+    def _decision_payload(self, decision: AdaptiveDecision) -> dict[str, Any]:
+        return {
+            "engine_version": decision.engine_version,
+            "state_sha256": decision.state_sha256,
+            "strategy": decision.strategy,
+            "selected_question_id": decision.selected_question_id,
+            "selection_reason_code": decision.selection_reason_code,
+            "explanation": decision.explanation,
+            "stop_reason": decision.stop_reason,
+            "question_count": decision.question_count,
+            "estimated_minutes": decision.estimated_minutes,
+        }
+
+    def _record_adaptive_decision(
+        self,
+        database: Session,
+        session_id: str,
+        decision: AdaptiveDecision,
+        occurred_at: datetime,
+    ) -> None:
+        self._event(
+            database,
+            session_id,
+            "adaptive_decision",
+            self._decision_payload(decision),
+            occurred_at,
+        )
+
+    def _validate_adaptive_state(
+        self,
+        database: Session,
+        session: DiagnosticSession,
+        definition: DiagnosticDefinition,
+        *,
+        decision: AdaptiveDecision | None = None,
+        latest_answers: dict[str, DiagnosticAnswer] | None = None,
+    ) -> None:
+        if definition.schema_version != "2.0.0":
+            return
+        now = self._now()
+        timestamps = [session.created_at, session.updated_at, session.last_activity_at]
+        if session.ended_at is not None:
+            timestamps.append(session.ended_at)
+        latest = latest_answers or self._latest_answers(database, session.id)
+        all_answers = database.scalars(
+            select(DiagnosticAnswer).where(DiagnosticAnswer.session_id == session.id)
+        ).all()
+        all_events = database.scalars(
+            select(DiagnosticEvent).where(DiagnosticEvent.session_id == session.id)
+        ).all()
+        timestamps.extend(answer.created_at for answer in all_answers)
+        timestamps.extend(event.occurred_at for event in all_events)
+        if any(_aware_utc(timestamp) > _aware_utc(now) for timestamp in timestamps):
+            raise DiagnosticError(
+                409,
+                "diagnostic_future_state",
+                "The persisted diagnostic state contains a future timestamp.",
+            )
+        created_at = _aware_utc(session.created_at)
+        if (
+            _aware_utc(session.updated_at) < created_at
+            or _aware_utc(session.last_activity_at) < created_at
+            or (session.ended_at is not None and _aware_utc(session.ended_at) < created_at)
+            or any(_aware_utc(answer.created_at) < created_at for answer in all_answers)
+            or any(_aware_utc(event.occurred_at) < created_at for event in all_events)
+        ):
+            raise DiagnosticError(
+                409,
+                "diagnostic_state_corrupt",
+                "The persisted diagnostic timeline is inconsistent.",
+            )
+        expected = decision or self._adaptive_decision(
+            definition,
+            self._answer_snapshots(latest),
+        )
+        assert expected is not None
+        audit = database.scalars(
+            select(DiagnosticEvent)
+            .where(
+                DiagnosticEvent.session_id == session.id,
+                DiagnosticEvent.event_type == "adaptive_decision",
+            )
+            .order_by(DiagnosticEvent.id.desc())
+        ).first()
+        if audit is None or _aware_utc(audit.occurred_at) > _aware_utc(now):
+            raise DiagnosticError(
+                409,
+                "diagnostic_state_corrupt",
+                "The adaptive diagnostic audit state is missing or invalid.",
+            )
+        try:
+            recorded = json.loads(audit.payload_json)
+        except json.JSONDecodeError as error:
+            raise DiagnosticError(
+                409,
+                "diagnostic_state_corrupt",
+                "The adaptive diagnostic audit state is not valid JSON.",
+            ) from error
+        if recorded != self._decision_payload(expected) or (
+            session.current_question_id != expected.selected_question_id
+        ):
+            raise DiagnosticError(
+                409,
+                "diagnostic_state_corrupt",
+                "The persisted adaptive decision does not match deterministic replay.",
+            )
+
+    def _end_on_time_limit(
+        self,
+        database: Session,
+        session: DiagnosticSession,
+        definition: DiagnosticDefinition,
+        now: datetime,
+    ) -> bool:
+        if session.status != "active" or definition.policy is None:
+            return False
+        deadline = _aware_utc(session.created_at) + timedelta(
+            minutes=definition.policy.session_minutes_max
+        )
+        if _aware_utc(now) < deadline:
+            return False
+        self._validate_adaptive_state(database, session, definition)
+        session.status = "ended"
+        session.end_reason = "diagnostic_time_limit"
+        session.ended_at = now
+        session.updated_at = now
+        session.last_activity_at = now
+        self._event(
+            database,
+            session.id,
+            "session_ended",
+            {"reason": "diagnostic_time_limit"},
+            now,
+        )
+        return True
 
     def _event(
         self,

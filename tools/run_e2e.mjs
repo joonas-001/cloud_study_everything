@@ -276,7 +276,8 @@ const web = start(
   ],
   {
     CLOUD_STUDY_E2E_NEXT_DIST_DIR: e2eNextDistName,
-    NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
+    CLOUD_STUDY_API_INTERNAL_URL: apiBaseUrl,
+    NEXT_PUBLIC_API_BASE_URL: "/api",
     NEXT_TELEMETRY_DISABLED: "1",
   },
 );
@@ -308,6 +309,7 @@ try {
       PLAYWRIGHT_EXTERNAL_SERVERS: "1",
       PLAYWRIGHT_BASE_URL: webBaseUrl,
       PLAYWRIGHT_API_BASE_URL: apiBaseUrl,
+      PLAYWRIGHT_BROWSER_API_BASE_URL: `${webBaseUrl}/api`,
     },
   );
   try {

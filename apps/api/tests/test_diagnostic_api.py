@@ -50,6 +50,11 @@ def test_preview_session_supports_resume_branching_correction_and_end(
         assert created["is_preview"] is True
         assert created["external_ai_consent"] is False
         assert created["can_generate_plan"] is False
+        assert created["diagnostic_mode"] == "fixed_sequence"
+        assert created["decision"] is None
+        assert created["capability_states"] == []
+        assert created["limits"] is None
+        assert created["current_question"]["selection_explanation"] is None
         assert created["current_question"]["id"] == "programming-foundation"  # type: ignore[index]
 
         duplicate = client.post(
@@ -173,6 +178,31 @@ def test_closed_version_rejects_new_diagnostic_intake(
             json={
                 "skill_id": "algorithm",
                 "skill_version": "0.1.0",
+                "preview": True,
+                "provider_id": "local-deterministic",
+                "model_id": "diagnostic-v1",
+                "credential_reference": None,
+                "external_ai_consent": False,
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "skill_package_intake_closed"
+
+
+def test_milestone_8c_does_not_open_algorithm_030_intake(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    database_path = tmp_path / "closed-030-intake.db"
+    monkeypatch.setenv("CLOUD_STUDY_DATABASE_PATH", str(database_path))
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/diagnostic-sessions",
+            json={
+                "skill_id": "algorithm",
+                "skill_version": "0.3.0",
                 "preview": True,
                 "provider_id": "local-deterministic",
                 "model_id": "diagnostic-v1",

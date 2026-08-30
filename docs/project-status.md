@@ -1,6 +1,6 @@
 # 云奕学项目状态
 
-> 状态更新时间：2026-08-29（Asia/Shanghai）。本文件记录当前证据、边界和下一步，
+> 状态更新时间：2026-08-30（Asia/Shanghai）。本文件记录当前证据、边界和下一步，
 > 不替代 `AGENTS.md` 中的项目所有者指令。
 
 ## 当前结论
@@ -17,11 +17,12 @@
   本地库均保留回滚点；Runner 十项矩阵通过且项目容器残留为 0；
 - 7A–7F 已进入主线；PR #18 已合并为 `main@90e16e2`。7F 代码、PR CI 自动验收和项目
   所有者完成确认均已完成；合并后 push CI `32806434805` 共 22 项成功；
-- 第八里程碑 M8-D01–D15 与 8A 已完成；8B 已在独立分支实现通用契约及关闭入口的
+- 第八里程碑 M8-D01–D15、8A、8B 与 8C 当前授权范围已完成；8B 已实现通用契约及关闭入口的
   `algorithm@0.3.0` 草稿，固定 12 域、46 能力、34 单元、4,740 分钟、166 活动、64 题和
-  22 个 Runner 任务；完整本地门禁通过 121 项后端、1 项按预期跳过、43 项前端、生产构建、
-  22 项 E2E、契约无漂移和密钥扫描。历史版本、默认入口、数据库、依赖和运行状态未改，
-  8C–8G 未授权；
+  22 个 Runner 任务；8C 在独立分支实现完全确定性选题、三态路径信号、停止、解释审计、
+  修正重算、恢复、重放、固定序列回退和未来／损坏状态拒绝。`0.3.0` 入口仍关闭，历史版本、
+  默认入口、数据库 Schema、依赖和运行状态未改；完整门禁通过 126 项后端、1 项按预期跳过、
+  43 项前端、生产构建、22 项 E2E（6 项按范围跳过）、契约和密钥扫描，8D–8G 未授权；
 - 真实 AI、真实来源、邮件、公开发布、扩容和新增付费资源仍未授权。
 
 ## 6C 证据
@@ -62,6 +63,6 @@
    回滚点、日备份、Runner 安全矩阵和费用边界的常规运维复核。
 
 完整 6D 证据见 `docs/operations/milestone-6d-validation.md`；7F 证据见
-`docs/design/milestone-7f-experience-acceptance.md`；8A 规格及 8B 证据见
+`docs/design/milestone-7f-experience-acceptance.md`；8A 规格、8B 与 8C 证据见
 `docs/architecture/milestone-8a-learning-core-spec.md` 和
-`docs/architecture/milestone-8b-validation.md`。
+`docs/architecture/milestone-8b-validation.md`、`docs/architecture/milestone-8c-validation.md`。
