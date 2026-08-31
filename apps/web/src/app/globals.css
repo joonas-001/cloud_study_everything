@@ -15,6 +15,47 @@
   --danger: var(--color-danger);
 }
 
+.issue-report-boundary,
+.issue-report-preview {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+}
+
+.issue-report-boundary p,
+.issue-report-preview p {
+  margin-bottom: 0;
+}
+
+.issue-report-form,
+.issue-report-preview {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.issue-field-selector {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.issue-field-selector legend {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.issue-report-preview textarea {
+  width: 100%;
+  min-height: 16rem;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
 html {
   font-size: 100%;
   scroll-padding-top: var(--space-4);

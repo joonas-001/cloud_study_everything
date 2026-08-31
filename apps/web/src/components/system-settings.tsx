@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
+import { IssueReportPanel } from "@/components/issue-report-panel";
 import { StatusMessage } from "@/components/status-message";
 import type {
   AiProviderProfileResponse,
@@ -237,6 +238,8 @@ export function SystemSettings() {
           </div>
         ) : null}
       </section>
+
+      <IssueReportPanel />
 
       <section className="panel settings-section">
         <header>

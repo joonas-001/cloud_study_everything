@@ -21,6 +21,12 @@ from cloud_study_api.execution import (
     LearningExecutionService,
 )
 from cloud_study_api.experiments import ExperimentError, ExperimentService
+from cloud_study_api.issue_reporting import (
+    IssueReportError,
+    IssueReportService,
+    OptionalField,
+    ReportType,
+)
 from cloud_study_api.learning import LearningError, LearningService
 from cloud_study_api.market_research import MarketResearchError, MarketResearchService
 from cloud_study_api.notifications import NotificationError, NotificationService
@@ -47,6 +53,35 @@ class DeploymentStatusResponse(BaseModel):
 
 class UpdatePrivacySettingsRequest(BaseModel):
     external_ai_enabled: bool
+
+
+class IssueReportPreviewRequest(BaseModel):
+    report_type: ReportType
+    included_optional_fields: list[OptionalField] = Field(max_length=7)
+    page_route: str | None = Field(default=None, max_length=40)
+    operation_type: str | None = Field(default=None, max_length=40)
+    skill_version: str | None = Field(default=None, max_length=80)
+    request_audit_id: str | None = Field(default=None, max_length=36)
+    reason_code: str | None = Field(default=None, max_length=64)
+    event_names: list[str] = Field(default_factory=list, max_length=5)
+
+
+class IssueReportFieldResponse(BaseModel):
+    key: str
+    label: str
+    value: str
+    required: bool
+
+
+class IssueReportPreviewResponse(BaseModel):
+    report_type: ReportType
+    fields: list[IssueReportFieldResponse]
+    rendered_text: str
+    submission_url: str
+    automatic_submission_enabled: bool
+    attachments_enabled: bool
+    copy_required_before_open: bool
+    privacy_notice: str
 
 
 class CreateDiagnosticSessionRequest(BaseModel):
@@ -1579,6 +1614,17 @@ ExperimentServiceDependency = Annotated[
 ]
 
 
+def get_issue_report_service(request: Request) -> IssueReportService:
+    service: IssueReportService = request.app.state.issue_report_service
+    return service
+
+
+IssueReportServiceDependency = Annotated[
+    IssueReportService,
+    Depends(get_issue_report_service),
+]
+
+
 def get_deployment_guard(request: Request) -> DeploymentGuard:
     guard: DeploymentGuard = request.app.state.deployment_guard
     return guard
@@ -1684,6 +1730,29 @@ def update_privacy_settings(
     return PrivacySettingsResponse.model_validate(
         service.update_privacy_settings(payload.external_ai_enabled)
     )
+
+
+@router.post(
+    "/settings/issue-report/preview",
+    response_model=IssueReportPreviewResponse,
+    tags=["issues-8f"],
+)
+def preview_issue_report(
+    payload: IssueReportPreviewRequest,
+    service: IssueReportServiceDependency,
+) -> IssueReportPreviewResponse:
+    try:
+        preview = service.preview(**payload.model_dump())
+    except IssueReportError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={
+                "code": "unsafe_issue_diagnostic",
+                "message": str(error),
+                "context": {},
+            },
+        ) from error
+    return IssueReportPreviewResponse.model_validate(preview)
 
 
 @router.post(

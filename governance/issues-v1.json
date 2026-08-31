@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "joonas-001/cloud_study_everything",
+  "remote_sync": {
+    "authorized": false,
+    "note": "Creating or changing remote labels, milestones, pinned issues, repository settings, or test issues requires separate owner authorization."
+  },
+  "labels": [
+    {"name": "type:bug", "category": "type", "color": "d73a4a", "description": "可复现缺陷或回归"},
+    {"name": "type:enhancement", "category": "type", "color": "a2eeef", "description": "功能、体验或运维改进"},
+    {"name": "type:content", "category": "type", "color": "7057ff", "description": "内容、来源、评估或证据问题"},
+    {"name": "type:governance", "category": "type", "color": "5319e7", "description": "授权、合规或治理问题"},
+    {"name": "status:needs-triage", "category": "status", "color": "fbca04", "description": "等待首次分诊"},
+    {"name": "status:needs-info", "category": "status", "color": "d4c5f9", "description": "需要提交者补充最小信息"},
+    {"name": "status:accepted", "category": "status", "color": "0e8a16", "description": "问题已接受；不等于实施授权"},
+    {"name": "status:rejected", "category": "status", "color": "e4e669", "description": "附理由拒绝或不计划实施"},
+    {"name": "status:blocked", "category": "status", "color": "b60205", "description": "受明确门禁或依赖阻塞"},
+    {"name": "status:in-progress", "category": "status", "color": "1d76db", "description": "已授权范围内正在实施"},
+    {"name": "status:needs-verification", "category": "status", "color": "0052cc", "description": "等待独立验证或验收"},
+    {"name": "priority:p0", "category": "priority", "color": "b60205", "description": "安全、数据或核心流程紧急阻断"},
+    {"name": "priority:p1", "category": "priority", "color": "d93f0b", "description": "高影响且应优先处理"},
+    {"name": "priority:p2", "category": "priority", "color": "fbca04", "description": "正常优先级"},
+    {"name": "area:web", "category": "area", "color": "c5def5", "description": "Web 前端"},
+    {"name": "area:api", "category": "area", "color": "c5def5", "description": "FastAPI 与契约"},
+    {"name": "area:learning", "category": "area", "color": "c5def5", "description": "诊断、规划与学习执行"},
+    {"name": "area:evidence", "category": "area", "color": "c5def5", "description": "能力证据与档案"},
+    {"name": "area:runner", "category": "area", "color": "c5def5", "description": "隔离 Runner"},
+    {"name": "area:deployment", "category": "area", "color": "c5def5", "description": "私有部署与运维"},
+    {"name": "area:docs", "category": "area", "color": "c5def5", "description": "文档、规格与治理"},
+    {"name": "known-issue", "category": "relationship", "color": "bfdadc", "description": "已有专门跟踪或已知限制"},
+    {"name": "duplicate", "category": "relationship", "color": "cfd3d7", "description": "必须关联原 Issue"},
+    {"name": "regression", "category": "relationship", "color": "e11d21", "description": "已关闭缺陷再次出现，应优先 reopen"}
+  ],
+  "lifecycle": {
+    "initial": "status:needs-triage",
+    "transitions": {
+      "status:needs-triage": ["status:needs-info", "duplicate", "status:rejected", "status:accepted"],
+      "status:needs-info": ["status:needs-triage", "status:rejected"],
+      "status:accepted": ["status:blocked", "status:in-progress"],
+      "status:blocked": ["status:accepted", "status:in-progress"],
+      "status:in-progress": ["status:blocked", "status:needs-verification"],
+      "status:needs-verification": ["status:in-progress", "closed"],
+      "closed": ["regression"]
+    },
+    "manual_needs_info_close_after_days": 14,
+    "automatic_close_enabled": false,
+    "close_reasons": ["completed", "duplicate", "not-planned", "cannot-reproduce"]
+  },
+  "accepted_issue_requirements": {
+    "github_milestone": true,
+    "todo_id": true,
+    "exact_stage": true,
+    "implementation_authorized_by_acceptance": false
+  },
+  "pull_request_closure_requirements": [
+    "tests",
+    "acceptance_evidence",
+    "limitations"
+  ]
+}

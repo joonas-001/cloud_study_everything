@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "私密安全报告 / Private security report"
+    url: "https://github.com/joonas-001/cloud_study_everything/security/advisories/new"
+    about: "凭据泄露、越权或其他安全问题不得创建公开 Issue。"
+  - name: "提交指南 / Reporting guide"
+    url: "https://github.com/joonas-001/cloud_study_everything/blob/main/docs/contributing/reporting-issues.md"
+    about: "提交前阅读中英双语指南、隐私限制和分诊规则。"

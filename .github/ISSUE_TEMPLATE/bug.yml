@@ -1,0 +1,76 @@
+name: "缺陷报告 / Bug report"
+description: "报告可复现故障、错误状态或回归；请勿粘贴敏感正文。"
+title: "[Bug] "
+labels:
+  - "type:bug"
+  - "status:needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。提交前请搜索相似 Issue，并阅读《如何提交高质量问题》。
+        不要粘贴答案、代码、凭据、邮箱、私有地址、本地路径、完整日志或收入信息。
+  - type: textarea
+    id: observed
+    attributes:
+      label: "发生了什么？ / What happened?"
+      description: "只写可公开的最小现象，不要包含学习正文或账户信息。"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "期望行为 / Expected behavior"
+      description: "说明可以观察和验证的正确结果。"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "最小复现 / Minimal reproduction"
+      description: "使用页面名和受管操作描述步骤；不要粘贴答案、代码或本地路径。"
+      placeholder: |
+        1. 打开“学习”
+        2. 执行……
+        3. 观察到……
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: "影响 / Impact"
+      options:
+        - "阻断学习或验证 / Blocking"
+        - "结果错误但有绕行方式 / Incorrect with workaround"
+        - "体验受损 / Degraded experience"
+        - "轻微问题 / Minor"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "应用版本或提交 / Version or commit"
+      description: "仅填写版本号或 7–40 位提交摘要。"
+      placeholder: "0.1.0 or 8cd0e36"
+    validations:
+      required: true
+  - type: textarea
+    id: sanitized_diagnostic
+    attributes:
+      label: "已预览的脱敏诊断 / Reviewed sanitized diagnostic"
+      description: "只粘贴应用内‘报告问题’生成且经你完整预览的允许列表诊断。"
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: related
+    attributes:
+      label: "相关 Issue、PR、审计 ID 或原因码 / Related reference"
+      description: "选填；不要填写 URL 中的私有地址或任何身份信息。"
+  - type: checkboxes
+    id: privacy_confirmation
+    attributes:
+      label: "隐私确认 / Privacy confirmation"
+      options:
+        - label: "我已确认正文和截图不含答案、代码、凭据、身份、私有地址、本地路径、完整日志或收入信息。"
+          required: true

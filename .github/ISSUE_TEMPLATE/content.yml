@@ -1,0 +1,61 @@
+name: "内容或证据问题 / Content or evidence issue"
+description: "报告来源、题目、答案、Runner 测试、量表或证据边界问题。"
+title: "[Content] "
+labels:
+  - "type:content"
+  - "status:needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        只提交可复核的最小描述。不要粘贴用户答案、完整代码、作品正文、付费内容或未获许可的课程材料。
+  - type: input
+    id: skill_version
+    attributes:
+      label: "精确技能与版本 / Exact skill and version"
+      placeholder: "algorithm@0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: managed_id
+    attributes:
+      label: "能力、单元、活动或来源 ID / Managed ID"
+      description: "填写稳定受管 ID，不要粘贴正文。"
+    validations:
+      required: true
+  - type: dropdown
+    id: issue_kind
+    attributes:
+      label: "问题类型 / Issue type"
+      options:
+        - "来源或许可 / Source or license"
+        - "事实错误 / Factual error"
+        - "歧义 / Ambiguity"
+        - "受管答案 / Managed answer"
+        - "Runner 测试 / Runner test"
+        - "量表 / Rubric"
+        - "证据等级或范围 / Evidence level or scope"
+        - "时效 / Validity window"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "可复核的最小描述 / Minimal verifiable description"
+      description: "引用公开来源时说明名称和定位；不要复制大量第三方内容。"
+    validations:
+      required: true
+  - type: textarea
+    id: resolution
+    attributes:
+      label: "期望处理 / Expected handling"
+      description: "例如更正、澄清、补充测试、限制证据范围或来源复核。"
+    validations:
+      required: true
+  - type: checkboxes
+    id: content_confirmation
+    attributes:
+      label: "内容与隐私确认 / Content and privacy confirmation"
+      options:
+        - label: "我没有粘贴用户答案、完整代码、作品正文、敏感证据、付费内容或未获许可的课程材料。"
+          required: true

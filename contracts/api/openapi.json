@@ -3619,6 +3619,194 @@
         "title": "IncomeValuesRequest",
         "type": "object"
       },
+      "IssueReportFieldResponse": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "value",
+          "required"
+        ],
+        "title": "IssueReportFieldResponse",
+        "type": "object"
+      },
+      "IssueReportPreviewRequest": {
+        "properties": {
+          "event_names": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Event Names",
+            "type": "array"
+          },
+          "included_optional_fields": {
+            "items": {
+              "enum": [
+                "page_route",
+                "operation_type",
+                "skill_version",
+                "request_audit_id",
+                "reason_code",
+                "event_names",
+                "runner_details"
+              ],
+              "type": "string"
+            },
+            "maxItems": 7,
+            "title": "Included Optional Fields",
+            "type": "array"
+          },
+          "operation_type": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Type"
+          },
+          "page_route": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Route"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "report_type": {
+            "enum": [
+              "bug",
+              "feature",
+              "content"
+            ],
+            "title": "Report Type",
+            "type": "string"
+          },
+          "request_audit_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Audit Id"
+          },
+          "skill_version": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Version"
+          }
+        },
+        "required": [
+          "report_type",
+          "included_optional_fields"
+        ],
+        "title": "IssueReportPreviewRequest",
+        "type": "object"
+      },
+      "IssueReportPreviewResponse": {
+        "properties": {
+          "attachments_enabled": {
+            "title": "Attachments Enabled",
+            "type": "boolean"
+          },
+          "automatic_submission_enabled": {
+            "title": "Automatic Submission Enabled",
+            "type": "boolean"
+          },
+          "copy_required_before_open": {
+            "title": "Copy Required Before Open",
+            "type": "boolean"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/IssueReportFieldResponse"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "privacy_notice": {
+            "title": "Privacy Notice",
+            "type": "string"
+          },
+          "rendered_text": {
+            "title": "Rendered Text",
+            "type": "string"
+          },
+          "report_type": {
+            "enum": [
+              "bug",
+              "feature",
+              "content"
+            ],
+            "title": "Report Type",
+            "type": "string"
+          },
+          "submission_url": {
+            "title": "Submission Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_type",
+          "fields",
+          "rendered_text",
+          "submission_url",
+          "automatic_submission_enabled",
+          "attachments_enabled",
+          "copy_required_before_open",
+          "privacy_notice"
+        ],
+        "title": "IssueReportPreviewResponse",
+        "type": "object"
+      },
       "LearningActivityResponse": {
         "properties": {
           "activity_roles": {
@@ -10916,6 +11104,47 @@
         "summary": "Get Runner Availability",
         "tags": [
           "runner-4b"
+        ]
+      }
+    },
+    "/settings/issue-report/preview": {
+      "post": {
+        "operationId": "preview_issue_report_settings_issue_report_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueReportPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueReportPreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Issue Report",
+        "tags": [
+          "issues-8f"
         ]
       }
     },

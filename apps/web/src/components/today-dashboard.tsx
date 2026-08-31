@@ -56,13 +56,14 @@ export function TodayDashboard() {
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     Promise.all([
-      getLatestDiagnosticSession(SKILL_ID, SKILL_VERSION),
-      getLatestPlanningProposal(SKILL_ID, SKILL_VERSION),
-      getActiveLearningRun(SKILL_ID, SKILL_VERSION),
-      getLatestLearningRun(SKILL_ID, SKILL_VERSION),
-      getNotifications(),
-      getSourceChangeCandidates(SKILL_ID, SKILL_VERSION),
+      getLatestDiagnosticSession(SKILL_ID, SKILL_VERSION, controller.signal),
+      getLatestPlanningProposal(SKILL_ID, SKILL_VERSION, controller.signal),
+      getActiveLearningRun(SKILL_ID, SKILL_VERSION, controller.signal),
+      getLatestLearningRun(SKILL_ID, SKILL_VERSION, controller.signal),
+      getNotifications(controller.signal),
+      getSourceChangeCandidates(SKILL_ID, SKILL_VERSION, controller.signal),
     ])
       .then(([diagnostic, proposal, activeRun, latestRun, notifications, candidates]) => {
         if (active) {
@@ -82,6 +83,7 @@ export function TodayDashboard() {
       });
     return () => {
       active = false;
+      controller.abort();
     };
   }, []);
 
