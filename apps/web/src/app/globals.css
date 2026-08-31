@@ -4019,6 +4019,18 @@ th {
   .learning-sidebar {
     position: static;
   }
+
+  .capability-profile__header {
+    display: grid;
+  }
+
+  .capability-profile__actions {
+    width: 100%;
+  }
+
+  .capability-profile__actions button {
+    flex: 1 1 auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -4047,18 +4059,9 @@ th {
     border-bottom: 0;
   }
 
-  .capability-profile__header,
   .capability-profile__analysis,
   .shadow-evaluation {
     display: grid;
-  }
-
-  .capability-profile__actions {
-    width: 100%;
-  }
-
-  .capability-profile__actions button {
-    flex: 1 1 auto;
   }
 
   .capability-profile__analysis dl {
