@@ -82,6 +82,125 @@ export interface BranchGateResponse {
   title: string;
 }
 
+export interface CapabilityProfileAnalyticsResponse {
+  attempt_count: number;
+  correction_count: number;
+  failed_count: number;
+  fastest_correction_seconds: number | null;
+  first_attempt_at: string | null;
+  first_deterministic_pass_at: string | null;
+  passed_count: number;
+  review_due_count: number;
+  review_failed_count: number;
+  review_overdue_count: number;
+  review_passed_count: number;
+  uncertain_count: number;
+}
+
+export interface CapabilityProfileDimensionResponse {
+  dimension: "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction";
+  evidence_count: number;
+  evidence_level: "none" | "limited" | "supported" | "verified" | "retained";
+  expired_count: number;
+  latest_at: string | null;
+  review_flags: Array<string>;
+}
+
+export interface CapabilityProfileDomainResponse {
+  capabilities: Array<CapabilityProfileItemResponse>;
+  id: string;
+  title: string;
+}
+
+export interface CapabilityProfileEvidenceResponse {
+  activity_id: string;
+  attempt_id: string;
+  created_at: string;
+  criterion_id: string;
+  dimension: string;
+  expired: boolean;
+  expires_at: string;
+  id: string;
+  language: "none" | "cpp" | "python";
+  method: string;
+  result: string;
+  review_flags: Array<string>;
+  runner: Record<string, unknown> | null;
+  strength: string;
+  superseded_at: string | null;
+}
+
+export interface CapabilityProfileIndependentReviewResponse {
+  attachments_stored: boolean;
+  conclusion: "meets" | "needs_work" | "uncertain";
+  dimension: string;
+  expired: boolean;
+  expires_at: string;
+  id: string;
+  reviewed_at: string;
+  reviewer_relationship: string;
+  rubric_id: string;
+  rubric_version: string;
+}
+
+export interface CapabilityProfileItemResponse {
+  analytics: CapabilityProfileAnalyticsResponse;
+  can_prove: string;
+  cannot_prove: Array<string>;
+  dimensions: Array<CapabilityProfileDimensionResponse>;
+  domain_id: string;
+  evidence: Array<CapabilityProfileEvidenceResponse>;
+  id: string;
+  independent_reviews: Array<CapabilityProfileIndependentReviewResponse>;
+  title: string;
+}
+
+export interface CapabilityProfilePlanAlignmentResponse {
+  actual_minutes_available: boolean;
+  completed_activity_count: number;
+  completed_estimated_minutes: number;
+  meaning: string;
+  scheduled_activity_count: number;
+  scheduled_estimated_minutes: number;
+  unfinished_estimated_minutes: number;
+}
+
+export interface CapabilityProfilePrivacyResponse {
+  certificate_created: boolean;
+  credentials_included: boolean;
+  income_included: boolean;
+  local_only: boolean;
+  public_link_created: boolean;
+  sensitive_submission_content_included: boolean;
+}
+
+export interface CapabilityProfileResponse {
+  domains: Array<CapabilityProfileDomainResponse>;
+  generated_at: string;
+  is_preview: boolean;
+  limitations: Array<string>;
+  lock_sha256: string;
+  plan_alignment: CapabilityProfilePlanAlignmentResponse;
+  privacy: CapabilityProfilePrivacyResponse;
+  run_id: string;
+  run_status: string;
+  schema_version: string;
+  scope_status: "scoped" | "legacy_unscoped";
+  shadow_evaluation: ReviewShadowEvaluationResponse;
+  skill_id: string;
+  skill_title: string;
+  skill_version: string;
+  summary: CapabilityProfileSummaryResponse;
+}
+
+export interface CapabilityProfileSummaryResponse {
+  active_evidence_count: number;
+  attempt_count: number;
+  capability_count: number;
+  evidenced_capability_count: number;
+  independent_review_count: number;
+}
+
 export interface CapabilityScopeResponse {
   capability_scope_id: string;
   created_at: string;
@@ -833,6 +952,51 @@ export interface ResolveSourceChangeRequest {
 export interface ReviewMarketResearchRequest {
   decision: "accepted" | "rejected";
   note?: string | null;
+}
+
+export interface ReviewShadowComparisonResponse {
+  candidate_value: number;
+  meaning: string;
+  metric: string;
+}
+
+export interface ReviewShadowEvaluationResponse {
+  affects_evidence: boolean;
+  affects_tasks: boolean;
+  affects_user_conclusions: boolean;
+  authoritative_policy: ReviewShadowPolicyResponse;
+  checkpoint_position_count: number;
+  code_version: string;
+  comparison: ReviewShadowComparisonResponse | null;
+  failure_count: number;
+  input_schema_version: string;
+  insufficient_reason_codes: Array<string>;
+  memory_probability_exposed: boolean;
+  model_id: string;
+  model_sha256: string;
+  model_version: string;
+  parameters: ReviewShadowParametersResponse;
+  pass_count: number;
+  predictions_exposed: boolean;
+  sample_count: number;
+  status: "insufficient_data" | "comparison_available";
+}
+
+export interface ReviewShadowParametersResponse {
+  cold_start_prediction: string;
+  minimum_checkpoint_positions: number;
+  minimum_failures: number;
+  minimum_passes: number;
+  minimum_samples: number;
+  prior_failure_prediction: string;
+  prior_pass_prediction: string;
+  retry_prediction: string;
+}
+
+export interface ReviewShadowPolicyResponse {
+  interval_days: Array<number>;
+  strategy: string;
+  unchanged: boolean;
 }
 
 export interface ReviewTaskResponse {

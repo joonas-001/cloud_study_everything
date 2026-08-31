@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from cloud_study_api.ai_configuration import AiConfigurationService
+from cloud_study_api.capability_profiles import CapabilityProfileService
 from cloud_study_api.config import Settings
 from cloud_study_api.content_locking import validate_or_backfill_persisted_content_locks
 from cloud_study_api.credentials import create_credential_store
@@ -79,6 +80,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     learning_execution_service.recover_stale_runner_invocations()
     app.state.learning_execution_service = learning_execution_service
+    app.state.capability_profile_service = CapabilityProfileService(
+        repository_root=settings.repository_root,
+        packages=packages,
+        session_factory=session_factory,
+    )
     app.state.readiness_service = ReadinessService(
         repository_root=settings.repository_root,
         packages=packages,

@@ -10,6 +10,10 @@ from cloud_study_api.ai_configuration import (
     AiConfigurationError,
     AiConfigurationService,
 )
+from cloud_study_api.capability_profiles import (
+    CapabilityProfileError,
+    CapabilityProfileService,
+)
 from cloud_study_api.deployment import DeploymentCapabilityError, DeploymentGuard
 from cloud_study_api.diagnostics import DiagnosticError, DiagnosticService
 from cloud_study_api.execution import (
@@ -642,6 +646,172 @@ class LearningEvidenceResponse(BaseModel):
     limitations: list[str]
     dimensions: list[MasteryDimensionResponse]
     evidence: list[MasteryEvidenceItemResponse]
+
+
+class CapabilityProfileDimensionResponse(BaseModel):
+    dimension: Literal[
+        "understanding", "operation", "transfer", "artifact", "retention", "correction"
+    ]
+    evidence_level: Literal["none", "limited", "supported", "verified", "retained"]
+    evidence_count: int
+    review_flags: list[str]
+    latest_at: datetime | None
+    expired_count: int
+
+
+class CapabilityProfileAnalyticsResponse(BaseModel):
+    attempt_count: int
+    passed_count: int
+    failed_count: int
+    uncertain_count: int
+    correction_count: int
+    first_attempt_at: datetime | None
+    first_deterministic_pass_at: datetime | None
+    fastest_correction_seconds: int | None
+    review_due_count: int
+    review_overdue_count: int
+    review_passed_count: int
+    review_failed_count: int
+
+
+class CapabilityProfileEvidenceResponse(BaseModel):
+    id: str
+    activity_id: str
+    attempt_id: str
+    criterion_id: str
+    dimension: str
+    method: str
+    result: str
+    strength: str
+    language: Literal["none", "cpp", "python"]
+    review_flags: list[str]
+    created_at: datetime
+    expires_at: datetime
+    expired: bool
+    superseded_at: datetime | None
+    runner: dict[str, object] | None
+
+
+class CapabilityProfileIndependentReviewResponse(BaseModel):
+    id: str
+    dimension: str
+    reviewer_relationship: str
+    rubric_id: str
+    rubric_version: str
+    conclusion: Literal["meets", "needs_work", "uncertain"]
+    reviewed_at: datetime
+    expires_at: datetime
+    expired: bool
+    attachments_stored: Literal[False]
+
+
+class CapabilityProfileItemResponse(BaseModel):
+    id: str
+    title: str
+    domain_id: str
+    dimensions: list[CapabilityProfileDimensionResponse]
+    analytics: CapabilityProfileAnalyticsResponse
+    evidence: list[CapabilityProfileEvidenceResponse]
+    independent_reviews: list[CapabilityProfileIndependentReviewResponse]
+    can_prove: str
+    cannot_prove: list[str]
+
+
+class CapabilityProfileDomainResponse(BaseModel):
+    id: str
+    title: str
+    capabilities: list[CapabilityProfileItemResponse]
+
+
+class ReviewShadowParametersResponse(BaseModel):
+    minimum_samples: int
+    minimum_passes: int
+    minimum_failures: int
+    minimum_checkpoint_positions: int
+    cold_start_prediction: Literal["pass"]
+    retry_prediction: Literal["fail"]
+    prior_failure_prediction: Literal["fail"]
+    prior_pass_prediction: Literal["pass"]
+
+
+class ReviewShadowPolicyResponse(BaseModel):
+    strategy: Literal["fixed_expanding"]
+    interval_days: list[int]
+    unchanged: Literal[True]
+
+
+class ReviewShadowComparisonResponse(BaseModel):
+    metric: Literal["binary_outcome_accuracy_basis_points"]
+    candidate_value: int
+    meaning: str
+
+
+class ReviewShadowEvaluationResponse(BaseModel):
+    status: Literal["insufficient_data", "comparison_available"]
+    model_id: str
+    model_version: str
+    model_sha256: str
+    code_version: str
+    input_schema_version: str
+    parameters: ReviewShadowParametersResponse
+    sample_count: int
+    pass_count: int
+    failure_count: int
+    checkpoint_position_count: int
+    insufficient_reason_codes: list[str]
+    predictions_exposed: Literal[False]
+    memory_probability_exposed: Literal[False]
+    affects_tasks: Literal[False]
+    affects_evidence: Literal[False]
+    affects_user_conclusions: Literal[False]
+    authoritative_policy: ReviewShadowPolicyResponse
+    comparison: ReviewShadowComparisonResponse | None
+
+
+class CapabilityProfileSummaryResponse(BaseModel):
+    capability_count: int
+    evidenced_capability_count: int
+    attempt_count: int
+    active_evidence_count: int
+    independent_review_count: int
+
+
+class CapabilityProfilePlanAlignmentResponse(BaseModel):
+    scheduled_estimated_minutes: int
+    completed_estimated_minutes: int
+    unfinished_estimated_minutes: int
+    completed_activity_count: int
+    scheduled_activity_count: int
+    actual_minutes_available: Literal[False]
+    meaning: str
+
+
+class CapabilityProfilePrivacyResponse(BaseModel):
+    local_only: Literal[True]
+    public_link_created: Literal[False]
+    certificate_created: Literal[False]
+    sensitive_submission_content_included: Literal[False]
+    credentials_included: Literal[False]
+    income_included: Literal[False]
+
+
+class CapabilityProfileResponse(BaseModel):
+    schema_version: Literal["1.0.0"]
+    run_id: str
+    skill_id: str
+    skill_version: str
+    skill_title: str
+    run_status: str
+    is_preview: bool
+    generated_at: datetime
+    lock_sha256: str
+    scope_status: Literal["scoped", "legacy_unscoped"]
+    summary: CapabilityProfileSummaryResponse
+    plan_alignment: CapabilityProfilePlanAlignmentResponse
+    domains: list[CapabilityProfileDomainResponse]
+    shadow_evaluation: ReviewShadowEvaluationResponse
+    privacy: CapabilityProfilePrivacyResponse
+    limitations: list[str]
 
 
 class StageCheckpointResponse(BaseModel):
@@ -1343,6 +1513,17 @@ LearningExecutionServiceDependency = Annotated[
 ]
 
 
+def get_capability_profile_service(request: Request) -> CapabilityProfileService:
+    service: CapabilityProfileService = request.app.state.capability_profile_service
+    return service
+
+
+CapabilityProfileServiceDependency = Annotated[
+    CapabilityProfileService,
+    Depends(get_capability_profile_service),
+]
+
+
 def get_readiness_service(request: Request) -> ReadinessService:
     service: ReadinessService = request.app.state.readiness_service
     return service
@@ -1439,6 +1620,7 @@ def _raise_service_http(
         | ReadinessError
         | MarketResearchError
         | ExperimentError
+        | CapabilityProfileError
     ),
 ) -> None:
     context = (
@@ -2205,6 +2387,46 @@ def get_learning_evidence(
     except LearningExecutionError as error:
         _raise_service_http(error)
     return LearningEvidenceResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/{run_id}/capability-profile",
+    response_model=CapabilityProfileResponse,
+    tags=["capability-profile-8e"],
+)
+def get_capability_profile(
+    run_id: str,
+    service: CapabilityProfileServiceDependency,
+) -> CapabilityProfileResponse:
+    try:
+        result = service.get_profile(run_id)
+    except CapabilityProfileError as error:
+        _raise_service_http(error)
+    return CapabilityProfileResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/{run_id}/capability-profile/export",
+    response_model=None,
+    tags=["capability-profile-8e"],
+)
+def export_capability_profile(
+    run_id: str,
+    service: CapabilityProfileServiceDependency,
+    export_format: Literal["json", "csv"] = Query(alias="format"),
+) -> Response:
+    try:
+        content, media_type, extension = service.export_profile(run_id, export_format)
+    except CapabilityProfileError as error:
+        _raise_service_http(error)
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="capability-profile.{extension}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 @router.get(

@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { CapabilityProfile } from "@/components/capability-profile";
 import { StatusMessage } from "@/components/status-message";
 import type {
+  CapabilityProfileResponse,
   ExperimentResponse,
   LearningEvidenceResponse,
   LearningRunResponse,
 } from "@/generated/api-schema";
 import {
   getLatestLearningRun,
+  getCapabilityProfile,
   getLearningEvidence,
   listExperiments,
   messageForError,
@@ -46,6 +49,7 @@ export function EvidenceCenter({
 }: Readonly<{ skillId: string; skillVersion: string }>) {
   const [run, setRun] = useState<LearningRunResponse | null>(null);
   const [evidence, setEvidence] = useState<LearningEvidenceResponse | null>(null);
+  const [profile, setProfile] = useState<CapabilityProfileResponse | null>(null);
   const [experiments, setExperiments] = useState<ExperimentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,14 +58,18 @@ export function EvidenceCenter({
     let active = true;
     Promise.all([getLatestLearningRun(skillId, skillVersion), listExperiments()])
       .then(async ([nextRun, nextExperiments]) => {
-        const nextEvidence = nextRun
-          ? await getLearningEvidence(nextRun.id)
-          : null;
+        const [nextEvidence, nextProfile] = nextRun
+          ? await Promise.all([
+              getLearningEvidence(nextRun.id),
+              getCapabilityProfile(nextRun.id),
+            ])
+          : [null, null];
         if (!active) {
           return;
         }
         setRun(nextRun);
         setEvidence(nextEvidence);
+        setProfile(nextProfile);
         setExperiments(
           nextExperiments.filter(
             (item) =>
@@ -302,6 +310,8 @@ export function EvidenceCenter({
           <li>外部真人评审单独展示，不会静默抬高学习执行的六维等级。</li>
         </ul>
       </section>
+
+      {profile ? <CapabilityProfile profile={profile} /> : null}
     </div>
   );
 }

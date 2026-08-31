@@ -480,6 +480,643 @@
         "title": "BranchGateResponse",
         "type": "object"
       },
+      "CapabilityProfileAnalyticsResponse": {
+        "properties": {
+          "attempt_count": {
+            "title": "Attempt Count",
+            "type": "integer"
+          },
+          "correction_count": {
+            "title": "Correction Count",
+            "type": "integer"
+          },
+          "failed_count": {
+            "title": "Failed Count",
+            "type": "integer"
+          },
+          "fastest_correction_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fastest Correction Seconds"
+          },
+          "first_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Attempt At"
+          },
+          "first_deterministic_pass_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Deterministic Pass At"
+          },
+          "passed_count": {
+            "title": "Passed Count",
+            "type": "integer"
+          },
+          "review_due_count": {
+            "title": "Review Due Count",
+            "type": "integer"
+          },
+          "review_failed_count": {
+            "title": "Review Failed Count",
+            "type": "integer"
+          },
+          "review_overdue_count": {
+            "title": "Review Overdue Count",
+            "type": "integer"
+          },
+          "review_passed_count": {
+            "title": "Review Passed Count",
+            "type": "integer"
+          },
+          "uncertain_count": {
+            "title": "Uncertain Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attempt_count",
+          "passed_count",
+          "failed_count",
+          "uncertain_count",
+          "correction_count",
+          "first_attempt_at",
+          "first_deterministic_pass_at",
+          "fastest_correction_seconds",
+          "review_due_count",
+          "review_overdue_count",
+          "review_passed_count",
+          "review_failed_count"
+        ],
+        "title": "CapabilityProfileAnalyticsResponse",
+        "type": "object"
+      },
+      "CapabilityProfileDimensionResponse": {
+        "properties": {
+          "dimension": {
+            "enum": [
+              "understanding",
+              "operation",
+              "transfer",
+              "artifact",
+              "retention",
+              "correction"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          },
+          "evidence_count": {
+            "title": "Evidence Count",
+            "type": "integer"
+          },
+          "evidence_level": {
+            "enum": [
+              "none",
+              "limited",
+              "supported",
+              "verified",
+              "retained"
+            ],
+            "title": "Evidence Level",
+            "type": "string"
+          },
+          "expired_count": {
+            "title": "Expired Count",
+            "type": "integer"
+          },
+          "latest_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest At"
+          },
+          "review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Flags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dimension",
+          "evidence_level",
+          "evidence_count",
+          "review_flags",
+          "latest_at",
+          "expired_count"
+        ],
+        "title": "CapabilityProfileDimensionResponse",
+        "type": "object"
+      },
+      "CapabilityProfileDomainResponse": {
+        "properties": {
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityProfileItemResponse"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "capabilities"
+        ],
+        "title": "CapabilityProfileDomainResponse",
+        "type": "object"
+      },
+      "CapabilityProfileEvidenceResponse": {
+        "properties": {
+          "activity_id": {
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "criterion_id": {
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "dimension": {
+            "title": "Dimension",
+            "type": "string"
+          },
+          "expired": {
+            "title": "Expired",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "none",
+              "cpp",
+              "python"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Flags",
+            "type": "array"
+          },
+          "runner": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner"
+          },
+          "strength": {
+            "title": "Strength",
+            "type": "string"
+          },
+          "superseded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded At"
+          }
+        },
+        "required": [
+          "id",
+          "activity_id",
+          "attempt_id",
+          "criterion_id",
+          "dimension",
+          "method",
+          "result",
+          "strength",
+          "language",
+          "review_flags",
+          "created_at",
+          "expires_at",
+          "expired",
+          "superseded_at",
+          "runner"
+        ],
+        "title": "CapabilityProfileEvidenceResponse",
+        "type": "object"
+      },
+      "CapabilityProfileIndependentReviewResponse": {
+        "properties": {
+          "attachments_stored": {
+            "const": false,
+            "title": "Attachments Stored",
+            "type": "boolean"
+          },
+          "conclusion": {
+            "enum": [
+              "meets",
+              "needs_work",
+              "uncertain"
+            ],
+            "title": "Conclusion",
+            "type": "string"
+          },
+          "dimension": {
+            "title": "Dimension",
+            "type": "string"
+          },
+          "expired": {
+            "title": "Expired",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewed_at": {
+            "format": "date-time",
+            "title": "Reviewed At",
+            "type": "string"
+          },
+          "reviewer_relationship": {
+            "title": "Reviewer Relationship",
+            "type": "string"
+          },
+          "rubric_id": {
+            "title": "Rubric Id",
+            "type": "string"
+          },
+          "rubric_version": {
+            "title": "Rubric Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "dimension",
+          "reviewer_relationship",
+          "rubric_id",
+          "rubric_version",
+          "conclusion",
+          "reviewed_at",
+          "expires_at",
+          "expired",
+          "attachments_stored"
+        ],
+        "title": "CapabilityProfileIndependentReviewResponse",
+        "type": "object"
+      },
+      "CapabilityProfileItemResponse": {
+        "properties": {
+          "analytics": {
+            "$ref": "#/components/schemas/CapabilityProfileAnalyticsResponse"
+          },
+          "can_prove": {
+            "title": "Can Prove",
+            "type": "string"
+          },
+          "cannot_prove": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cannot Prove",
+            "type": "array"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityProfileDimensionResponse"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "domain_id": {
+            "title": "Domain Id",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityProfileEvidenceResponse"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "independent_reviews": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityProfileIndependentReviewResponse"
+            },
+            "title": "Independent Reviews",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "domain_id",
+          "dimensions",
+          "analytics",
+          "evidence",
+          "independent_reviews",
+          "can_prove",
+          "cannot_prove"
+        ],
+        "title": "CapabilityProfileItemResponse",
+        "type": "object"
+      },
+      "CapabilityProfilePlanAlignmentResponse": {
+        "properties": {
+          "actual_minutes_available": {
+            "const": false,
+            "title": "Actual Minutes Available",
+            "type": "boolean"
+          },
+          "completed_activity_count": {
+            "title": "Completed Activity Count",
+            "type": "integer"
+          },
+          "completed_estimated_minutes": {
+            "title": "Completed Estimated Minutes",
+            "type": "integer"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "scheduled_activity_count": {
+            "title": "Scheduled Activity Count",
+            "type": "integer"
+          },
+          "scheduled_estimated_minutes": {
+            "title": "Scheduled Estimated Minutes",
+            "type": "integer"
+          },
+          "unfinished_estimated_minutes": {
+            "title": "Unfinished Estimated Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scheduled_estimated_minutes",
+          "completed_estimated_minutes",
+          "unfinished_estimated_minutes",
+          "completed_activity_count",
+          "scheduled_activity_count",
+          "actual_minutes_available",
+          "meaning"
+        ],
+        "title": "CapabilityProfilePlanAlignmentResponse",
+        "type": "object"
+      },
+      "CapabilityProfilePrivacyResponse": {
+        "properties": {
+          "certificate_created": {
+            "const": false,
+            "title": "Certificate Created",
+            "type": "boolean"
+          },
+          "credentials_included": {
+            "const": false,
+            "title": "Credentials Included",
+            "type": "boolean"
+          },
+          "income_included": {
+            "const": false,
+            "title": "Income Included",
+            "type": "boolean"
+          },
+          "local_only": {
+            "const": true,
+            "title": "Local Only",
+            "type": "boolean"
+          },
+          "public_link_created": {
+            "const": false,
+            "title": "Public Link Created",
+            "type": "boolean"
+          },
+          "sensitive_submission_content_included": {
+            "const": false,
+            "title": "Sensitive Submission Content Included",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "local_only",
+          "public_link_created",
+          "certificate_created",
+          "sensitive_submission_content_included",
+          "credentials_included",
+          "income_included"
+        ],
+        "title": "CapabilityProfilePrivacyResponse",
+        "type": "object"
+      },
+      "CapabilityProfileResponse": {
+        "properties": {
+          "domains": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityProfileDomainResponse"
+            },
+            "title": "Domains",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "is_preview": {
+            "title": "Is Preview",
+            "type": "boolean"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "lock_sha256": {
+            "title": "Lock Sha256",
+            "type": "string"
+          },
+          "plan_alignment": {
+            "$ref": "#/components/schemas/CapabilityProfilePlanAlignmentResponse"
+          },
+          "privacy": {
+            "$ref": "#/components/schemas/CapabilityProfilePrivacyResponse"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "run_status": {
+            "title": "Run Status",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scope_status": {
+            "enum": [
+              "scoped",
+              "legacy_unscoped"
+            ],
+            "title": "Scope Status",
+            "type": "string"
+          },
+          "shadow_evaluation": {
+            "$ref": "#/components/schemas/ReviewShadowEvaluationResponse"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_title": {
+            "title": "Skill Title",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/CapabilityProfileSummaryResponse"
+          }
+        },
+        "required": [
+          "schema_version",
+          "run_id",
+          "skill_id",
+          "skill_version",
+          "skill_title",
+          "run_status",
+          "is_preview",
+          "generated_at",
+          "lock_sha256",
+          "scope_status",
+          "summary",
+          "plan_alignment",
+          "domains",
+          "shadow_evaluation",
+          "privacy",
+          "limitations"
+        ],
+        "title": "CapabilityProfileResponse",
+        "type": "object"
+      },
+      "CapabilityProfileSummaryResponse": {
+        "properties": {
+          "active_evidence_count": {
+            "title": "Active Evidence Count",
+            "type": "integer"
+          },
+          "attempt_count": {
+            "title": "Attempt Count",
+            "type": "integer"
+          },
+          "capability_count": {
+            "title": "Capability Count",
+            "type": "integer"
+          },
+          "evidenced_capability_count": {
+            "title": "Evidenced Capability Count",
+            "type": "integer"
+          },
+          "independent_review_count": {
+            "title": "Independent Review Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capability_count",
+          "evidenced_capability_count",
+          "attempt_count",
+          "active_evidence_count",
+          "independent_review_count"
+        ],
+        "title": "CapabilityProfileSummaryResponse",
+        "type": "object"
+      },
       "CapabilityScopeResponse": {
         "properties": {
           "capability_scope_id": {
@@ -5082,6 +5719,229 @@
         "title": "ReviewMarketResearchRequest",
         "type": "object"
       },
+      "ReviewShadowComparisonResponse": {
+        "properties": {
+          "candidate_value": {
+            "title": "Candidate Value",
+            "type": "integer"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "metric": {
+            "const": "binary_outcome_accuracy_basis_points",
+            "title": "Metric",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric",
+          "candidate_value",
+          "meaning"
+        ],
+        "title": "ReviewShadowComparisonResponse",
+        "type": "object"
+      },
+      "ReviewShadowEvaluationResponse": {
+        "properties": {
+          "affects_evidence": {
+            "const": false,
+            "title": "Affects Evidence",
+            "type": "boolean"
+          },
+          "affects_tasks": {
+            "const": false,
+            "title": "Affects Tasks",
+            "type": "boolean"
+          },
+          "affects_user_conclusions": {
+            "const": false,
+            "title": "Affects User Conclusions",
+            "type": "boolean"
+          },
+          "authoritative_policy": {
+            "$ref": "#/components/schemas/ReviewShadowPolicyResponse"
+          },
+          "checkpoint_position_count": {
+            "title": "Checkpoint Position Count",
+            "type": "integer"
+          },
+          "code_version": {
+            "title": "Code Version",
+            "type": "string"
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewShadowComparisonResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failure_count": {
+            "title": "Failure Count",
+            "type": "integer"
+          },
+          "input_schema_version": {
+            "title": "Input Schema Version",
+            "type": "string"
+          },
+          "insufficient_reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Insufficient Reason Codes",
+            "type": "array"
+          },
+          "memory_probability_exposed": {
+            "const": false,
+            "title": "Memory Probability Exposed",
+            "type": "boolean"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "model_sha256": {
+            "title": "Model Sha256",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ReviewShadowParametersResponse"
+          },
+          "pass_count": {
+            "title": "Pass Count",
+            "type": "integer"
+          },
+          "predictions_exposed": {
+            "const": false,
+            "title": "Predictions Exposed",
+            "type": "boolean"
+          },
+          "sample_count": {
+            "title": "Sample Count",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "insufficient_data",
+              "comparison_available"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "model_id",
+          "model_version",
+          "model_sha256",
+          "code_version",
+          "input_schema_version",
+          "parameters",
+          "sample_count",
+          "pass_count",
+          "failure_count",
+          "checkpoint_position_count",
+          "insufficient_reason_codes",
+          "predictions_exposed",
+          "memory_probability_exposed",
+          "affects_tasks",
+          "affects_evidence",
+          "affects_user_conclusions",
+          "authoritative_policy",
+          "comparison"
+        ],
+        "title": "ReviewShadowEvaluationResponse",
+        "type": "object"
+      },
+      "ReviewShadowParametersResponse": {
+        "properties": {
+          "cold_start_prediction": {
+            "const": "pass",
+            "title": "Cold Start Prediction",
+            "type": "string"
+          },
+          "minimum_checkpoint_positions": {
+            "title": "Minimum Checkpoint Positions",
+            "type": "integer"
+          },
+          "minimum_failures": {
+            "title": "Minimum Failures",
+            "type": "integer"
+          },
+          "minimum_passes": {
+            "title": "Minimum Passes",
+            "type": "integer"
+          },
+          "minimum_samples": {
+            "title": "Minimum Samples",
+            "type": "integer"
+          },
+          "prior_failure_prediction": {
+            "const": "fail",
+            "title": "Prior Failure Prediction",
+            "type": "string"
+          },
+          "prior_pass_prediction": {
+            "const": "pass",
+            "title": "Prior Pass Prediction",
+            "type": "string"
+          },
+          "retry_prediction": {
+            "const": "fail",
+            "title": "Retry Prediction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "minimum_samples",
+          "minimum_passes",
+          "minimum_failures",
+          "minimum_checkpoint_positions",
+          "cold_start_prediction",
+          "retry_prediction",
+          "prior_failure_prediction",
+          "prior_pass_prediction"
+        ],
+        "title": "ReviewShadowParametersResponse",
+        "type": "object"
+      },
+      "ReviewShadowPolicyResponse": {
+        "properties": {
+          "interval_days": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Interval Days",
+            "type": "array"
+          },
+          "strategy": {
+            "const": "fixed_expanding",
+            "title": "Strategy",
+            "type": "string"
+          },
+          "unchanged": {
+            "const": true,
+            "title": "Unchanged",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "strategy",
+          "interval_days",
+          "unchanged"
+        ],
+        "title": "ReviewShadowPolicyResponse",
+        "type": "object"
+      },
       "ReviewTaskResponse": {
         "properties": {
           "activity_id": {
@@ -8291,6 +9151,101 @@
         "summary": "Get Learning Branch Gates",
         "tags": [
           "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/capability-profile": {
+      "get": {
+        "operationId": "get_capability_profile_learning_runs__run_id__capability_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilityProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Capability Profile",
+        "tags": [
+          "capability-profile-8e"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/capability-profile/export": {
+      "get": {
+        "operationId": "export_capability_profile_learning_runs__run_id__capability_profile_export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": true,
+            "schema": {
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Capability Profile",
+        "tags": [
+          "capability-profile-8e"
         ]
       }
     },

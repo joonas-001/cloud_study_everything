@@ -29,7 +29,9 @@ test("keeps the milestone 7C shell and real inbox state navigable", async ({ pag
       "page",
     );
     await mobileNavigation.getByRole("link", { name: /证据/ }).click();
-    await expect(page.getByRole("heading", { name: "看见证据，也看见证据的边界。" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "看见证据，也看见精确范围与限制。" }),
+    ).toBeVisible();
     await expect(
       page
         .getByRole("heading", { name: "还没有可汇总的学习执行" })
@@ -47,7 +49,9 @@ test("keeps the milestone 7C shell and real inbox state navigable", async ({ pag
       "page",
     );
     await desktopNavigation.getByRole("link", { name: "证据" }).click();
-    await expect(page.getByRole("heading", { name: "看见证据，也看见证据的边界。" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "看见证据，也看见精确范围与限制。" }),
+    ).toBeVisible();
     await expect(
       page
         .getByRole("heading", { name: "还没有可汇总的学习执行" })
@@ -335,8 +339,29 @@ test("completes the guarded diagnostic preview and preserves corrections", async
     await expect(card).toContainText(`${dimension.evidence_count} 条`);
   }
   await expect(page.getByRole("heading", { name: "当前不能证明什么" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "范围化能力档案" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "导出 JSON" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "导出 CSV" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "本地打印" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "复习候选只做隔离影子评估" }),
+  ).toBeVisible();
+  await expect(page.getByText("样本不足，不形成比较结论")).toBeVisible();
+  const profileResponse = await page.request.get(
+    `${apiBaseUrl}/learning-runs/${latestRun.id}/capability-profile`,
+  );
+  expect(profileResponse.ok()).toBe(true);
+  const profile = (await profileResponse.json()) as {
+    privacy: { sensitive_submission_content_included: boolean };
+    shadow_evaluation: { affects_tasks: boolean; status: string };
+  };
+  expect(profile.privacy.sensitive_submission_content_included).toBe(false);
+  expect(profile.shadow_evaluation).toMatchObject({
+    affects_tasks: false,
+    status: "insufficient_data",
+  });
   await page.screenshot({
-    path: testInfo.outputPath("m7d-evidence-center.png"),
+    path: testInfo.outputPath("m8e-capability-profile.png"),
     fullPage: true,
   });
   await page.goto("/learning");
