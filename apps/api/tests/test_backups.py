@@ -47,11 +47,11 @@ def test_encrypted_backup_round_trip_preserves_migrated_database(tmp_path: Path)
     )
 
     assert backup_path.is_file()
-    assert manifest["database"]["alembic_revision"] == "0010"
+    assert manifest["database"]["alembic_revision"] == "0011"
     assert inspect_encrypted_backup(backup_path)["policy_id"] == "single-user-singapore"
     restored_manifest = restore_encrypted_backup(backup_path, restored_path, private_key)
     assert restored_manifest == manifest
-    assert read_schema_version(restored_path) == "0010"
+    assert read_schema_version(restored_path) == "0011"
     restored_engine = create_database_engine(restored_path)
     try:
         with restored_engine.connect() as connection:

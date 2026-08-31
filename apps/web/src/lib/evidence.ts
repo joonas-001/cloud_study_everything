@@ -45,6 +45,7 @@ export const REVIEW_FLAG_COPY: Record<
   manual_review_pending: "待独立人工复核",
   retention_due: "待延迟复习",
   source_review_pending: "来源待复核",
+  version_mismatch: "精确版本不一致",
 };
 
 export const EVIDENCE_STRENGTH_COPY: Record<
@@ -54,6 +55,8 @@ export const EVIDENCE_STRENGTH_COPY: Record<
   limited: "有限",
   supported: "支持",
   retained_limited: "有限保持",
+  verified: "Runner 范围验证",
+  retained: "延迟范围保持",
 };
 
 export function evidenceActivityTitle(

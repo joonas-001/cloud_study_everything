@@ -5,23 +5,31 @@ import { useEffect, useMemo, useState } from "react";
 
 import { StatusMessage } from "@/components/status-message";
 import type {
+  BranchGateEvaluationResponse,
+  LearningIndependentReviewResponse,
   LearningActivityResponse,
   LearningRunResponse,
   PlanningOptionResponse,
   RunnerAvailabilityResponse,
   RunnerInvocationResponse,
+  StageCheckpointResponse,
   TodayLearningResponse,
 } from "@/generated/api-schema";
 import {
   correctLearningActivityAttempt,
+  createLearningIndependentReview,
   createLearningRun,
   endLearningRun,
   executeRunnerAttempt,
   generateTodayLearning,
+  getLearningBranchGates,
   getLearningPlanOptions,
+  getLearningStageCheckpoints,
   getLatestLearningRun,
   getRunnerAvailability,
   messageForError,
+  pauseLearningRun,
+  resumeLearningRun,
   selfReviewActivityAttempt,
   submitLearningActivityAttempt,
 } from "@/lib/api";
@@ -37,6 +45,36 @@ const runnerReasonLabels: Record<string, string> = {
   runner_disk_budget_unavailable: "D 盘剩余空间低于安全门槛",
   runner_disk_budget_exceeded: "Runner 数据已超过 6 GB 预算",
 };
+
+const dailyPriorityLabels: Record<string, string> = {
+  due_retention: "到期保持",
+  failed_correction: "失败纠错",
+  blocking_prerequisite: "阻断前置",
+  new_content: "新内容",
+};
+
+const checkpointStatusLabels: Record<string, string> = {
+  not_started: "尚未开始",
+  in_progress: "初轮学习中",
+  initial_learning_completed: "初轮学习已完成",
+};
+
+function requirementLabel(requirement: Record<string, unknown>): string {
+  const title = String(requirement.title ?? requirement.capability_id ?? "未知能力");
+  const dimension = String(requirement.dimension ?? "未知维度");
+  const required = requirement.required_level
+    ? `需 ${String(requirement.required_level)}`
+    : "需真人复核";
+  const actual = requirement.actual_level
+    ? `，现有 ${String(requirement.actual_level)}`
+    : "";
+  return `${title} · ${dimension} · ${required}${actual}`;
+}
+
+function localDateTimeValue(date = new Date()): string {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
 
 function runnerTests(
   invocation: RunnerInvocationResponse,
@@ -55,11 +93,23 @@ function selfReviewRubric(activity: LearningActivityResponse): string | null {
   if (activity.template_activity_id === "checkpoint-explanation") {
     return "explanation-self-review";
   }
+  if (activity.type === "explanation") {
+    return "understanding-rubric";
+  }
   if (activity.template_activity_id === "checkpoint-transfer") {
     return "transfer-self-review";
   }
+  if (activity.type === "transfer") {
+    return "transfer-rubric";
+  }
   if (activity.template_activity_id === "checkpoint-project") {
     return "project-self-review";
+  }
+  if (activity.type === "project_evidence") {
+    return "artifact-rubric";
+  }
+  if (activity.type === "correction") {
+    return "correction-rubric";
   }
   return null;
 }
@@ -78,6 +128,26 @@ export function LearningExecutionPanel({
   const [runnerAvailability, setRunnerAvailability] =
     useState<RunnerAvailabilityResponse | null>(null);
   const [availableMinutes, setAvailableMinutes] = useState(120);
+  const [allowOvertime, setAllowOvertime] = useState(false);
+  const [overtimeReason, setOvertimeReason] = useState("");
+  const [pauseReason, setPauseReason] = useState("");
+  const [stageCheckpoints, setStageCheckpoints] = useState<
+    Array<StageCheckpointResponse>
+  >([]);
+  const [executionMetadataRunId, setExecutionMetadataRunId] = useState("");
+  const [branchGates, setBranchGates] =
+    useState<BranchGateEvaluationResponse | null>(null);
+  const [independentReviews, setIndependentReviews] = useState<
+    Array<LearningIndependentReviewResponse>
+  >([]);
+  const [reviewerRelationship, setReviewerRelationship] = useState("");
+  const [reviewDimension, setReviewDimension] = useState<
+    "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction"
+  >("understanding");
+  const [reviewConclusion, setReviewConclusion] = useState<
+    "meets" | "needs_work" | "uncertain"
+  >("meets");
+  const [reviewedAt, setReviewedAt] = useState(localDateTimeValue());
   const [selectedActivityId, setSelectedActivityId] = useState("");
   const [submission, setSubmission] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(true);
@@ -97,7 +167,7 @@ export function LearningExecutionPanel({
         setPlans(nextPlans);
         setSelectedPlanId(
           nextRun &&
-            ["active", "retention_pending"].includes(nextRun.status)
+            ["active", "paused", "retention_pending"].includes(nextRun.status)
             ? nextRun.planning_proposal_id
             : nextPlans[0]?.id ?? "",
         );
@@ -120,14 +190,44 @@ export function LearningExecutionPanel({
     };
   }, [skillId, skillVersion]);
 
+  useEffect(() => {
+    let active = true;
+    if (!run) {
+      return () => {
+        active = false;
+      };
+    }
+    getLearningStageCheckpoints(run.id)
+      .then(async (checkpoints) => {
+        const gates =
+          checkpoints.length > 0 ? await getLearningBranchGates(run.id) : null;
+        if (!active) {
+          return;
+        }
+        setExecutionMetadataRunId(run.id);
+        setStageCheckpoints(checkpoints);
+        setBranchGates(gates);
+      })
+      .catch((reason: unknown) => {
+        if (active) {
+          setError(messageForError(reason));
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [run]);
+
   const selectedPlan = plans.find((item) => item.id === selectedPlanId) ?? null;
   const availableActivities = useMemo(
     () =>
-      today?.tasks ??
-      run?.activities.filter((item) =>
-        ["available", "correction_required"].includes(item.status),
-      ) ??
-      [],
+      run?.status === "paused"
+        ? []
+        : today?.tasks ??
+          run?.activities.filter((item) =>
+            ["available", "correction_required"].includes(item.status),
+          ) ??
+          [],
     [run, today],
   );
   const selectedActivity =
@@ -193,10 +293,56 @@ export function LearningExecutionPanel({
     void execute(async () => {
       const nextToday = await generateTodayLearning(run.id, {
         available_minutes: availableMinutes,
+        allow_overtime: availableMinutes > 120 && allowOvertime,
+        overtime_reason:
+          availableMinutes > 120 && allowOvertime ? overtimeReason : null,
       });
       setToday(nextToday);
       setSelectedActivityId(nextToday.tasks[0]?.id ?? "");
       setSubmission({});
+    });
+  }
+
+  function pauseRun() {
+    if (!run) {
+      return;
+    }
+    void execute(async () => {
+      setRun(await pauseLearningRun(run.id, { reason: pauseReason }));
+      setToday(null);
+      setPauseReason("");
+    });
+  }
+
+  function resumeRun() {
+    if (!run) {
+      return;
+    }
+    void execute(async () => {
+      setRun(await resumeLearningRun(run.id));
+      setToday(null);
+    });
+  }
+
+  function recordIndependentReview() {
+    if (!run || !selectedActivity || selectedActivity.capability_ids.length === 0) {
+      return;
+    }
+    void execute(async () => {
+      const review = await createLearningIndependentReview(run.id, {
+        activity_id: selectedActivity.id,
+        capability_ids: selectedActivity.capability_ids,
+        dimension: reviewDimension,
+        reviewer_relationship: reviewerRelationship,
+        rubric_id: `${reviewDimension}-rubric`,
+        rubric_version: "1.0.0",
+        conclusion: reviewConclusion,
+        reviewed_at: new Date(reviewedAt).toISOString(),
+      });
+      setIndependentReviews((items) => [...items, review]);
+      setReviewerRelationship("");
+      setReviewedAt(localDateTimeValue());
+      setBranchGates(await getLearningBranchGates(run.id));
     });
   }
 
@@ -265,7 +411,7 @@ export function LearningExecutionPanel({
       <header className="execution-header">
         <div>
           <span className="preview-badge">
-            algorithm@{skillVersion} · 4B 隔离运行
+            algorithm@{skillVersion} · 共同主干学习执行
           </span>
           <h2>学习执行与证据</h2>
           <p>
@@ -408,6 +554,8 @@ export function LearningExecutionPanel({
             <p>
               {run.status === "retention_pending"
                 ? "首轮活动已完成，必须通过固定第 1、2、4、7、15 天复习后才能完成本次流程。"
+                : run.status === "paused"
+                  ? `本次执行已暂停：${run.pause_reason ?? "未记录原因"}。暂停和延期都不记为能力失败。`
                 : run.status === "completed"
                   ? "本次流程已完成；这不是掌握结论。"
                   : run.status === "ended"
@@ -416,7 +564,29 @@ export function LearningExecutionPanel({
             </p>
           </section>
 
-          {!["completed", "ended"].includes(run.status) ? (
+          {run.status === "paused" ? (
+            <section className="run-state-control">
+              <div>
+                <span className="eyebrow">追加式暂停记录</span>
+                <h3>学习执行已暂停</h3>
+                <p>
+                  暂停于{" "}
+                  {run.paused_at
+                    ? new Date(run.paused_at).toLocaleString("zh-CN")
+                    : "未知时间"}
+                  。恢复后会重新计算到期任务，逾期不算失败。
+                </p>
+              </div>
+              <button
+                className="primary-button"
+                type="button"
+                disabled={busy}
+                onClick={resumeRun}
+              >
+                恢复学习执行
+              </button>
+            </section>
+          ) : !["completed", "ended"].includes(run.status) ? (
             <section className="today-control">
               <label>
                 今日可用时间
@@ -434,10 +604,37 @@ export function LearningExecutionPanel({
                   分钟
                 </span>
               </label>
+              {availableMinutes > 120 ? (
+                <div className="overtime-confirmation">
+                  <label className="confirmation-row">
+                    <input
+                      type="checkbox"
+                      checked={allowOvertime}
+                      disabled={busy}
+                      onChange={(event) => setAllowOvertime(event.target.checked)}
+                    />
+                    我明确确认今天超过默认 120 分钟预算。
+                  </label>
+                  <label>
+                    超时原因
+                    <input
+                      type="text"
+                      maxLength={500}
+                      value={overtimeReason}
+                      disabled={busy || !allowOvertime}
+                      onChange={(event) => setOvertimeReason(event.target.value)}
+                    />
+                  </label>
+                </div>
+              ) : null}
               <button
                 className="primary-button"
                 type="button"
-                disabled={busy}
+                disabled={
+                  busy ||
+                  (availableMinutes > 120 &&
+                    (!allowOvertime || overtimeReason.trim().length === 0))
+                }
                 onClick={generateToday}
               >
                 生成今日任务
@@ -445,9 +642,30 @@ export function LearningExecutionPanel({
               {today ? (
                 <p>
                   {today.reason} 当前选择 {today.tasks.length} 项，预计{" "}
-                  {today.estimated_minutes} 分钟。
+                  {today.estimated_minutes} 分钟
+                  {today.overtime ? "，已记录本日超时确认。" : "。"}
                 </p>
               ) : null}
+            </section>
+          ) : null}
+
+          {today?.deferred_tasks.length ? (
+            <section className="deferred-task-list">
+              <span className="eyebrow">追加式重排</span>
+              <h3>今日延期任务</h3>
+              <p>这些任务因预算或认知负荷限制顺延，不记为能力失败。</p>
+              <ul>
+                {today.deferred_tasks.map((task) => (
+                  <li key={task.activity_id}>
+                    <strong>{task.title}</strong>
+                    <span>
+                      {dailyPriorityLabels[task.daily_priority] ??
+                        task.daily_priority}{" "}
+                      · {task.estimated_minutes} 分钟 · {task.meaning}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </section>
           ) : null}
 
@@ -471,6 +689,9 @@ export function LearningExecutionPanel({
                     <span>{activity.type}</span>
                     <strong>{activity.title}</strong>
                     <small>
+                      {activity.daily_priority
+                        ? `${dailyPriorityLabels[activity.daily_priority] ?? activity.daily_priority} · `
+                        : ""}
                       {activity.estimated_minutes} 分钟
                       {activity.overdue ? " · 已逾期（不算失败）" : ""}
                     </small>
@@ -486,6 +707,13 @@ export function LearningExecutionPanel({
                     <strong>为什么安排</strong>
                     {selectedActivity.reason}
                   </aside>
+                  <p className="activity-scope">
+                    能力范围：
+                    {selectedActivity.capability_ids.join("、") ||
+                      "不产生能力证据"}
+                    ；语言：{selectedActivity.language}；证据上限：
+                    {selectedActivity.evidence_ceiling}。
+                  </p>
                   {selectedActivity.type === "code_text" ||
                   selectedActivity.type === "project_evidence" ? (
                     <div className="code-warning">
@@ -625,64 +853,274 @@ export function LearningExecutionPanel({
                       ))}
                     </section>
                   ) : null}
+                  {executionMetadataRunId === run.id &&
+                  stageCheckpoints.length > 0 &&
+                  latestAttempt &&
+                  selectedActivity.capability_ids.length > 0 ? (
+                    <section className="independent-review-form">
+                      <span className="eyebrow">外部真人评审</span>
+                      <h4>记录当前活动的独立范围观察</h4>
+                      <p>
+                        只记录评审关系、精确能力范围、受管量表、结论和日期；不保存身份证明或附件。
+                      </p>
+                      <div className="review-form-grid">
+                        <label>
+                          评审者关系
+                          <input
+                            type="text"
+                            maxLength={200}
+                            value={reviewerRelationship}
+                            disabled={busy}
+                            onChange={(event) =>
+                              setReviewerRelationship(event.target.value)
+                            }
+                          />
+                        </label>
+                        <label>
+                          评审维度
+                          <select
+                            value={reviewDimension}
+                            disabled={busy}
+                            onChange={(event) =>
+                              setReviewDimension(
+                                event.target.value as typeof reviewDimension,
+                              )
+                            }
+                          >
+                            <option value="understanding">理解</option>
+                            <option value="operation">操作</option>
+                            <option value="transfer">迁移</option>
+                            <option value="artifact">作品</option>
+                            <option value="retention">保持</option>
+                            <option value="correction">纠错</option>
+                          </select>
+                        </label>
+                        <label>
+                          结论
+                          <select
+                            value={reviewConclusion}
+                            disabled={busy}
+                            onChange={(event) =>
+                              setReviewConclusion(
+                                event.target.value as typeof reviewConclusion,
+                              )
+                            }
+                          >
+                            <option value="meets">观察项满足</option>
+                            <option value="needs_work">需要改进</option>
+                            <option value="uncertain">不确定</option>
+                          </select>
+                        </label>
+                        <label>
+                          评审时间
+                          <input
+                            type="datetime-local"
+                            value={reviewedAt}
+                            max={localDateTimeValue()}
+                            disabled={busy}
+                            onChange={(event) => setReviewedAt(event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <button
+                        className="text-button"
+                        type="button"
+                        disabled={
+                          busy ||
+                          reviewerRelationship.trim().length === 0 ||
+                          reviewedAt.length === 0
+                        }
+                        onClick={recordIndependentReview}
+                      >
+                        追加真人评审记录
+                      </button>
+                      {independentReviews
+                        .filter((item) => item.activity_id === selectedActivity.id)
+                        .map((item) => (
+                          <p className="recorded-review" key={item.id}>
+                            已记录：{item.dimension} · {item.conclusion} · 有效至{" "}
+                            {new Date(item.expires_at).toLocaleDateString("zh-CN")}；
+                            附件未保存。
+                          </p>
+                        ))}
+                    </section>
+                  ) : null}
                 </article>
               ) : null}
             </section>
           ) : null}
 
-          {!["completed", "ended"].includes(run.status) ? (
+          {!["paused", "completed", "ended"].includes(run.status) ? (
             <section className="self-review-list">
-            <span className="eyebrow">Self review</span>
-            <h3>结构有效提交的自评待办</h3>
-            {run.activities
-              .filter((activity) => {
-                const rubric = selfReviewRubric(activity);
-                const latest =
-                  activity.attempts[activity.attempts.length - 1];
-                return (
-                  rubric &&
-                  latest &&
-                  !latest.evaluations.some(
-                    (evaluation) => evaluation.method === "self_review",
-                  )
-                );
-              })
-              .map((activity) => (
-                <article key={activity.id}>
-                  <div>
-                    <strong>{activity.title}</strong>
-                    <p>
-                      请选择依据量表的自评。即使选择“自评满足”，也只形成有限证据。
-                    </p>
-                  </div>
-                  <div className="answer-actions">
-                    <button
-                      type="button"
-                      className="text-button"
-                      disabled={busy}
-                      onClick={() => reviewAttempt(activity, "meets")}
-                    >
-                      自评满足
-                    </button>
-                    <button
-                      type="button"
-                      className="text-button"
-                      disabled={busy}
-                      onClick={() => reviewAttempt(activity, "uncertain")}
-                    >
-                      不确定
-                    </button>
-                    <button
-                      type="button"
-                      className="text-button"
-                      disabled={busy}
-                      onClick={() => reviewAttempt(activity, "not_yet")}
-                    >
-                      需要修订
-                    </button>
-                  </div>
-                </article>
+              <span className="eyebrow">Self review</span>
+              <h3>结构有效提交的自评待办</h3>
+              {run.activities
+                .filter((activity) => {
+                  const rubric = selfReviewRubric(activity);
+                  const latest =
+                    activity.attempts[activity.attempts.length - 1];
+                  return (
+                    rubric &&
+                    latest &&
+                    !latest.evaluations.some(
+                      (evaluation) => evaluation.method === "self_review",
+                    )
+                  );
+                })
+                .map((activity) => (
+                  <article key={activity.id}>
+                    <div>
+                      <strong>{activity.title}</strong>
+                      <p>
+                        请选择依据量表的自评。即使选择“自评满足”，也只形成有限证据。
+                      </p>
+                    </div>
+                    <div className="answer-actions">
+                      <button
+                        type="button"
+                        className="text-button"
+                        disabled={busy}
+                        onClick={() => reviewAttempt(activity, "meets")}
+                      >
+                        自评满足
+                      </button>
+                      <button
+                        type="button"
+                        className="text-button"
+                        disabled={busy}
+                        onClick={() => reviewAttempt(activity, "uncertain")}
+                      >
+                        不确定
+                      </button>
+                      <button
+                        type="button"
+                        className="text-button"
+                        disabled={busy}
+                        onClick={() => reviewAttempt(activity, "not_yet")}
+                      >
+                        需要修订
+                      </button>
+                    </div>
+                  </article>
+                ))}
+            </section>
+          ) : null}
+
+          {executionMetadataRunId === run.id && stageCheckpoints.length > 0 ? (
+            <section className="stage-checkpoints">
+              <span className="eyebrow">十二域阶段检查</span>
+              <h3>共同主干初轮学习进度</h3>
+              <p>阶段完成只描述流程进度，不表示该领域或整门算法掌握。</p>
+              <div className="stage-checkpoint-grid">
+                {stageCheckpoints.map((checkpoint) => (
+                  <article key={checkpoint.domain_id}>
+                    <span>{checkpointStatusLabels[checkpoint.status]}</span>
+                    <strong>{checkpoint.title}</strong>
+                    <small>
+                      {checkpoint.completed_units}/{checkpoint.total_units} 个学习单元
+                    </small>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {executionMetadataRunId === run.id && branchGates ? (
+            <section className="branch-gates">
+              <span className="eyebrow">四分支准确门禁</span>
+              <h3>共同主干后的入口资格</h3>
+              <p>
+                系统不会代替你选择分支；流程 completed、基础设施探针、自评或 AI
+                评价都不能自动解锁。
+              </p>
+              <div className="branch-gate-grid">
+                {branchGates.gates.map((gate) => (
+                  <article key={gate.id}>
+                    <header>
+                      <strong>{gate.title}</strong>
+                      <span>{gate.status === "eligible" ? "门禁满足，待用户选择" : "仍被阻断"}</span>
+                    </header>
+                    <dl>
+                      <div>
+                        <dt>已满足</dt>
+                        <dd>{gate.satisfied_capability_ids.length}</dd>
+                      </div>
+                      <div>
+                        <dt>过期</dt>
+                        <dd>{gate.expired_capability_ids.length}</dd>
+                      </div>
+                      <div>
+                        <dt>未来无效</dt>
+                        <dd>{gate.future_invalid_capability_ids.length}</dd>
+                      </div>
+                      <div>
+                        <dt>保持缺口</dt>
+                        <dd>{gate.retained_shortfall}</dd>
+                      </div>
+                    </dl>
+                    {gate.missing_requirements.length > 0 ? (
+                      <details>
+                        <summary>缺失能力要求（{gate.missing_requirements.length}）</summary>
+                        <ul>
+                          {gate.missing_requirements.map((item, index) => (
+                            <li key={`${gate.id}:missing:${index}`}>
+                              {requirementLabel(item)}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : null}
+                    {gate.missing_independent_reviews.length > 0 ? (
+                      <details>
+                        <summary>
+                          缺少真人复核（{gate.missing_independent_reviews.length}）
+                        </summary>
+                        <ul>
+                          {gate.missing_independent_reviews.map((item, index) => (
+                            <li key={`${gate.id}:review:${index}`}>
+                              {requirementLabel(item)}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : null}
+                    {gate.blocking_review_flags.length > 0 ? (
+                      <p>待复核：{gate.blocking_review_flags.join("、")}</p>
+                    ) : null}
+                    <small>{gate.meaning}</small>
+                  </article>
+                ))}
+              </div>
+              {branchGates.limitations.map((item) => (
+                <p className="muted" key={item}>
+                  {item}
+                </p>
               ))}
+            </section>
+          ) : null}
+
+          {["active", "retention_pending"].includes(run.status) ? (
+            <section className="pause-control">
+              <label>
+                暂停原因
+                <input
+                  type="text"
+                  minLength={1}
+                  maxLength={500}
+                  value={pauseReason}
+                  disabled={busy}
+                  onChange={(event) => setPauseReason(event.target.value)}
+                />
+              </label>
+              <button
+                className="text-button"
+                type="button"
+                disabled={busy || pauseReason.trim().length === 0}
+                onClick={pauseRun}
+              >
+                暂停并保留原因
+              </button>
+              <span>暂停不会删除任务、尝试、证据或审计历史。</span>
             </section>
           ) : null}
 

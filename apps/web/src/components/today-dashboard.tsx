@@ -44,6 +44,7 @@ const completionRuleLabels: Record<LearningActivityResponse["completion_rule"], 
 
 const runStatusLabels: Record<LearningRunResponse["status"], string> = {
   active: "学习执行中",
+  paused: "学习执行已暂停（不算失败）",
   retention_pending: "等待保持复习",
   completed: "本次流程已完成（不等于掌握）",
   ended: "本次执行已结束",

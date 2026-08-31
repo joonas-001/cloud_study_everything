@@ -34,7 +34,7 @@ def test_migration_rehearsal_uses_encrypted_copy_and_proves_rollback(tmp_path: P
     assert report["checks"]["formal_alembic_upgrade"] == "passed"
     assert report["checks"]["rollback_restore"] == "passed"
     assert report["checks"]["plaintext_copies_retained"] is False
-    assert report["source"]["alembic_revision"] == "0010"
+    assert report["source"]["alembic_revision"] == "0011"
     assert "app_settings" in report["source"]["row_counts"]
 
 

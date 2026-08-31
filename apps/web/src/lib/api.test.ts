@@ -2,15 +2,21 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   ApiError,
+  createLearningIndependentReview,
   executeRunnerAttempt,
+  generateTodayLearning,
   getActiveDiagnosticSession,
   getDeploymentStatus,
   getMarketResearchHistory,
   getMarketResearchOverview,
+  getLearningBranchGates,
+  getLearningStageCheckpoints,
   messageForError,
+  pauseLearningRun,
   redactMarketResearchSource,
   recoverPreDispatchMarketResearch,
   reconcileMarketResearchRecovery,
+  resumeLearningRun,
   synthesizeMarketResearch,
 } from "./api";
 
@@ -68,6 +74,80 @@ describe("diagnostic API helpers", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "http://127.0.0.1:8000/activity-attempts/attempt-1/execute",
+      expect.objectContaining({ method: "POST" }),
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps 8D confirmations and scope records explicit in learning requests", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await generateTodayLearning("run-1", {
+      available_minutes: 135,
+      allow_overtime: true,
+      overtime_reason: "今天明确延长十五分钟",
+    });
+    await pauseLearningRun("run-1", { reason: "临时中断" });
+    await resumeLearningRun("run-1");
+    await getLearningStageCheckpoints("run-1");
+    await getLearningBranchGates("run-1");
+    await createLearningIndependentReview("run-1", {
+      activity_id: "activity-1",
+      capability_ids: ["p-control-flow"],
+      dimension: "understanding",
+      reviewer_relationship: "同事",
+      rubric_id: "understanding-rubric",
+      rubric_version: "1.0.0",
+      conclusion: "meets",
+      reviewed_at: "2026-08-30T08:00:00Z",
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "http://127.0.0.1:8000/learning-runs/run-1/today",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          available_minutes: 135,
+          allow_overtime: true,
+          overtime_reason: "今天明确延长十五分钟",
+        }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "http://127.0.0.1:8000/learning-runs/run-1/pause",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ reason: "临时中断" }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "http://127.0.0.1:8000/learning-runs/run-1/resume",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
+      "http://127.0.0.1:8000/learning-runs/run-1/stage-checkpoints",
+      expect.any(Object),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      5,
+      "http://127.0.0.1:8000/learning-runs/run-1/branch-gates",
+      expect.any(Object),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      6,
+      "http://127.0.0.1:8000/learning-runs/run-1/independent-reviews",
       expect.objectContaining({ method: "POST" }),
     );
     vi.unstubAllGlobals();

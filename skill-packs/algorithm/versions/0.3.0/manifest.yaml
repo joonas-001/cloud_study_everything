@@ -44,7 +44,7 @@ content_files:
   sha256: 68ba8d02ace0daa286d93062a4051da6c988c309639e88a6851ce60754946c54
 - kind: rubric_definition
   path: assessments/rubric.yaml
-  sha256: 4b77f495af68ab7eef64cd683a57a8fc82773d935fe13b6a962747e3202a63be
+  sha256: 7a16c0edb2fb6f0b54faf2b879c580567b81931cd5c788575417610ce82c3301
 - kind: review_policy
   path: review/policy.yaml
   sha256: fe68da475832c7b563cb50949660c02a3be3c430620c3f897069e8a079fc7a43

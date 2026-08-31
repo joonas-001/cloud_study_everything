@@ -16,10 +16,12 @@ function evidence(overrides: Partial<MasteryEvidenceItemResponse> = {}): Mastery
   return {
     activity_id: "activity-1",
     attempt_id: "attempt-1",
+    capability_ids: ["p-control-flow"],
     created_at: "2026-08-12T08:00:00Z",
     criterion_id: "criterion-1",
     dimension: "understanding",
     id: "evidence-1",
+    language: "none",
     method: "deterministic",
     result: "passed",
     review_flags: [],
