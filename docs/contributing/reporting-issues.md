@@ -1,7 +1,9 @@
 # 如何提交高质量问题 / How to report a high-quality issue
 
-> 状态：8F 仓库内置顶指南正文候选。将它创建为远程置顶 Issue、同步标签或提交测试 Issue
-> 都属于 GitHub 外部写操作，必须另行授权。
+> 状态：详细提交指南。项目所有者于 2026-09-01 单独授权并已创建远程
+> [置顶提交入口 Issue #26](https://github.com/joonas-001/cloud_study_everything/issues/26)；
+> 受管正文见 `issue-submission-hub.md`。该授权不包含同步受管标签、Milestone、仓库设置、
+> Private Vulnerability Reporting 开关或测试 Issue。
 
 ## 快速流程 / Quick flow
 
