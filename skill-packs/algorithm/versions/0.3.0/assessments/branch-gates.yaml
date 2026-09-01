@@ -1,0 +1,121 @@
+schema_version: 1.0.0
+id: algorithm-common-core-branch-gates
+version: 1.0.0
+skill_id: algorithm
+skill_version: 0.3.0
+gates:
+- id: engineering
+  title: 工程应用
+  required_capability_ids:
+  - p-cpp-stl
+  - p-python-runtime
+  - a-asymptotic
+  - a-correctness
+  - l-selection
+  - h-application
+  - s-selection
+  - t-heap-priority
+  - g-shortest-path
+  - d-transfer
+  - q-testing-debugging
+  - q-performance-quality
+  minimum_levels:
+    understanding: supported
+    operation: verified
+  required_retained_count: 2
+  independent_review_dimensions: []
+  blocking_review_flags:
+  - manual_review_pending
+  - retention_due
+  - source_review_pending
+  - version_mismatch
+  limitations:
+  - 当前范围的代表性操作 verified，至少两项跨域操作 retained，阻断复核为零；不表示完整工程能力
+  - 门禁只计算入口状态，不创建课程，也不表示整门算法掌握。
+- id: interview
+  title: 求职面试
+  required_capability_ids:
+  - p-cpp-stl
+  - a-asymptotic
+  - a-correctness
+  - l-selection
+  - h-application
+  - s-selection
+  - r-recurrence-divide
+  - t-bst-invariant
+  - t-heap-priority
+  - g-bfs-dfs
+  - y-counterexample
+  - d-transfer
+  - q-testing-debugging
+  minimum_levels:
+    understanding: supported
+    operation: verified
+  required_retained_count: 2
+  independent_review_dimensions: []
+  blocking_review_flags:
+  - manual_review_pending
+  - retention_due
+  - source_review_pending
+  - version_mismatch
+  limitations:
+  - 核心理解 supported，至少四类代表性 Runner 操作 verified 且两类 retained；不表示已能通过面试
+  - 门禁只计算入口状态，不创建课程，也不表示整门算法掌握。
+- id: competition
+  title: 算法竞赛
+  required_capability_ids:
+  - p-cpp-stl
+  - m-counting-probability
+  - a-recurrence
+  - a-correctness
+  - s-selection
+  - r-recurrence-divide
+  - t-heap-priority
+  - g-topological-cycle
+  - g-shortest-path
+  - g-mst
+  - y-exchange-proof
+  - d-transfer
+  - q-testing-debugging
+  minimum_levels:
+    understanding: supported
+    operation: verified
+  required_retained_count: 2
+  independent_review_dimensions: []
+  blocking_review_flags:
+  - manual_review_pending
+  - retention_due
+  - source_review_pending
+  - version_mismatch
+  limitations:
+  - C++ 代表性操作 verified 与 retained，数学/证明范围 supported，阻断复核为零；不表示竞赛等级
+  - 门禁只计算入口状态，不创建课程，也不表示整门算法掌握。
+- id: theory
+  title: 算法理论
+  required_capability_ids:
+  - m-logic-sets
+  - m-induction-sums-logs
+  - m-counting-probability
+  - a-asymptotic
+  - a-recurrence
+  - a-correctness
+  - r-recurrence-divide
+  - g-shortest-path
+  - g-mst
+  - y-exchange-proof
+  - y-counterexample
+  - d-state-transition
+  minimum_levels:
+    understanding: supported
+    operation: supported
+  required_retained_count: 0
+  independent_review_dimensions:
+  - understanding
+  blocking_review_flags:
+  - manual_review_pending
+  - retention_due
+  - source_review_pending
+  - version_mismatch
+  limitations:
+  - 证明与反例范围经受管量表的独立真人评审，确定性范围 supported，时效有效；不表示完整理论训练
+  - 门禁只计算入口状态，不创建课程，也不表示整门算法掌握。

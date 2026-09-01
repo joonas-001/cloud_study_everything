@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/content-coverage.schema.json",
+  "title": "Skill package content coverage declaration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "skill_id", "skill_version", "budgets", "domains"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"$ref": "#/$defs/stableId"},
+    "skill_id": {"$ref": "#/$defs/stableId"},
+    "skill_version": {"$ref": "#/$defs/version"},
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain_count", "capability_max", "unit_max", "total_unit_minutes_max", "diagnostic_item_max", "runner_task_max", "rubric_max"],
+      "properties": {
+        "domain_count": {"type": "integer", "minimum": 1},
+        "capability_max": {"type": "integer", "minimum": 1},
+        "unit_max": {"type": "integer", "minimum": 1},
+        "total_unit_minutes_max": {"type": "integer", "minimum": 1},
+        "diagnostic_item_max": {"type": "integer", "minimum": 1},
+        "runner_task_max": {"type": "integer", "minimum": 1},
+        "rubric_max": {"type": "integer", "minimum": 1}
+      }
+    },
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["domain_id", "source_ids", "required_activity_roles", "evidence_dimensions", "runner_capability_ids"],
+        "properties": {
+          "domain_id": {"$ref": "#/$defs/stableId"},
+          "source_ids": {"$ref": "#/$defs/idList"},
+          "required_activity_roles": {"$ref": "#/$defs/roleList"},
+          "evidence_dimensions": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"enum": ["understanding", "operation", "transfer", "artifact", "retention", "correction"]}
+          },
+          "runner_capability_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/stableId"}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "idList": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/stableId"}},
+    "roleList": {
+      "type": "array", "minItems": 6, "uniqueItems": true,
+      "items": {"enum": ["study", "active_recall", "structured_check", "correction", "proof", "runner_cpp", "runner_python", "transfer", "project", "review"]}
+    }
+  }
+}

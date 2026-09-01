@@ -1,0 +1,2139 @@
+schema_version: 2.0.0
+id: algorithm-common-core-diagnostic-bank
+skill_id: algorithm
+skill_version: 0.3.0
+policy_id: algorithm-deterministic-adaptive-diagnostic
+start_question_id: diagnostic-01-p-control-flow
+questions:
+- id: diagnostic-01-p-control-flow
+  prompt: 基础判断：空数组上执行 for (i=0; i<n; ++i) 时循环体执行几次？
+  reason: 为能力 p-control-flow 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-control-flow
+  prerequisite_capability_ids: &id001 []
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: entry-baseline
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 0 次
+  - value: overclaim
+    label: 至少 1 次
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-02-p-functions-io
+    skipped: diagnostic-02-p-functions-io
+    uncertain: diagnostic-02-p-functions-io
+- id: diagnostic-02-p-functions-io
+  prompt: 基础判断：函数声明 solve(const vector<int>& a) 最明确表达哪项约定？
+  reason: 为能力 p-functions-io 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-functions-io
+  prerequisite_capability_ids: &id002
+  - p-control-flow
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 只读接收整数序列
+  - value: overclaim
+    label: 函数会取得并修改调用者序列
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-03-p-cpp-stl
+    skipped: diagnostic-03-p-cpp-stl
+    uncertain: diagnostic-03-p-cpp-stl
+- id: diagnostic-03-p-cpp-stl
+  prompt: 基础判断：需要尾部追加且支持按下标访问，首选哪个 C++ 容器？
+  reason: 为能力 p-cpp-stl 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-cpp-stl
+  prerequisite_capability_ids: &id003
+  - p-functions-io
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: std::vector
+  - value: overclaim
+    label: std::set
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-04-p-python-runtime
+    skipped: diagnostic-04-p-python-runtime
+    uncertain: diagnostic-04-p-python-runtime
+- id: diagnostic-04-p-python-runtime
+  prompt: 基础判断：Python 中需要平均常数时间成员检查，通常首选什么？
+  reason: 为能力 p-python-runtime 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-python-runtime
+  prerequisite_capability_ids: &id004
+  - p-functions-io
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: set
+  - value: overclaim
+    label: list 逐项扫描
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-05-m-logic-sets
+    skipped: diagnostic-05-m-logic-sets
+    uncertain: diagnostic-05-m-logic-sets
+- id: diagnostic-05-m-logic-sets
+  prompt: 基础判断：“所有输入都通过测试”的否定是什么？
+  reason: 为能力 m-logic-sets 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-logic-sets
+  prerequisite_capability_ids: &id005 []
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: entry-baseline
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 至少一个输入未通过测试
+  - value: overclaim
+    label: 所有输入都未通过测试
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-06-m-functions-relations
+    skipped: diagnostic-06-m-functions-relations
+    uncertain: diagnostic-06-m-functions-relations
+- id: diagnostic-06-m-functions-relations
+  prompt: 基础判断：一个输入对应两个不同输出的关系是否为函数？
+  reason: 为能力 m-functions-relations 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-functions-relations
+  prerequisite_capability_ids: &id006
+  - m-logic-sets
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 不是
+  - value: overclaim
+    label: 是
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-07-m-induction-sums-logs
+    skipped: diagnostic-07-m-induction-sums-logs
+    uncertain: diagnostic-07-m-induction-sums-logs
+- id: diagnostic-07-m-induction-sums-logs
+  prompt: 基础判断：证明 P(n) 的归纳步骤需要假设什么再推出 P(k+1)？
+  reason: 为能力 m-induction-sums-logs 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-induction-sums-logs
+  prerequisite_capability_ids: &id007
+  - m-logic-sets
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 假设 P(k) 成立
+  - value: overclaim
+    label: 假设 P(k+1) 成立
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-08-m-counting-probability
+    skipped: diagnostic-08-m-counting-probability
+    uncertain: diagnostic-08-m-counting-probability
+- id: diagnostic-08-m-counting-probability
+  prompt: 基础判断：公平硬币独立抛两次，恰好一次正面的概率是多少？
+  reason: 为能力 m-counting-probability 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-counting-probability
+  prerequisite_capability_ids: &id008
+  - m-functions-relations
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 1/2
+  - value: overclaim
+    label: 1/4
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-09-a-asymptotic
+    skipped: diagnostic-09-a-asymptotic
+    uncertain: diagnostic-09-a-asymptotic
+- id: diagnostic-09-a-asymptotic
+  prompt: 基础判断：n 足够大时，n log n 与 n² 哪个增长更慢？
+  reason: 为能力 a-asymptotic 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-asymptotic
+  prerequisite_capability_ids: &id009
+  - m-induction-sums-logs
+  - p-control-flow
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: n log n
+  - value: overclaim
+    label: n²
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-10-a-case-analysis
+    skipped: diagnostic-10-a-case-analysis
+    uncertain: diagnostic-10-a-case-analysis
+- id: diagnostic-10-a-case-analysis
+  prompt: 基础判断：哈希表查询的 O(1) 通常需要注明什么？
+  reason: 为能力 a-case-analysis 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-case-analysis
+  prerequisite_capability_ids: &id010
+  - a-asymptotic
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 平均或期望情形及散列假设
+  - value: overclaim
+    label: 任何输入都严格最坏 O(1)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-11-a-recurrence
+    skipped: diagnostic-11-a-recurrence
+    uncertain: diagnostic-11-a-recurrence
+- id: diagnostic-11-a-recurrence
+  prompt: 基础判断：归并排序的代表性递推式是哪一个？
+  reason: 为能力 a-recurrence 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-recurrence
+  prerequisite_capability_ids: &id011
+  - a-asymptotic
+  - m-induction-sums-logs
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: T(n)=2T(n/2)+Theta(n)
+  - value: overclaim
+    label: T(n)=T(n-1)+Theta(n)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-12-a-correctness
+    skipped: diagnostic-12-a-correctness
+    uncertain: diagnostic-12-a-correctness
+- id: diagnostic-12-a-correctness
+  prompt: 基础判断：要推翻“算法对所有输入正确”，什么证据足够？
+  reason: 为能力 a-correctness 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-correctness
+  prerequisite_capability_ids: &id012
+  - m-logic-sets
+  - m-induction-sums-logs
+  - p-functions-io
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 一个满足前提的反例
+  - value: overclaim
+    label: 一个成功样例
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-13-l-array-sequence
+    skipped: diagnostic-13-l-array-sequence
+    uncertain: diagnostic-13-l-array-sequence
+- id: diagnostic-13-l-array-sequence
+  prompt: 基础判断：动态数组中按下标读取一个已存在元素的典型复杂度？
+  reason: 为能力 l-array-sequence 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-array-sequence
+  prerequisite_capability_ids: &id013
+  - p-cpp-stl
+  - p-python-runtime
+  - a-asymptotic
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: O(1)
+  - value: overclaim
+    label: O(n)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-14-l-linked-list
+    skipped: diagnostic-14-l-linked-list
+    uncertain: diagnostic-14-l-linked-list
+- id: diagnostic-14-l-linked-list
+  prompt: 基础判断：只有头指针时访问单链表第 k 个节点通常需要什么？
+  reason: 为能力 l-linked-list 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-linked-list
+  prerequisite_capability_ids: &id014
+  - l-array-sequence
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 从头逐节点前进
+  - value: overclaim
+    label: 直接按地址偏移随机访问
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-15-l-stack-queue-deque
+    skipped: diagnostic-15-l-stack-queue-deque
+    uncertain: diagnostic-15-l-stack-queue-deque
+- id: diagnostic-15-l-stack-queue-deque
+  prompt: 基础判断：处理先进先出的任务应选择什么结构？
+  reason: 为能力 l-stack-queue-deque 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-stack-queue-deque
+  prerequisite_capability_ids: &id015
+  - l-array-sequence
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 队列
+  - value: overclaim
+    label: 栈
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-16-l-selection
+    skipped: diagnostic-16-l-selection
+    uncertain: diagnostic-16-l-selection
+- id: diagnostic-16-l-selection
+  prompt: 基础判断：需求从频繁随机访问变为两端插入删除，应重新比较什么？
+  reason: 为能力 l-selection 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-selection
+  prerequisite_capability_ids: &id016
+  - l-linked-list
+  - l-stack-queue-deque
+  - a-case-analysis
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 操作分布与结构代价
+  - value: overclaim
+    label: 只沿用原结构避免分析
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-17-h-map-set
+    skipped: diagnostic-17-h-map-set
+    uncertain: diagnostic-17-h-map-set
+- id: diagnostic-17-h-map-set
+  prompt: 基础判断：只需去重并判断元素是否存在，语义最贴近什么？
+  reason: 为能力 h-map-set 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - h-map-set
+  prerequisite_capability_ids: &id017
+  - l-array-sequence
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 集合
+  - value: overclaim
+    label: 键值映射
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-18-h-collision-load
+    skipped: diagnostic-18-h-collision-load
+    uncertain: diagnostic-18-h-collision-load
+- id: diagnostic-18-h-collision-load
+  prompt: 基础判断：哈希表负载因子持续升高通常会怎样？
+  reason: 为能力 h-collision-load 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - h-collision-load
+  prerequisite_capability_ids: &id018
+  - h-map-set
+  - a-case-analysis
+  difficulty: entry
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 冲突机会和探测代价可能上升
+  - value: overclaim
+    label: 保证所有操作变为最坏 O(1)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-19-h-application
+    skipped: diagnostic-19-h-application
+    uncertain: diagnostic-19-h-application
+- id: diagnostic-19-h-application
+  prompt: 基础判断：统计每个单词出现次数，最直接的数据结构？
+  reason: 为能力 h-application 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - h-application
+  prerequisite_capability_ids:
+  - h-collision-load
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 字符串到计数的映射
+  - value: overclaim
+    label: 只保存不同单词的集合
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-20-s-linear-binary-search
+    skipped: diagnostic-20-s-linear-binary-search
+    uncertain: diagnostic-20-s-linear-binary-search
+- id: diagnostic-20-s-linear-binary-search
+  prompt: 基础判断：二分搜索能直接使用的关键前提是什么？
+  reason: 为能力 s-linear-binary-search 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - s-linear-binary-search
+  prerequisite_capability_ids:
+  - l-array-sequence
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 搜索空间具有可利用的单调或有序性质
+  - value: overclaim
+    label: 输入元素必须互不相同
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-21-s-elementary-sort
+    skipped: diagnostic-21-s-elementary-sort
+    uncertain: diagnostic-21-s-elementary-sort
+- id: diagnostic-21-s-elementary-sort
+  prompt: 基础判断：插入排序已处理前缀的典型不变量是什么？
+  reason: 为能力 s-elementary-sort 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - s-elementary-sort
+  prerequisite_capability_ids:
+  - l-array-sequence
+  - a-asymptotic
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 该前缀已排序
+  - value: overclaim
+    label: 该前缀包含全局最小元素且长度不变
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-22-s-comparison-stability
+    skipped: diagnostic-22-s-comparison-stability
+    uncertain: diagnostic-22-s-comparison-stability
+- id: diagnostic-22-s-comparison-stability
+  prompt: 基础判断：按次关键字排序后再稳定地按主关键字排序，稳定性保护什么？
+  reason: 为能力 s-comparison-stability 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - s-comparison-stability
+  prerequisite_capability_ids:
+  - s-elementary-sort
+  - r-recurrence-divide
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 主关键字相同时原有次序
+  - value: overclaim
+    label: 所有元素地址不变
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-23-s-selection
+    skipped: diagnostic-23-s-selection
+    uncertain: diagnostic-23-s-selection
+- id: diagnostic-23-s-selection
+  prompt: 基础判断：数据几乎有序且规模较小时，选择排序算法应优先检查什么？
+  reason: 为能力 s-selection 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - s-selection
+  prerequisite_capability_ids:
+  - s-linear-binary-search
+  - s-comparison-stability
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 实际输入特征、稳定性和成本
+  - value: overclaim
+    label: 只看算法名称
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-24-r-recursion-state
+    skipped: diagnostic-24-r-recursion-state
+    uncertain: diagnostic-24-r-recursion-state
+- id: diagnostic-24-r-recursion-state
+  prompt: 基础判断：递归函数能够终止必须具备什么？
+  reason: 为能力 r-recursion-state 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - r-recursion-state
+  prerequisite_capability_ids:
+  - p-functions-io
+  - m-induction-sums-logs
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 可到达的基例与趋近基例的状态变化
+  - value: overclaim
+    label: 每层创建更多子问题
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-25-r-recurrence-divide
+    skipped: diagnostic-25-r-recurrence-divide
+    uncertain: diagnostic-25-r-recurrence-divide
+- id: diagnostic-25-r-recurrence-divide
+  prompt: 基础判断：分治设计除拆分子问题外还必须说明什么？
+  reason: 为能力 r-recurrence-divide 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - r-recurrence-divide
+  prerequisite_capability_ids:
+  - r-recursion-state
+  - a-recurrence
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 子问题结果如何合并
+  - value: overclaim
+    label: 只说明递归深度
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-26-r-stack-conversion
+    skipped: diagnostic-26-r-stack-conversion
+    uncertain: diagnostic-26-r-stack-conversion
+- id: diagnostic-26-r-stack-conversion
+  prompt: 基础判断：深度可能很大的 DFS 为避免调用栈溢出可怎样改写？
+  reason: 为能力 r-stack-conversion 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - r-stack-conversion
+  prerequisite_capability_ids:
+  - r-recursion-state
+  - l-stack-queue-deque
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 使用显式栈
+  - value: overclaim
+    label: 删除 visited 状态
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-27-t-tree-representation
+    skipped: diagnostic-27-t-tree-representation
+    uncertain: diagnostic-27-t-tree-representation
+- id: diagnostic-27-t-tree-representation
+  prompt: 基础判断：树中某节点以下包含该节点的结构称为什么？
+  reason: 为能力 t-tree-representation 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - t-tree-representation
+  prerequisite_capability_ids:
+  - r-recursion-state
+  - l-linked-list
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 子树
+  - value: overclaim
+    label: 连通分量外部
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-28-t-traversal
+    skipped: diagnostic-28-t-traversal
+    uncertain: diagnostic-28-t-traversal
+- id: diagnostic-28-t-traversal
+  prompt: 基础判断：二叉搜索树中序遍历通常得到什么顺序？
+  reason: 为能力 t-traversal 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - t-traversal
+  prerequisite_capability_ids:
+  - t-tree-representation
+  - l-stack-queue-deque
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 按键非递减顺序
+  - value: overclaim
+    label: 层序顺序
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-29-t-bst-invariant
+    skipped: diagnostic-29-t-bst-invariant
+    uncertain: diagnostic-29-t-bst-invariant
+- id: diagnostic-29-t-bst-invariant
+  prompt: 基础判断：标准二叉搜索树查找向左走的条件是什么？
+  reason: 为能力 t-bst-invariant 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - t-bst-invariant
+  prerequisite_capability_ids:
+  - t-traversal
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 目标键小于当前键
+  - value: overclaim
+    label: 目标键大于当前键
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-30-t-heap-priority
+    skipped: diagnostic-30-t-heap-priority
+    uncertain: diagnostic-30-t-heap-priority
+- id: diagnostic-30-t-heap-priority
+  prompt: 基础判断：最小堆能保证什么？
+  reason: 为能力 t-heap-priority 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - t-heap-priority
+  prerequisite_capability_ids:
+  - t-tree-representation
+  - l-array-sequence
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 根元素是当前最小值
+  - value: overclaim
+    label: 数组整体有序
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-31-g-model-representation
+    skipped: diagnostic-31-g-model-representation
+    uncertain: diagnostic-31-g-model-representation
+- id: diagnostic-31-g-model-representation
+  prompt: 基础判断：稀疏图通常优先使用哪种表示？
+  reason: 为能力 g-model-representation 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - g-model-representation
+  prerequisite_capability_ids:
+  - l-selection
+  - h-application
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 邻接表
+  - value: overclaim
+    label: 完整邻接矩阵且不考虑空间
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-32-g-bfs-dfs
+    skipped: diagnostic-32-g-bfs-dfs
+    uncertain: diagnostic-32-g-bfs-dfs
+- id: diagnostic-32-g-bfs-dfs
+  prompt: 基础判断：无权图中求边数最少路径通常使用什么？
+  reason: 为能力 g-bfs-dfs 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - g-bfs-dfs
+  prerequisite_capability_ids:
+  - g-model-representation
+  - l-stack-queue-deque
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: BFS
+  - value: overclaim
+    label: 任意 DFS 首次到达
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-33-g-topological-cycle
+    skipped: diagnostic-33-g-topological-cycle
+    uncertain: diagnostic-33-g-topological-cycle
+- id: diagnostic-33-g-topological-cycle
+  prompt: 基础判断：有向图存在环时能否得到包含全部顶点的拓扑序？
+  reason: 为能力 g-topological-cycle 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - g-topological-cycle
+  prerequisite_capability_ids:
+  - g-bfs-dfs
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 不能
+  - value: overclaim
+    label: 总能
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-34-g-shortest-path
+    skipped: diagnostic-34-g-shortest-path
+    uncertain: diagnostic-34-g-shortest-path
+- id: diagnostic-34-g-shortest-path
+  prompt: 基础判断：图含负权边时是否可直接使用标准 Dijkstra？
+  reason: 为能力 g-shortest-path 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - g-shortest-path
+  prerequisite_capability_ids:
+  - g-bfs-dfs
+  - t-heap-priority
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 不可直接使用
+  - value: overclaim
+    label: 可以且无需额外条件
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-35-g-mst
+    skipped: diagnostic-35-g-mst
+    uncertain: diagnostic-35-g-mst
+- id: diagnostic-35-g-mst
+  prompt: 基础判断：最小生成树优化的目标是什么？
+  reason: 为能力 g-mst 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - g-mst
+  prerequisite_capability_ids:
+  - g-model-representation
+  - t-heap-priority
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 连通所有顶点的总边权
+  - value: overclaim
+    label: 指定两点间的最短距离
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-36-y-greedy-choice
+    skipped: diagnostic-36-y-greedy-choice
+    uncertain: diagnostic-36-y-greedy-choice
+- id: diagnostic-36-y-greedy-choice
+  prompt: 基础判断：贪心算法每步做什么？
+  reason: 为能力 y-greedy-choice 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - y-greedy-choice
+  prerequisite_capability_ids:
+  - a-correctness
+  - s-comparison-stability
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - erickson-algorithms
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 按规则作局部选择并缩小剩余问题
+  - value: overclaim
+    label: 枚举所有完整解后再选择
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-37-y-exchange-proof
+    skipped: diagnostic-37-y-exchange-proof
+    uncertain: diagnostic-37-y-exchange-proof
+- id: diagnostic-37-y-exchange-proof
+  prompt: 基础判断：交换论证通常要证明什么？
+  reason: 为能力 y-exchange-proof 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - y-exchange-proof
+  prerequisite_capability_ids:
+  - y-greedy-choice
+  - m-induction-sums-logs
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - erickson-algorithms
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 某个最优解可改成含贪心选择且不变差
+  - value: overclaim
+    label: 任意局部选择都必然唯一
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-38-y-counterexample
+    skipped: diagnostic-38-y-counterexample
+    uncertain: diagnostic-38-y-counterexample
+- id: diagnostic-38-y-counterexample
+  prompt: 基础判断：声称某贪心规则总正确但证明失败时，最有效的检验？
+  reason: 为能力 y-counterexample 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - y-counterexample
+  prerequisite_capability_ids:
+  - y-greedy-choice
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - erickson-algorithms
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 寻找满足前提的最小反例
+  - value: overclaim
+    label: 增加成功样例数量
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-39-d-state-transition
+    skipped: diagnostic-39-d-state-transition
+    uncertain: diagnostic-39-d-state-transition
+- id: diagnostic-39-d-state-transition
+  prompt: 基础判断：动态规划状态定义至少应明确什么？
+  reason: 为能力 d-state-transition 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - d-state-transition
+  prerequisite_capability_ids:
+  - r-recurrence-divide
+  - a-correctness
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 状态变量代表的子问题及边界
+  - value: overclaim
+    label: 只写数组名称
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-40-d-order-memoization
+    skipped: diagnostic-40-d-order-memoization
+    uncertain: diagnostic-40-d-order-memoization
+- id: diagnostic-40-d-order-memoization
+  prompt: 基础判断：自底向上计算顺序必须满足什么？
+  reason: 为能力 d-order-memoization 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - d-order-memoization
+  prerequisite_capability_ids:
+  - d-state-transition
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 计算状态前其依赖已就绪
+  - value: overclaim
+    label: 按状态名称字典序
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-41-d-optimization
+    skipped: diagnostic-41-d-optimization
+    uncertain: diagnostic-41-d-optimization
+- id: diagnostic-41-d-optimization
+  prompt: 基础判断：滚动数组优化空间前必须确认什么？
+  reason: 为能力 d-optimization 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - d-optimization
+  prerequisite_capability_ids:
+  - d-order-memoization
+  - a-case-analysis
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 后续不再需要被覆盖的历史状态
+  - value: overclaim
+    label: 所有状态值相同
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-42-d-transfer
+    skipped: diagnostic-42-d-transfer
+    uncertain: diagnostic-42-d-transfer
+- id: diagnostic-42-d-transfer
+  prompt: 基础判断：把新问题迁移为 DP 的关键检查是什么？
+  reason: 为能力 d-transfer 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - d-transfer
+  prerequisite_capability_ids:
+  - d-optimization
+  - y-counterexample
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 是否存在可复用重叠子问题与明确状态依赖
+  - value: overclaim
+    label: 题目是否出现“最优”二字
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-43-q-modeling
+    skipped: diagnostic-43-q-modeling
+    uncertain: diagnostic-43-q-modeling
+- id: diagnostic-43-q-modeling
+  prompt: 基础判断：开始实现前的问题模型应先明确哪些内容？
+  reason: 为能力 q-modeling 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - q-modeling
+  prerequisite_capability_ids:
+  - a-correctness
+  - p-functions-io
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 输入、输出、约束和不变量
+  - value: overclaim
+    label: 只明确函数名
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-44-q-testing-debugging
+    skipped: diagnostic-44-q-testing-debugging
+    uncertain: diagnostic-44-q-testing-debugging
+- id: diagnostic-44-q-testing-debugging
+  prompt: 基础判断：验证边界处理至少应包含什么？
+  reason: 为能力 q-testing-debugging 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - q-testing-debugging
+  prerequisite_capability_ids:
+  - q-modeling
+  - p-cpp-stl
+  - p-python-runtime
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 正常、空或最小、退化及反例测试
+  - value: overclaim
+    label: 只测试一个正常样例
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-45-q-performance-quality
+    skipped: diagnostic-45-q-performance-quality
+    uncertain: diagnostic-45-q-performance-quality
+- id: diagnostic-45-q-performance-quality
+  prompt: 基础判断：一次计时结果与渐近复杂度的关系是什么？
+  reason: 为能力 q-performance-quality 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - q-performance-quality
+  prerequisite_capability_ids:
+  - q-testing-debugging
+  - a-case-analysis
+  - s-selection
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 计时是特定环境测量，不能替代理论分析
+  - value: overclaim
+    label: 一次更快即可证明渐近阶更优
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-46-q-integrated-artifact
+    skipped: diagnostic-46-q-integrated-artifact
+    uncertain: diagnostic-46-q-integrated-artifact
+- id: diagnostic-46-q-integrated-artifact
+  prompt: 基础判断：双语言迁移作品应保留什么可核对信息？
+  reason: 为能力 q-integrated-artifact 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - q-integrated-artifact
+  prerequisite_capability_ids:
+  - q-performance-quality
+  - g-shortest-path
+  - d-transfer
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: false
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 建模、实现差异、测试、性能假设和限制
+  - value: overclaim
+    label: 只保留最终输出截图
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-47-p-control-flow
+    skipped: diagnostic-47-p-control-flow
+    uncertain: diagnostic-47-p-control-flow
+- id: diagnostic-47-p-control-flow
+  prompt: 独立复核：n=1 时，for (i=0; i<n; ++i) 的循环体执行几次？
+  reason: 为能力 p-control-flow 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-control-flow
+  prerequisite_capability_ids: *id001
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: entry-baseline
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 1 次
+  - value: overclaim
+    label: 0 次
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-48-p-functions-io
+    skipped: diagnostic-48-p-functions-io
+    uncertain: diagnostic-48-p-functions-io
+- id: diagnostic-48-p-functions-io
+  prompt: 独立复核：C++ 参数 const vector<int>& a 同时避免复制和限制修改，哪项描述正确？
+  reason: 为能力 p-functions-io 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-functions-io
+  prerequisite_capability_ids: *id002
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 函数通过只读引用访问原序列
+  - value: overclaim
+    label: 函数拥有一份可独立修改的副本
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-49-p-cpp-stl
+    skipped: diagnostic-49-p-cpp-stl
+    uncertain: diagnostic-49-p-cpp-stl
+- id: diagnostic-49-p-cpp-stl
+  prompt: 独立复核：在 std::vector 中间插入元素通常为什么不是常数时间？
+  reason: 为能力 p-cpp-stl 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-cpp-stl
+  prerequisite_capability_ids: *id003
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 后续元素可能需要移动
+  - value: overclaim
+    label: vector 不允许中间插入
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-50-p-python-runtime
+    skipped: diagnostic-50-p-python-runtime
+    uncertain: diagnostic-50-p-python-runtime
+- id: diagnostic-50-p-python-runtime
+  prompt: 独立复核：执行 b=a 后对列表 b.append(1)，通常会怎样影响 a？
+  reason: 为能力 p-python-runtime 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - p-python-runtime
+  prerequisite_capability_ids: *id004
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - python-tutorial-314
+  - wg21-public-materials
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: a 与 b 指向同一列表，因此 a 也看到新元素
+  - value: overclaim
+    label: a 永远保持不变
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-51-m-logic-sets
+    skipped: diagnostic-51-m-logic-sets
+    uncertain: diagnostic-51-m-logic-sets
+- id: diagnostic-51-m-logic-sets
+  prompt: 独立复核：命题“不是(A 且 B)”等价于什么？
+  reason: 为能力 m-logic-sets 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-logic-sets
+  prerequisite_capability_ids: *id005
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: entry-baseline
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 非 A 或非 B
+  - value: overclaim
+    label: 非 A 且非 B
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-52-m-functions-relations
+    skipped: diagnostic-52-m-functions-relations
+    uncertain: diagnostic-52-m-functions-relations
+- id: diagnostic-52-m-functions-relations
+  prompt: 独立复核：函数可以把两个不同输入映射到同一输出吗？
+  reason: 为能力 m-functions-relations 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-functions-relations
+  prerequisite_capability_ids: *id006
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 可以，但此时不一定是单射
+  - value: overclaim
+    label: 不可以，否则就不是函数
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-53-m-induction-sums-logs
+    skipped: diagnostic-53-m-induction-sums-logs
+    uncertain: diagnostic-53-m-induction-sums-logs
+- id: diagnostic-53-m-induction-sums-logs
+  prompt: 独立复核：以 2 为底的 log 8 等于多少？
+  reason: 为能力 m-induction-sums-logs 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-induction-sums-logs
+  prerequisite_capability_ids: *id007
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: '3'
+  - value: overclaim
+    label: '4'
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-54-m-counting-probability
+    skipped: diagnostic-54-m-counting-probability
+    uncertain: diagnostic-54-m-counting-probability
+- id: diagnostic-54-m-counting-probability
+  prompt: 独立复核：从 5 个不同元素中无序选 2 个，有多少种选择？
+  reason: 为能力 m-counting-probability 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - m-counting-probability
+  prerequisite_capability_ids: *id008
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: '10'
+  - value: overclaim
+    label: '20'
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-55-a-asymptotic
+    skipped: diagnostic-55-a-asymptotic
+    uncertain: diagnostic-55-a-asymptotic
+- id: diagnostic-55-a-asymptotic
+  prompt: 独立复核：若 f(n)=3n²+2n+1，则哪项渐近描述最紧？
+  reason: 为能力 a-asymptotic 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-asymptotic
+  prerequisite_capability_ids: *id009
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: Theta(n²)
+  - value: overclaim
+    label: Theta(n³)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-56-a-case-analysis
+    skipped: diagnostic-56-a-case-analysis
+    uncertain: diagnostic-56-a-case-analysis
+- id: diagnostic-56-a-case-analysis
+  prompt: 独立复核：某算法平均很快但存在极慢输入，报告性能时应怎样做？
+  reason: 为能力 a-case-analysis 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-case-analysis
+  prerequisite_capability_ids: *id010
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 分别说明平均情形假设与最坏情形
+  - value: overclaim
+    label: 只报告平均值并省略假设
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-57-a-recurrence
+    skipped: diagnostic-57-a-recurrence
+    uncertain: diagnostic-57-a-recurrence
+- id: diagnostic-57-a-recurrence
+  prompt: 独立复核：递推 T(n)=T(n/2)+Theta(1) 的代表性增长阶是什么？
+  reason: 为能力 a-recurrence 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-recurrence
+  prerequisite_capability_ids: *id011
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: Theta(log n)
+  - value: overclaim
+    label: Theta(n)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-58-a-correctness
+    skipped: diagnostic-58-a-correctness
+    uncertain: diagnostic-58-a-correctness
+- id: diagnostic-58-a-correctness
+  prompt: 独立复核：循环开始和每轮结束均保持的不变量主要用于证明什么？
+  reason: 为能力 a-correctness 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - a-correctness
+  prerequisite_capability_ids: *id012
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 迭代过程保持所需性质并连接终止结论
+  - value: overclaim
+    label: 程序在所有机器上运行得一样快
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-59-l-array-sequence
+    skipped: diagnostic-59-l-array-sequence
+    uncertain: diagnostic-59-l-array-sequence
+- id: diagnostic-59-l-array-sequence
+  prompt: 独立复核：动态数组尾部追加的典型摊还复杂度是什么？
+  reason: 为能力 l-array-sequence 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-array-sequence
+  prerequisite_capability_ids: *id013
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: O(1)
+  - value: overclaim
+    label: 每次都严格 O(n)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-60-l-linked-list
+    skipped: diagnostic-60-l-linked-list
+    uncertain: diagnostic-60-l-linked-list
+- id: diagnostic-60-l-linked-list
+  prompt: 独立复核：已知单链表某节点及其前驱时删除该节点，局部指针更新通常是多少？
+  reason: 为能力 l-linked-list 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-linked-list
+  prerequisite_capability_ids: *id014
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: O(1)
+  - value: overclaim
+    label: O(n log n)
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-61-l-stack-queue-deque
+    skipped: diagnostic-61-l-stack-queue-deque
+    uncertain: diagnostic-61-l-stack-queue-deque
+- id: diagnostic-61-l-stack-queue-deque
+  prompt: 独立复核：同时需要从两端加入和移除元素，最贴近哪种抽象？
+  reason: 为能力 l-stack-queue-deque 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-stack-queue-deque
+  prerequisite_capability_ids: *id015
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 双端队列
+  - value: overclaim
+    label: 只允许一端操作的栈
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-62-l-selection
+    skipped: diagnostic-62-l-selection
+    uncertain: diagnostic-62-l-selection
+- id: diagnostic-62-l-selection
+  prompt: 独立复核：主要操作变为按键查找，而顺序不重要时，应优先重新评估什么结构？
+  reason: 为能力 l-selection 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - l-selection
+  prerequisite_capability_ids: *id016
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - cpp-reference-containers
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 映射或集合
+  - value: overclaim
+    label: 仍只考虑链表
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-63-h-map-set
+    skipped: diagnostic-63-h-map-set
+    uncertain: diagnostic-63-h-map-set
+- id: diagnostic-63-h-map-set
+  prompt: 独立复核：映射中给已有键再次赋值通常会怎样？
+  reason: 为能力 h-map-set 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - h-map-set
+  prerequisite_capability_ids: *id017
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 更新该键对应的值
+  - value: overclaim
+    label: 自动保存两个相同键
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: diagnostic-64-h-collision-load
+    skipped: diagnostic-64-h-collision-load
+    uncertain: diagnostic-64-h-collision-load
+- id: diagnostic-64-h-collision-load
+  prompt: 独立复核：两个不同键得到同一散列位置称为什么？
+  reason: 为能力 h-collision-load 产生受管、可复算的诊断信号。
+  response_type: single_choice
+  question_version: 1.0.0
+  capability_ids:
+  - h-collision-load
+  prerequisite_capability_ids: *id018
+  difficulty: core
+  signal_kind: deterministic_choice
+  deterministic_answer_values:
+  - scoped
+  critical_misconception_values:
+  - overclaim
+  selection_reason_code: prerequisite-blocking
+  allows_early_stop: true
+  estimated_minutes: 1
+  source_ids:
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  ambiguity_review_status: reviewed
+  options:
+  - value: scoped
+    label: 冲突
+  - value: overclaim
+    label: 稳定排序
+  - value: uncertain
+    label: 不确定，保留为待补救信号
+  transitions:
+    answered: null
+    skipped: null
+    uncertain: null

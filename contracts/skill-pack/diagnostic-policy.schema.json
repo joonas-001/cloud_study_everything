@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/diagnostic-policy.schema.json",
+  "title": "Deterministic adaptive diagnostic policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "id", "version", "skill_id", "skill_version", "item_bank_min",
+    "item_bank_max", "session_question_max", "session_minutes_max", "statuses", "ready_rule",
+    "remediation_rule", "inconclusive_rule", "selection_order", "fallback", "evidence_ceiling"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"$ref": "#/$defs/stableId"},
+    "version": {"$ref": "#/$defs/version"},
+    "skill_id": {"$ref": "#/$defs/stableId"},
+    "skill_version": {"$ref": "#/$defs/version"},
+    "item_bank_min": {"type": "integer", "minimum": 1},
+    "item_bank_max": {"type": "integer", "minimum": 1},
+    "session_question_max": {"type": "integer", "minimum": 1},
+    "session_minutes_max": {"type": "integer", "minimum": 1, "maximum": 120},
+    "statuses": {
+      "type": "array", "minItems": 3, "maxItems": 3, "uniqueItems": true,
+      "items": {"enum": ["ready", "remediation_required", "inconclusive"]}
+    },
+    "ready_rule": {"$ref": "#/$defs/nonEmpty"},
+    "remediation_rule": {"$ref": "#/$defs/nonEmpty"},
+    "inconclusive_rule": {"$ref": "#/$defs/nonEmpty"},
+    "selection_order": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}},
+    "fallback": {"const": "managed_fixed_sequence"},
+    "evidence_ceiling": {"const": "diagnostic_signal_only"}
+  },
+  "$defs": {
+    "stableId": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "nonEmpty": {"type": "string", "minLength": 1}
+  }
+}

@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "2.0.0"]
     },
     "id": {
       "$ref": "#/$defs/stableId"
@@ -68,6 +68,12 @@
           },
           "source_ids": {
             "$ref": "#/$defs/idList"
+          },
+          "capability_ids": {
+            "$ref": "#/$defs/idList"
+          },
+          "cognitive_load": {
+            "enum": ["low", "medium", "high"]
           }
         }
       }
@@ -198,6 +204,23 @@
           },
           "runner_task_id": {
             "$ref": "#/$defs/stableId"
+          },
+          "capability_ids": {
+            "$ref": "#/$defs/idList"
+          },
+          "activity_roles": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["study", "active_recall", "structured_check", "correction", "proof", "runner_cpp", "runner_python", "transfer", "project", "review"]
+            }
+          },
+          "language": {
+            "enum": ["none", "cpp", "python", "bilingual"]
+          },
+          "evidence_ceiling": {
+            "enum": ["none", "limited", "supported", "retained_limited", "verified", "retained"]
           }
         }
       }

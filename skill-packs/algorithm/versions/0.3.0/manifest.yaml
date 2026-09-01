@@ -1,0 +1,64 @@
+schema_version: 1.1.0
+id: algorithm
+version: 0.3.0
+title: 算法共同主干完整学习核心草稿
+state: draft
+availability: available
+engine_contract:
+  version: '>=0.4.0 <0.5.0'
+runner_protocol:
+  version: 1.1.0
+runtime_profiles:
+- id: cpp-gcc-15-2
+  version: 1.0.0
+- id: python-3-14-3
+  version: 1.0.0
+skill_dependencies: []
+content_files:
+- kind: curriculum
+  path: curriculum/README.md
+  sha256: 82ed1f87525a1f7e5b6fc545bbacae5022f875e7c911ac2692db984a42f8256b
+- kind: capability_graph
+  path: curriculum/capability-graph.yaml
+  sha256: ce508f97dd6221a2343e7996c92fd098836863368d132661d2c236d451a1e707
+- kind: source_catalog
+  path: sources/catalog.yaml
+  sha256: b258114634dab48ac2b4b7bc06322e85c4dabfedc04b6cbd2f37e5e5695d653d
+- kind: diagnostic_policy
+  path: assessments/diagnostic-policy.yaml
+  sha256: fc30181445d35392a8ceaa124f3aa8ee1c18f027e0f5eaf23ad2c00f9418588e
+- kind: diagnostic_definition
+  path: assessments/diagnostic.yaml
+  sha256: 422b064abe708868b38315a31de34e886e0113973e6ed1fb7cfb02121c9b4090
+- kind: learning_definition
+  path: curriculum/learning.yaml
+  sha256: d5cc7e5759f370446a4ca1d7a4bf953d23ea3eac9572c46e8983016136ce8e84
+- kind: planning_template
+  path: curriculum/planning-preview.yaml
+  sha256: 9b6a5b00f1696a22e78394aaf17261c3bb5ea0df257091471a829c55338acb2a
+- kind: runner_task_definition
+  path: assessments/runner-tasks.yaml
+  sha256: e44e3854ce77a48d0f39ef4dba0d0739b8bc984d696160fd3dd178c0d8cc5e41
+- kind: assessment_definition
+  path: assessments/assessment.yaml
+  sha256: 68ba8d02ace0daa286d93062a4051da6c988c309639e88a6851ce60754946c54
+- kind: rubric_definition
+  path: assessments/rubric.yaml
+  sha256: 4b77f495af68ab7eef64cd683a57a8fc82773d935fe13b6a962747e3202a63be
+- kind: review_policy
+  path: review/policy.yaml
+  sha256: fe68da475832c7b563cb50949660c02a3be3c430620c3f897069e8a079fc7a43
+- kind: mastery_scope
+  path: assessments/mastery-scope.yaml
+  sha256: 9764a9c4915cec37f54db19246d358431192673e9e70a084a95e5012592b7422
+- kind: branch_gate_policy
+  path: assessments/branch-gates.yaml
+  sha256: 444585ef539c8d55dac26bb78e1a09ba6a383d7b917a86d8d7a790825e984329
+- kind: content_coverage
+  path: curriculum/content-coverage.yaml
+  sha256: e9017f872c3434ba8ae79695f8b26a8f56d35729495d221ee89101896746484b
+sources:
+- id: milestone-8a-spec
+  title: 里程碑 8A 学习核心机器规格
+  url: https://local.cloud-study/docs/architecture/milestone-8a-spec
+  retrieved_at: '2026-08-29'

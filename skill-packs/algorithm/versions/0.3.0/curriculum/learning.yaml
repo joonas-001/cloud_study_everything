@@ -1,0 +1,5020 @@
+schema_version: 2.0.0
+id: algorithm-common-core-learning
+skill_id: algorithm
+skill_version: 0.3.0
+units:
+- id: p-programming-core
+  title: 编程控制流、函数与边界
+  objective: 在声明范围内理解、操作并迁移“编程控制流、函数与边界”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 120
+  prerequisite_unit_ids: []
+  source_ids: &id001
+  - python-tutorial-314
+  - wg21-public-materials
+  - cpp-reference-containers
+  capability_ids: &id036
+  - p-control-flow
+  - p-functions-io
+  cognitive_load: medium
+- id: p-cpp-stl
+  title: C++ 与 STL 基础
+  objective: 在声明范围内理解、操作并迁移“C++ 与 STL 基础”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - p-programming-core
+  source_ids: *id001
+  capability_ids: &id037
+  - p-cpp-stl
+  cognitive_load: high
+- id: p-python-contrast
+  title: Python 容器与双语言对照
+  objective: 在声明范围内理解、操作并迁移“Python 容器与双语言对照”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - p-programming-core
+  source_ids: *id001
+  capability_ids: &id038
+  - p-python-runtime
+  cognitive_load: high
+- id: m-logic-sets
+  title: 逻辑、集合、函数与关系
+  objective: 在声明范围内理解、操作并迁移“逻辑、集合、函数与关系”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids: []
+  source_ids: &id002
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  capability_ids: &id039
+  - m-logic-sets
+  - m-functions-relations
+  cognitive_load: medium
+- id: m-induction-growth
+  title: 归纳、求和、对数与增长
+  objective: 在声明范围内理解、操作并迁移“归纳、求和、对数与增长”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - m-logic-sets
+  source_ids: *id002
+  capability_ids: &id040
+  - m-induction-sums-logs
+  cognitive_load: high
+- id: m-counting-probability
+  title: 基础组合与概率
+  objective: 在声明范围内理解、操作并迁移“基础组合与概率”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 165
+  prerequisite_unit_ids:
+  - m-logic-sets
+  source_ids: *id002
+  capability_ids: &id041
+  - m-counting-probability
+  cognitive_load: high
+- id: a-asymptotic-cases
+  title: 渐近分析与情形假设
+  objective: 在声明范围内理解、操作并迁移“渐近分析与情形假设”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - p-programming-core
+  - m-induction-growth
+  source_ids: &id003
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+  capability_ids: &id042
+  - a-asymptotic
+  - a-case-analysis
+  cognitive_load: high
+- id: a-recurrence
+  title: 递推式分析
+  objective: 在声明范围内理解、操作并迁移“递推式分析”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - a-asymptotic-cases
+  source_ids: *id003
+  capability_ids: &id043
+  - a-recurrence
+  cognitive_load: high
+- id: a-correctness
+  title: 不变量、归纳证明与反例
+  objective: 在声明范围内理解、操作并迁移“不变量、归纳证明与反例”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - p-programming-core
+  - m-induction-growth
+  source_ids: *id003
+  capability_ids: &id044
+  - a-correctness
+  cognitive_load: high
+- id: l-arrays
+  title: 数组与顺序表
+  objective: 在声明范围内理解、操作并迁移“数组与顺序表”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - p-cpp-stl
+  - p-python-contrast
+  - a-asymptotic-cases
+  source_ids: &id004
+  - open-data-structures-01g
+  - cpp-reference-containers
+  - python-tutorial-314
+  capability_ids: &id045
+  - l-array-sequence
+  cognitive_load: medium
+- id: l-linked
+  title: 链式结构
+  objective: 在声明范围内理解、操作并迁移“链式结构”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - l-arrays
+  source_ids: *id004
+  capability_ids: &id046
+  - l-linked-list
+  cognitive_load: medium
+- id: l-linear-adt
+  title: 栈、队列、双端队列与选择
+  objective: 在声明范围内理解、操作并迁移“栈、队列、双端队列与选择”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - l-arrays
+  - l-linked
+  source_ids: *id004
+  capability_ids: &id047
+  - l-stack-queue-deque
+  - l-selection
+  cognitive_load: high
+- id: h-hash-semantics
+  title: 映射、集合、冲突与负载
+  objective: 在声明范围内理解、操作并迁移“映射、集合、冲突与负载”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - l-arrays
+  - a-asymptotic-cases
+  source_ids: &id005
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  - cpp-reference-containers
+  capability_ids: &id048
+  - h-map-set
+  - h-collision-load
+  cognitive_load: medium
+- id: h-hash-applications
+  title: 哈希应用与边界
+  objective: 在声明范围内理解、操作并迁移“哈希应用与边界”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - h-hash-semantics
+  source_ids: *id005
+  capability_ids: &id049
+  - h-application
+  cognitive_load: medium
+- id: s-search
+  title: 线性与二分搜索
+  objective: 在声明范围内理解、操作并迁移“线性与二分搜索”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - l-arrays
+  - a-correctness
+  source_ids: &id006
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+  capability_ids: &id050
+  - s-linear-binary-search
+  cognitive_load: medium
+- id: s-elementary-sort
+  title: 基础排序与不变量
+  objective: 在声明范围内理解、操作并迁移“基础排序与不变量”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - l-arrays
+  - a-asymptotic-cases
+  source_ids: *id006
+  capability_ids: &id051
+  - s-elementary-sort
+  cognitive_load: medium
+- id: r-recursion
+  title: 递归状态、基例与风险
+  objective: 在声明范围内理解、操作并迁移“递归状态、基例与风险”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - p-programming-core
+  - m-induction-growth
+  source_ids: &id007
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  - erickson-algorithms
+  capability_ids: &id052
+  - r-recursion-state
+  cognitive_load: medium
+- id: r-divide-conquer
+  title: 分治、递推与迭代转换
+  objective: 在声明范围内理解、操作并迁移“分治、递推与迭代转换”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - r-recursion
+  - a-recurrence
+  - l-linear-adt
+  source_ids: *id007
+  capability_ids: &id053
+  - r-recurrence-divide
+  - r-stack-conversion
+  cognitive_load: medium
+- id: s-comparison-sort
+  title: 比较排序、稳定性与选择
+  objective: 在声明范围内理解、操作并迁移“比较排序、稳定性与选择”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 150
+  prerequisite_unit_ids:
+  - s-elementary-sort
+  - r-divide-conquer
+  source_ids: *id006
+  capability_ids: &id054
+  - s-comparison-stability
+  - s-selection
+  cognitive_load: high
+- id: t-tree-basics
+  title: 树表示与遍历
+  objective: 在声明范围内理解、操作并迁移“树表示与遍历”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 130
+  prerequisite_unit_ids:
+  - r-recursion
+  - l-linear-adt
+  source_ids: &id008
+  - open-data-structures-01g
+  - mit-ocw-6006-2020
+  - cpp-reference-containers
+  capability_ids: &id055
+  - t-tree-representation
+  - t-traversal
+  cognitive_load: medium
+- id: t-bst
+  title: 二叉搜索树不变量
+  objective: 在声明范围内理解、操作并迁移“二叉搜索树不变量”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 130
+  prerequisite_unit_ids:
+  - t-tree-basics
+  - a-correctness
+  source_ids: *id008
+  capability_ids: &id056
+  - t-bst-invariant
+  cognitive_load: medium
+- id: t-heap
+  title: 堆与优先队列
+  objective: 在声明范围内理解、操作并迁移“堆与优先队列”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 130
+  prerequisite_unit_ids:
+  - t-tree-basics
+  - l-arrays
+  source_ids: *id008
+  capability_ids: &id057
+  - t-heap-priority
+  cognitive_load: medium
+- id: g-model-traverse
+  title: 图建模、表示与遍历
+  objective: 在声明范围内理解、操作并迁移“图建模、表示与遍历”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - l-linear-adt
+  - h-hash-applications
+  source_ids: &id009
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - nist-dads
+  capability_ids: &id058
+  - g-model-representation
+  - g-bfs-dfs
+  cognitive_load: medium
+- id: g-topological
+  title: 拓扑排序与环检测
+  objective: 在声明范围内理解、操作并迁移“拓扑排序与环检测”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - g-model-traverse
+  - a-correctness
+  source_ids: *id009
+  capability_ids: &id059
+  - g-topological-cycle
+  cognitive_load: medium
+- id: g-shortest-path
+  title: 最短路与适用条件
+  objective: 在声明范围内理解、操作并迁移“最短路与适用条件”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - g-model-traverse
+  - t-heap
+  - a-correctness
+  source_ids: *id009
+  capability_ids: &id060
+  - g-shortest-path
+  cognitive_load: medium
+- id: g-mst
+  title: 最小生成树与适用条件
+  objective: 在声明范围内理解、操作并迁移“最小生成树与适用条件”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - g-model-traverse
+  - t-heap
+  - a-correctness
+  source_ids: *id009
+  capability_ids: &id061
+  - g-mst
+  cognitive_load: medium
+- id: y-greedy-proof
+  title: 贪心选择与交换论证
+  objective: 在声明范围内理解、操作并迁移“贪心选择与交换论证”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - a-correctness
+  - s-comparison-sort
+  source_ids: &id010
+  - erickson-algorithms
+  - mit-ocw-6006-2020
+  - mit-mathematics-for-cs
+  capability_ids: &id062
+  - y-greedy-choice
+  - y-exchange-proof
+  cognitive_load: medium
+- id: y-greedy-counterexample
+  title: 贪心反例与适用边界
+  objective: 在声明范围内理解、操作并迁移“贪心反例与适用边界”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 135
+  prerequisite_unit_ids:
+  - y-greedy-proof
+  - g-mst
+  source_ids: *id010
+  capability_ids: &id063
+  - y-counterexample
+  cognitive_load: medium
+- id: d-state
+  title: 动态规划状态、转移与边界
+  objective: 在声明范围内理解、操作并迁移“动态规划状态、转移与边界”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 140
+  prerequisite_unit_ids:
+  - r-divide-conquer
+  - a-correctness
+  source_ids: &id011
+  - mit-ocw-6006-2020
+  - erickson-algorithms
+  - mit-mathematics-for-cs
+  capability_ids: &id064
+  - d-state-transition
+  cognitive_load: medium
+- id: d-computation
+  title: 记忆化、表格与计算顺序
+  objective: 在声明范围内理解、操作并迁移“记忆化、表格与计算顺序”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 140
+  prerequisite_unit_ids:
+  - d-state
+  source_ids: *id011
+  capability_ids: &id065
+  - d-order-memoization
+  cognitive_load: medium
+- id: d-optimization
+  title: 动态规划优化与迁移
+  objective: 在声明范围内理解、操作并迁移“动态规划优化与迁移”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 140
+  prerequisite_unit_ids:
+  - d-computation
+  - y-greedy-counterexample
+  source_ids: *id011
+  capability_ids: &id066
+  - d-optimization
+  - d-transfer
+  cognitive_load: medium
+- id: q-model-test
+  title: 建模、测试与调试
+  objective: 在声明范围内理解、操作并迁移“建模、测试与调试”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 140
+  prerequisite_unit_ids:
+  - a-correctness
+  - p-cpp-stl
+  - p-python-contrast
+  source_ids: &id012
+  - mit-ocw-6006-2020
+  - ies-study-guide
+  - python-tutorial-314
+  - wg21-public-materials
+  capability_ids: &id067
+  - q-modeling
+  - q-testing-debugging
+  cognitive_load: medium
+- id: q-performance
+  title: 性能测量与代码质量
+  objective: 在声明范围内理解、操作并迁移“性能测量与代码质量”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 140
+  prerequisite_unit_ids:
+  - q-model-test
+  - s-comparison-sort
+  source_ids: *id012
+  capability_ids: &id068
+  - q-performance-quality
+  cognitive_load: medium
+- id: q-integrated
+  title: 综合作品与双语言迁移
+  objective: 在声明范围内理解、操作并迁移“综合作品与双语言迁移”，同时识别适用前提。
+  reason: 按能力前置 DAG 安排，诊断缺口可映射回本单元补救。
+  estimated_minutes: 140
+  prerequisite_unit_ids:
+  - q-performance
+  - g-shortest-path
+  - d-optimization
+  source_ids: *id012
+  capability_ids: &id069
+  - q-integrated-artifact
+  cognitive_load: medium
+activities:
+- id: p-study
+  unit_id: p-programming-core
+  title: 双语言编程基础：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id001
+  capability_ids: &id013
+  - p-control-flow
+  - p-functions-io
+  - p-cpp-stl
+  - p-python-runtime
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理双语言编程基础的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: p-active-recall
+  unit_id: p-programming-core
+  title: 双语言编程基础：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id001
+  capability_ids: *id013
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释双语言编程基础的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: p-structured-check
+  unit_id: p-programming-core
+  title: 双语言编程基础：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id001
+  capability_ids: *id013
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对双语言编程基础的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: p-correction
+  unit_id: p-programming-core
+  title: 双语言编程基础：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id001
+  capability_ids: *id013
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对双语言编程基础的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: p-runner-cpp
+  unit_id: p-programming-core
+  title: 双语言编程基础：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id001
+  capability_ids: &id014
+  - p-control-flow
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 读入非负 n，输出 1 到 n 的和。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: p-runner-cpp-task
+- id: p-runner-python
+  unit_id: p-programming-core
+  title: 双语言编程基础：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id001
+  capability_ids: *id014
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 读入非负 n，输出 1 到 n 的和。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: p-runner-python-task
+- id: p-transfer
+  unit_id: p-programming-core
+  title: 双语言编程基础：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id001
+  capability_ids: *id013
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把双语言编程基础用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: p-review
+  unit_id: p-programming-core
+  title: 双语言编程基础：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id001
+  capability_ids: *id013
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成双语言编程基础的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: m-study
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: &id015
+  - m-logic-sets
+  - m-functions-relations
+  - m-induction-sums-logs
+  - m-counting-probability
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理必要数学与逻辑的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: m-active-recall
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: *id015
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释必要数学与逻辑的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: m-structured-check
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: *id015
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对必要数学与逻辑的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: m-correction
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: *id015
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对必要数学与逻辑的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: m-proof
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：proof
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: *id015
+  activity_roles:
+  - proof
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 为必要数学与逻辑给出逐步证明或最小反例，并明确使用的假设。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: m-transfer
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: *id015
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把必要数学与逻辑用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: m-review
+  unit_id: m-logic-sets
+  title: 必要数学与逻辑：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id002
+  capability_ids: *id015
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成必要数学与逻辑的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: a-study
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: &id016
+  - a-asymptotic
+  - a-case-analysis
+  - a-recurrence
+  - a-correctness
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理算法分析与正确性的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: a-active-recall
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: *id016
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释算法分析与正确性的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: a-structured-check
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: *id016
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对算法分析与正确性的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: a-correction
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: *id016
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对算法分析与正确性的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: a-proof
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：proof
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: *id016
+  activity_roles:
+  - proof
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 为算法分析与正确性给出逐步证明或最小反例，并明确使用的假设。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: a-runner-cpp
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id003
+  capability_ids: &id017
+  - a-asymptotic
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 令 i=1，每轮加倍直到 i>=n，输出轮数。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: a-runner-cpp-task
+- id: a-runner-python
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id003
+  capability_ids: *id017
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 令 i=1，每轮加倍直到 i>=n，输出轮数。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: a-runner-python-task
+- id: a-transfer
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: *id016
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把算法分析与正确性用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: a-review
+  unit_id: a-asymptotic-cases
+  title: 算法分析与正确性：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id003
+  capability_ids: *id016
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成算法分析与正确性的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: l-study
+  unit_id: l-arrays
+  title: 线性结构：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id004
+  capability_ids: &id018
+  - l-array-sequence
+  - l-linked-list
+  - l-stack-queue-deque
+  - l-selection
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理线性结构的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: l-active-recall
+  unit_id: l-arrays
+  title: 线性结构：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id004
+  capability_ids: *id018
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释线性结构的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: l-structured-check
+  unit_id: l-arrays
+  title: 线性结构：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id004
+  capability_ids: *id018
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对线性结构的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: l-correction
+  unit_id: l-arrays
+  title: 线性结构：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id004
+  capability_ids: *id018
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对线性结构的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: l-runner-cpp
+  unit_id: l-arrays
+  title: 线性结构：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id004
+  capability_ids: &id019
+  - l-array-sequence
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 逆序输出输入序列，空序列输出空行。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: l-runner-cpp-task
+- id: l-runner-python
+  unit_id: l-arrays
+  title: 线性结构：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id004
+  capability_ids: *id019
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 逆序输出输入序列，空序列输出空行。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: l-runner-python-task
+- id: l-transfer
+  unit_id: l-arrays
+  title: 线性结构：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id004
+  capability_ids: *id018
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把线性结构用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: l-review
+  unit_id: l-arrays
+  title: 线性结构：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id004
+  capability_ids: *id018
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成线性结构的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: h-study
+  unit_id: h-hash-semantics
+  title: 哈希与集合：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id005
+  capability_ids: &id020
+  - h-map-set
+  - h-collision-load
+  - h-application
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理哈希与集合的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: h-active-recall
+  unit_id: h-hash-semantics
+  title: 哈希与集合：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id005
+  capability_ids: *id020
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释哈希与集合的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: h-structured-check
+  unit_id: h-hash-semantics
+  title: 哈希与集合：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id005
+  capability_ids: *id020
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对哈希与集合的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: h-correction
+  unit_id: h-hash-semantics
+  title: 哈希与集合：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id005
+  capability_ids: *id020
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对哈希与集合的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: h-runner-cpp
+  unit_id: h-hash-semantics
+  title: 哈希与集合：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id005
+  capability_ids: &id021
+  - h-map-set
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出输入整数序列中不同值的数量。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: h-runner-cpp-task
+- id: h-runner-python
+  unit_id: h-hash-semantics
+  title: 哈希与集合：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id005
+  capability_ids: *id021
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出输入整数序列中不同值的数量。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: h-runner-python-task
+- id: h-transfer
+  unit_id: h-hash-semantics
+  title: 哈希与集合：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id005
+  capability_ids: *id020
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把哈希与集合用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: h-review
+  unit_id: h-hash-semantics
+  title: 哈希与集合：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id005
+  capability_ids: *id020
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成哈希与集合的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: s-study
+  unit_id: s-search
+  title: 搜索与排序：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id006
+  capability_ids: &id022
+  - s-linear-binary-search
+  - s-elementary-sort
+  - s-comparison-stability
+  - s-selection
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理搜索与排序的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: s-active-recall
+  unit_id: s-search
+  title: 搜索与排序：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id006
+  capability_ids: *id022
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释搜索与排序的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: s-structured-check
+  unit_id: s-search
+  title: 搜索与排序：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id006
+  capability_ids: *id022
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对搜索与排序的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: s-correction
+  unit_id: s-search
+  title: 搜索与排序：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id006
+  capability_ids: *id022
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对搜索与排序的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: s-runner-cpp
+  unit_id: s-search
+  title: 搜索与排序：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id006
+  capability_ids: &id023
+  - s-linear-binary-search
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 在升序数组中输出目标首次出现的零基下标，不存在输出 -1。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: s-runner-cpp-task
+- id: s-runner-python
+  unit_id: s-search
+  title: 搜索与排序：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id006
+  capability_ids: *id023
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 在升序数组中输出目标首次出现的零基下标，不存在输出 -1。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: s-runner-python-task
+- id: s-transfer
+  unit_id: s-search
+  title: 搜索与排序：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id006
+  capability_ids: *id022
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把搜索与排序用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: s-review
+  unit_id: s-search
+  title: 搜索与排序：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id006
+  capability_ids: *id022
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成搜索与排序的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: r-study
+  unit_id: r-recursion
+  title: 递归与分治：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id007
+  capability_ids: &id024
+  - r-recursion-state
+  - r-recurrence-divide
+  - r-stack-conversion
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理递归与分治的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: r-active-recall
+  unit_id: r-recursion
+  title: 递归与分治：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id007
+  capability_ids: *id024
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释递归与分治的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: r-structured-check
+  unit_id: r-recursion
+  title: 递归与分治：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id007
+  capability_ids: *id024
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对递归与分治的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: r-correction
+  unit_id: r-recursion
+  title: 递归与分治：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id007
+  capability_ids: *id024
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对递归与分治的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: r-runner-cpp
+  unit_id: r-recursion
+  title: 递归与分治：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id007
+  capability_ids: &id025
+  - r-recursion-state
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出 0 到 10 范围内 n 的阶乘；输出测试不证明递归实现。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: r-runner-cpp-task
+- id: r-runner-python
+  unit_id: r-recursion
+  title: 递归与分治：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id007
+  capability_ids: *id025
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出 0 到 10 范围内 n 的阶乘；输出测试不证明递归实现。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: r-runner-python-task
+- id: r-transfer
+  unit_id: r-recursion
+  title: 递归与分治：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id007
+  capability_ids: *id024
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把递归与分治用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: r-review
+  unit_id: r-recursion
+  title: 递归与分治：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id007
+  capability_ids: *id024
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成递归与分治的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: t-study
+  unit_id: t-tree-basics
+  title: 树与堆：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id008
+  capability_ids: &id026
+  - t-tree-representation
+  - t-traversal
+  - t-bst-invariant
+  - t-heap-priority
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理树与堆的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: t-active-recall
+  unit_id: t-tree-basics
+  title: 树与堆：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id008
+  capability_ids: *id026
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释树与堆的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: t-structured-check
+  unit_id: t-tree-basics
+  title: 树与堆：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id008
+  capability_ids: *id026
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对树与堆的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: t-correction
+  unit_id: t-tree-basics
+  title: 树与堆：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id008
+  capability_ids: *id026
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对树与堆的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: t-runner-cpp
+  unit_id: t-tree-basics
+  title: 树与堆：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id008
+  capability_ids: &id027
+  - t-heap-priority
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 使用优先队列语义输出非空整数序列的最小值。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: t-runner-cpp-task
+- id: t-runner-python
+  unit_id: t-tree-basics
+  title: 树与堆：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id008
+  capability_ids: *id027
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 使用优先队列语义输出非空整数序列的最小值。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: t-runner-python-task
+- id: t-transfer
+  unit_id: t-tree-basics
+  title: 树与堆：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id008
+  capability_ids: *id026
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把树与堆用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: t-review
+  unit_id: t-tree-basics
+  title: 树与堆：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id008
+  capability_ids: *id026
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成树与堆的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: g-study
+  unit_id: g-model-traverse
+  title: 图基础：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id009
+  capability_ids: &id028
+  - g-model-representation
+  - g-bfs-dfs
+  - g-topological-cycle
+  - g-shortest-path
+  - g-mst
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理图基础的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: g-active-recall
+  unit_id: g-model-traverse
+  title: 图基础：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id009
+  capability_ids: *id028
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释图基础的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: g-structured-check
+  unit_id: g-model-traverse
+  title: 图基础：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id009
+  capability_ids: *id028
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对图基础的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: g-correction
+  unit_id: g-model-traverse
+  title: 图基础：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id009
+  capability_ids: *id028
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对图基础的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: g-runner-cpp
+  unit_id: g-model-traverse
+  title: 图基础：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id009
+  capability_ids: &id029
+  - g-bfs-dfs
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出无向图中指定起点到终点是否可达（1 或 0）。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: g-runner-cpp-task
+- id: g-runner-python
+  unit_id: g-model-traverse
+  title: 图基础：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id009
+  capability_ids: *id029
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出无向图中指定起点到终点是否可达（1 或 0）。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: g-runner-python-task
+- id: g-transfer
+  unit_id: g-model-traverse
+  title: 图基础：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id009
+  capability_ids: *id028
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把图基础用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: g-review
+  unit_id: g-model-traverse
+  title: 图基础：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id009
+  capability_ids: *id028
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成图基础的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: y-study
+  unit_id: y-greedy-proof
+  title: 贪心：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: &id030
+  - y-greedy-choice
+  - y-exchange-proof
+  - y-counterexample
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理贪心的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: y-active-recall
+  unit_id: y-greedy-proof
+  title: 贪心：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: *id030
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释贪心的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: y-structured-check
+  unit_id: y-greedy-proof
+  title: 贪心：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: *id030
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对贪心的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: y-correction
+  unit_id: y-greedy-proof
+  title: 贪心：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: *id030
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对贪心的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: y-proof
+  unit_id: y-greedy-proof
+  title: 贪心：proof
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: *id030
+  activity_roles:
+  - proof
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 为贪心给出逐步证明或最小反例，并明确使用的假设。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: y-runner-cpp
+  unit_id: y-greedy-proof
+  title: 贪心：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id010
+  capability_ids: &id031
+  - y-greedy-choice
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出半开区间中可选择的最大互不重叠区间数。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: y-runner-cpp-task
+- id: y-runner-python
+  unit_id: y-greedy-proof
+  title: 贪心：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id010
+  capability_ids: *id031
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出半开区间中可选择的最大互不重叠区间数。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: y-runner-python-task
+- id: y-transfer
+  unit_id: y-greedy-proof
+  title: 贪心：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: *id030
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把贪心用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: y-review
+  unit_id: y-greedy-proof
+  title: 贪心：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id010
+  capability_ids: *id030
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成贪心的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: d-study
+  unit_id: d-state
+  title: 动态规划：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id011
+  capability_ids: &id032
+  - d-state-transition
+  - d-order-memoization
+  - d-optimization
+  - d-transfer
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理动态规划的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: d-active-recall
+  unit_id: d-state
+  title: 动态规划：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id011
+  capability_ids: *id032
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释动态规划的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: d-structured-check
+  unit_id: d-state
+  title: 动态规划：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id011
+  capability_ids: *id032
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对动态规划的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: d-correction
+  unit_id: d-state
+  title: 动态规划：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id011
+  capability_ids: *id032
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对动态规划的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: d-runner-cpp
+  unit_id: d-state
+  title: 动态规划：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id011
+  capability_ids: &id033
+  - d-state-transition
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出 F(0)=0、F(1)=1 的第 n 个 Fibonacci 数。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: d-runner-cpp-task
+- id: d-runner-python
+  unit_id: d-state
+  title: 动态规划：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id011
+  capability_ids: *id033
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出 F(0)=0、F(1)=1 的第 n 个 Fibonacci 数。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: d-runner-python-task
+- id: d-transfer
+  unit_id: d-state
+  title: 动态规划：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id011
+  capability_ids: *id032
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把动态规划用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: d-review
+  unit_id: d-state
+  title: 动态规划：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id011
+  capability_ids: *id032
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成动态规划的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: q-study
+  unit_id: q-model-test
+  title: 综合建模与质量：study
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: &id034
+  - q-modeling
+  - q-testing-debugging
+  - q-performance-quality
+  - q-integrated-artifact
+  activity_roles:
+  - study
+  language: none
+  evidence_ceiling: none
+  type: study
+  prompt: 阅读映射来源并整理综合建模与质量的核心概念、前提和边界。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成阅读和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+- id: q-active-recall
+  unit_id: q-model-test
+  title: 综合建模与质量：active_recall
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: *id034
+  activity_roles:
+  - active_recall
+  language: none
+  evidence_ceiling: limited
+  type: explanation
+  prompt: 不查看笔记，解释综合建模与质量的关键前提、推理步骤、复杂度条件和反例。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: q-structured-check
+  unit_id: q-model-test
+  title: 综合建模与质量：structured_check
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: *id034
+  activity_roles:
+  - structured_check
+  language: none
+  evidence_ceiling: supported
+  type: structured_check
+  prompt: 选择 checked，并按受管步骤核对综合建模与质量的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: q-correction
+  unit_id: q-model-test
+  title: 综合建模与质量：correction
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: *id034
+  activity_roles:
+  - correction
+  language: none
+  evidence_ceiling: supported
+  type: correction
+  prompt: 选择 corrected，并按受管步骤核对综合建模与质量的前提、边界和反例。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - corrected
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - corrected
+    feedback: 只有受管选项通过；这不证明自由文本技术内容正确。
+- id: q-runner-cpp
+  unit_id: q-model-test
+  title: 综合建模与质量：runner_cpp
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id012
+  capability_ids: &id035
+  - q-testing-debugging
+  activity_roles:
+  - runner_cpp
+  language: cpp
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出非空整数序列的最小值和最大值。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: q-runner-cpp-task
+- id: q-runner-python
+  unit_id: q-model-test
+  title: 综合建模与质量：runner_python
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 25
+  required: true
+  source_ids: *id012
+  capability_ids: *id035
+  activity_roles:
+  - runner_python
+  language: python
+  evidence_ceiling: verified
+  type: code_text
+  prompt: 输出非空整数序列的最小值和最大值。输出测试只验证声明的输入输出范围，不证明复杂度、代码质量或整项能力。
+  completion_rule: runner_pass
+  submission_fields:
+  - id: source
+    kind: code
+    label: 源代码
+    required: true
+    min_length: 10
+    max_length: 20000
+  runner_task_id: q-runner-python-task
+- id: q-transfer
+  unit_id: q-model-test
+  title: 综合建模与质量：transfer
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: *id034
+  activity_roles:
+  - transfer
+  language: none
+  evidence_ceiling: limited
+  type: transfer
+  prompt: 把综合建模与质量用于一个改变了输入规模或约束的新场景，并说明选择变化。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: q-project
+  unit_id: q-model-test
+  title: 综合建模与质量：project
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: *id034
+  activity_roles:
+  - project
+  language: none
+  evidence_ceiling: limited
+  type: project_evidence
+  prompt: 提交一个整合综合建模与质量建模、实现选择、测试和限制的小型作品说明。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- id: q-review
+  unit_id: q-model-test
+  title: 综合建模与质量：review
+  reason: 形成可追溯的共同主干活动；结果只适用于声明的能力范围。
+  estimated_minutes: 20
+  required: true
+  source_ids: *id012
+  capability_ids: *id034
+  activity_roles:
+  - review
+  language: none
+  evidence_ceiling: retained_limited
+  type: review
+  prompt: 在固定延迟点重新完成综合建模与质量的提取、代表任务和错误复盘。
+  completion_rule: valid_submission
+  submission_fields:
+  - id: response
+    kind: text
+    label: 作答
+    required: true
+    min_length: 20
+    max_length: 4000
+- unit_id: p-programming-core
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id001
+  capability_ids: *id036
+  language: none
+  id: p-programming-core-unit-study
+  type: study
+  title: 编程控制流、函数与边界：来源学习
+  prompt: 阅读映射来源，记录编程控制流、函数与边界的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: p-programming-core
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id001
+  capability_ids: *id036
+  language: none
+  id: p-programming-core-unit-check
+  type: structured_check
+  title: 编程控制流、函数与边界：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: p-cpp-stl
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id001
+  capability_ids: *id037
+  language: none
+  id: p-cpp-stl-unit-study
+  type: study
+  title: C++ 与 STL 基础：来源学习
+  prompt: 阅读映射来源，记录C++ 与 STL 基础的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: p-cpp-stl
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id001
+  capability_ids: *id037
+  language: none
+  id: p-cpp-stl-unit-check
+  type: structured_check
+  title: C++ 与 STL 基础：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: p-python-contrast
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id001
+  capability_ids: *id038
+  language: none
+  id: p-python-contrast-unit-study
+  type: study
+  title: Python 容器与双语言对照：来源学习
+  prompt: 阅读映射来源，记录Python 容器与双语言对照的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: p-python-contrast
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id001
+  capability_ids: *id038
+  language: none
+  id: p-python-contrast-unit-check
+  type: structured_check
+  title: Python 容器与双语言对照：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: m-logic-sets
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id002
+  capability_ids: *id039
+  language: none
+  id: m-logic-sets-unit-study
+  type: study
+  title: 逻辑、集合、函数与关系：来源学习
+  prompt: 阅读映射来源，记录逻辑、集合、函数与关系的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: m-logic-sets
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id002
+  capability_ids: *id039
+  language: none
+  id: m-logic-sets-unit-check
+  type: structured_check
+  title: 逻辑、集合、函数与关系：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: m-induction-growth
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id002
+  capability_ids: *id040
+  language: none
+  id: m-induction-growth-unit-study
+  type: study
+  title: 归纳、求和、对数与增长：来源学习
+  prompt: 阅读映射来源，记录归纳、求和、对数与增长的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: m-induction-growth
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id002
+  capability_ids: *id040
+  language: none
+  id: m-induction-growth-unit-check
+  type: structured_check
+  title: 归纳、求和、对数与增长：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: m-counting-probability
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id002
+  capability_ids: *id041
+  language: none
+  id: m-counting-probability-unit-study
+  type: study
+  title: 基础组合与概率：来源学习
+  prompt: 阅读映射来源，记录基础组合与概率的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: m-counting-probability
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id002
+  capability_ids: *id041
+  language: none
+  id: m-counting-probability-unit-check
+  type: structured_check
+  title: 基础组合与概率：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: a-asymptotic-cases
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id003
+  capability_ids: *id042
+  language: none
+  id: a-asymptotic-cases-unit-study
+  type: study
+  title: 渐近分析与情形假设：来源学习
+  prompt: 阅读映射来源，记录渐近分析与情形假设的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: a-asymptotic-cases
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id003
+  capability_ids: *id042
+  language: none
+  id: a-asymptotic-cases-unit-check
+  type: structured_check
+  title: 渐近分析与情形假设：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: a-recurrence
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id003
+  capability_ids: *id043
+  language: none
+  id: a-recurrence-unit-study
+  type: study
+  title: 递推式分析：来源学习
+  prompt: 阅读映射来源，记录递推式分析的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: a-recurrence
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id003
+  capability_ids: *id043
+  language: none
+  id: a-recurrence-unit-check
+  type: structured_check
+  title: 递推式分析：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: a-correctness
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id003
+  capability_ids: *id044
+  language: none
+  id: a-correctness-unit-study
+  type: study
+  title: 不变量、归纳证明与反例：来源学习
+  prompt: 阅读映射来源，记录不变量、归纳证明与反例的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: a-correctness
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id003
+  capability_ids: *id044
+  language: none
+  id: a-correctness-unit-check
+  type: structured_check
+  title: 不变量、归纳证明与反例：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: l-arrays
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id004
+  capability_ids: *id045
+  language: none
+  id: l-arrays-unit-study
+  type: study
+  title: 数组与顺序表：来源学习
+  prompt: 阅读映射来源，记录数组与顺序表的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: l-arrays
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id004
+  capability_ids: *id045
+  language: none
+  id: l-arrays-unit-check
+  type: structured_check
+  title: 数组与顺序表：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: l-linked
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id004
+  capability_ids: *id046
+  language: none
+  id: l-linked-unit-study
+  type: study
+  title: 链式结构：来源学习
+  prompt: 阅读映射来源，记录链式结构的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: l-linked
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id004
+  capability_ids: *id046
+  language: none
+  id: l-linked-unit-check
+  type: structured_check
+  title: 链式结构：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: l-linear-adt
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id004
+  capability_ids: *id047
+  language: none
+  id: l-linear-adt-unit-study
+  type: study
+  title: 栈、队列、双端队列与选择：来源学习
+  prompt: 阅读映射来源，记录栈、队列、双端队列与选择的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: l-linear-adt
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id004
+  capability_ids: *id047
+  language: none
+  id: l-linear-adt-unit-check
+  type: structured_check
+  title: 栈、队列、双端队列与选择：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: h-hash-semantics
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id005
+  capability_ids: *id048
+  language: none
+  id: h-hash-semantics-unit-study
+  type: study
+  title: 映射、集合、冲突与负载：来源学习
+  prompt: 阅读映射来源，记录映射、集合、冲突与负载的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: h-hash-semantics
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id005
+  capability_ids: *id048
+  language: none
+  id: h-hash-semantics-unit-check
+  type: structured_check
+  title: 映射、集合、冲突与负载：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: h-hash-applications
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id005
+  capability_ids: *id049
+  language: none
+  id: h-hash-applications-unit-study
+  type: study
+  title: 哈希应用与边界：来源学习
+  prompt: 阅读映射来源，记录哈希应用与边界的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: h-hash-applications
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id005
+  capability_ids: *id049
+  language: none
+  id: h-hash-applications-unit-check
+  type: structured_check
+  title: 哈希应用与边界：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: s-search
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id006
+  capability_ids: *id050
+  language: none
+  id: s-search-unit-study
+  type: study
+  title: 线性与二分搜索：来源学习
+  prompt: 阅读映射来源，记录线性与二分搜索的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: s-search
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id006
+  capability_ids: *id050
+  language: none
+  id: s-search-unit-check
+  type: structured_check
+  title: 线性与二分搜索：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: s-elementary-sort
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id006
+  capability_ids: *id051
+  language: none
+  id: s-elementary-sort-unit-study
+  type: study
+  title: 基础排序与不变量：来源学习
+  prompt: 阅读映射来源，记录基础排序与不变量的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: s-elementary-sort
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id006
+  capability_ids: *id051
+  language: none
+  id: s-elementary-sort-unit-check
+  type: structured_check
+  title: 基础排序与不变量：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: r-recursion
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id007
+  capability_ids: *id052
+  language: none
+  id: r-recursion-unit-study
+  type: study
+  title: 递归状态、基例与风险：来源学习
+  prompt: 阅读映射来源，记录递归状态、基例与风险的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: r-recursion
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id007
+  capability_ids: *id052
+  language: none
+  id: r-recursion-unit-check
+  type: structured_check
+  title: 递归状态、基例与风险：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: r-divide-conquer
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id007
+  capability_ids: *id053
+  language: none
+  id: r-divide-conquer-unit-study
+  type: study
+  title: 分治、递推与迭代转换：来源学习
+  prompt: 阅读映射来源，记录分治、递推与迭代转换的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: r-divide-conquer
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id007
+  capability_ids: *id053
+  language: none
+  id: r-divide-conquer-unit-check
+  type: structured_check
+  title: 分治、递推与迭代转换：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: s-comparison-sort
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id006
+  capability_ids: *id054
+  language: none
+  id: s-comparison-sort-unit-study
+  type: study
+  title: 比较排序、稳定性与选择：来源学习
+  prompt: 阅读映射来源，记录比较排序、稳定性与选择的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: s-comparison-sort
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id006
+  capability_ids: *id054
+  language: none
+  id: s-comparison-sort-unit-check
+  type: structured_check
+  title: 比较排序、稳定性与选择：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: t-tree-basics
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id008
+  capability_ids: *id055
+  language: none
+  id: t-tree-basics-unit-study
+  type: study
+  title: 树表示与遍历：来源学习
+  prompt: 阅读映射来源，记录树表示与遍历的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: t-tree-basics
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id008
+  capability_ids: *id055
+  language: none
+  id: t-tree-basics-unit-check
+  type: structured_check
+  title: 树表示与遍历：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: t-bst
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id008
+  capability_ids: *id056
+  language: none
+  id: t-bst-unit-study
+  type: study
+  title: 二叉搜索树不变量：来源学习
+  prompt: 阅读映射来源，记录二叉搜索树不变量的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: t-bst
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id008
+  capability_ids: *id056
+  language: none
+  id: t-bst-unit-check
+  type: structured_check
+  title: 二叉搜索树不变量：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: t-heap
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id008
+  capability_ids: *id057
+  language: none
+  id: t-heap-unit-study
+  type: study
+  title: 堆与优先队列：来源学习
+  prompt: 阅读映射来源，记录堆与优先队列的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: t-heap
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id008
+  capability_ids: *id057
+  language: none
+  id: t-heap-unit-check
+  type: structured_check
+  title: 堆与优先队列：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: g-model-traverse
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id058
+  language: none
+  id: g-model-traverse-unit-study
+  type: study
+  title: 图建模、表示与遍历：来源学习
+  prompt: 阅读映射来源，记录图建模、表示与遍历的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: g-model-traverse
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id058
+  language: none
+  id: g-model-traverse-unit-check
+  type: structured_check
+  title: 图建模、表示与遍历：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: g-topological
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id059
+  language: none
+  id: g-topological-unit-study
+  type: study
+  title: 拓扑排序与环检测：来源学习
+  prompt: 阅读映射来源，记录拓扑排序与环检测的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: g-topological
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id059
+  language: none
+  id: g-topological-unit-check
+  type: structured_check
+  title: 拓扑排序与环检测：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: g-shortest-path
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id060
+  language: none
+  id: g-shortest-path-unit-study
+  type: study
+  title: 最短路与适用条件：来源学习
+  prompt: 阅读映射来源，记录最短路与适用条件的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: g-shortest-path
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id060
+  language: none
+  id: g-shortest-path-unit-check
+  type: structured_check
+  title: 最短路与适用条件：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: g-mst
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id061
+  language: none
+  id: g-mst-unit-study
+  type: study
+  title: 最小生成树与适用条件：来源学习
+  prompt: 阅读映射来源，记录最小生成树与适用条件的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: g-mst
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id009
+  capability_ids: *id061
+  language: none
+  id: g-mst-unit-check
+  type: structured_check
+  title: 最小生成树与适用条件：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: y-greedy-proof
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id010
+  capability_ids: *id062
+  language: none
+  id: y-greedy-proof-unit-study
+  type: study
+  title: 贪心选择与交换论证：来源学习
+  prompt: 阅读映射来源，记录贪心选择与交换论证的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: y-greedy-proof
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id010
+  capability_ids: *id062
+  language: none
+  id: y-greedy-proof-unit-check
+  type: structured_check
+  title: 贪心选择与交换论证：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: y-greedy-counterexample
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id010
+  capability_ids: *id063
+  language: none
+  id: y-greedy-counterexample-unit-study
+  type: study
+  title: 贪心反例与适用边界：来源学习
+  prompt: 阅读映射来源，记录贪心反例与适用边界的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: y-greedy-counterexample
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id010
+  capability_ids: *id063
+  language: none
+  id: y-greedy-counterexample-unit-check
+  type: structured_check
+  title: 贪心反例与适用边界：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: d-state
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id011
+  capability_ids: *id064
+  language: none
+  id: d-state-unit-study
+  type: study
+  title: 动态规划状态、转移与边界：来源学习
+  prompt: 阅读映射来源，记录动态规划状态、转移与边界的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: d-state
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id011
+  capability_ids: *id064
+  language: none
+  id: d-state-unit-check
+  type: structured_check
+  title: 动态规划状态、转移与边界：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: d-computation
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id011
+  capability_ids: *id065
+  language: none
+  id: d-computation-unit-study
+  type: study
+  title: 记忆化、表格与计算顺序：来源学习
+  prompt: 阅读映射来源，记录记忆化、表格与计算顺序的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: d-computation
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id011
+  capability_ids: *id065
+  language: none
+  id: d-computation-unit-check
+  type: structured_check
+  title: 记忆化、表格与计算顺序：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: d-optimization
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id011
+  capability_ids: *id066
+  language: none
+  id: d-optimization-unit-study
+  type: study
+  title: 动态规划优化与迁移：来源学习
+  prompt: 阅读映射来源，记录动态规划优化与迁移的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: d-optimization
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id011
+  capability_ids: *id066
+  language: none
+  id: d-optimization-unit-check
+  type: structured_check
+  title: 动态规划优化与迁移：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: q-model-test
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id012
+  capability_ids: *id067
+  language: none
+  id: q-model-test-unit-study
+  type: study
+  title: 建模、测试与调试：来源学习
+  prompt: 阅读映射来源，记录建模、测试与调试的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: q-model-test
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id012
+  capability_ids: *id067
+  language: none
+  id: q-model-test-unit-check
+  type: structured_check
+  title: 建模、测试与调试：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: q-performance
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id012
+  capability_ids: *id068
+  language: none
+  id: q-performance-unit-study
+  type: study
+  title: 性能测量与代码质量：来源学习
+  prompt: 阅读映射来源，记录性能测量与代码质量的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: q-performance
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id012
+  capability_ids: *id068
+  language: none
+  id: q-performance-unit-check
+  type: structured_check
+  title: 性能测量与代码质量：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+- unit_id: q-integrated
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id012
+  capability_ids: *id069
+  language: none
+  id: q-integrated-unit-study
+  type: study
+  title: 综合作品与双语言迁移：来源学习
+  prompt: 阅读映射来源，记录综合作品与双语言迁移的概念、前提、边界和例子。
+  completion_rule: confirmation
+  submission_fields:
+  - id: confirmed
+    kind: confirmation
+    label: 确认已完成来源学习和笔记
+    required: true
+    min_length: 0
+    max_length: 10
+  activity_roles:
+  - study
+  evidence_ceiling: none
+- unit_id: q-integrated
+  reason: 每个学习单元都保留必需阅读与确定性检查，避免只有目录没有可执行路径。
+  estimated_minutes: 15
+  required: true
+  source_ids: *id012
+  capability_ids: *id069
+  language: none
+  id: q-integrated-unit-check
+  type: structured_check
+  title: 综合作品与双语言迁移：结构检查
+  prompt: 完成本单元受管检查，并确认答案写明前提、步骤与限制。
+  completion_rule: deterministic_pass
+  submission_fields:
+  - id: result
+    kind: choice
+    label: 结构检查结果
+    required: true
+    min_length: 1
+    max_length: 20
+    options:
+    - checked
+    - uncertain
+  deterministic_check:
+    field_id: result
+    accepted_values:
+    - checked
+    feedback: 只验证受管结构，不证明自由文本技术内容正确。
+  activity_roles:
+  - structured_check
+  evidence_ceiling: supported
+diagnostic_remediation_rules:
+- id: remediate-p-control-flow
+  question_id: diagnostic-01-p-control-flow
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - p-correction
+  reason: 受管错误或不确定信号回到 p-programming-core 的纠错路径。
+- id: remediate-p-functions-io
+  question_id: diagnostic-02-p-functions-io
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - p-correction
+  reason: 受管错误或不确定信号回到 p-programming-core 的纠错路径。
+- id: remediate-p-cpp-stl
+  question_id: diagnostic-03-p-cpp-stl
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - p-correction
+  reason: 受管错误或不确定信号回到 p-cpp-stl 的纠错路径。
+- id: remediate-p-python-runtime
+  question_id: diagnostic-04-p-python-runtime
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - p-correction
+  reason: 受管错误或不确定信号回到 p-python-contrast 的纠错路径。
+- id: remediate-m-logic-sets
+  question_id: diagnostic-05-m-logic-sets
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - m-correction
+  reason: 受管错误或不确定信号回到 m-logic-sets 的纠错路径。
+- id: remediate-m-functions-relations
+  question_id: diagnostic-06-m-functions-relations
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - m-correction
+  reason: 受管错误或不确定信号回到 m-logic-sets 的纠错路径。
+- id: remediate-m-induction-sums-logs
+  question_id: diagnostic-07-m-induction-sums-logs
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - m-correction
+  reason: 受管错误或不确定信号回到 m-induction-growth 的纠错路径。
+- id: remediate-m-counting-probability
+  question_id: diagnostic-08-m-counting-probability
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - m-correction
+  reason: 受管错误或不确定信号回到 m-counting-probability 的纠错路径。
+- id: remediate-a-asymptotic
+  question_id: diagnostic-09-a-asymptotic
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - a-correction
+  reason: 受管错误或不确定信号回到 a-asymptotic-cases 的纠错路径。
+- id: remediate-a-case-analysis
+  question_id: diagnostic-10-a-case-analysis
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - a-correction
+  reason: 受管错误或不确定信号回到 a-asymptotic-cases 的纠错路径。
+- id: remediate-a-recurrence
+  question_id: diagnostic-11-a-recurrence
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - a-correction
+  reason: 受管错误或不确定信号回到 a-recurrence 的纠错路径。
+- id: remediate-a-correctness
+  question_id: diagnostic-12-a-correctness
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - a-correction
+  reason: 受管错误或不确定信号回到 a-correctness 的纠错路径。
+- id: remediate-l-array-sequence
+  question_id: diagnostic-13-l-array-sequence
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - l-correction
+  reason: 受管错误或不确定信号回到 l-arrays 的纠错路径。
+- id: remediate-l-linked-list
+  question_id: diagnostic-14-l-linked-list
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - l-correction
+  reason: 受管错误或不确定信号回到 l-linked 的纠错路径。
+- id: remediate-l-stack-queue-deque
+  question_id: diagnostic-15-l-stack-queue-deque
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - l-correction
+  reason: 受管错误或不确定信号回到 l-linear-adt 的纠错路径。
+- id: remediate-l-selection
+  question_id: diagnostic-16-l-selection
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - l-correction
+  reason: 受管错误或不确定信号回到 l-linear-adt 的纠错路径。
+- id: remediate-h-map-set
+  question_id: diagnostic-17-h-map-set
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - h-correction
+  reason: 受管错误或不确定信号回到 h-hash-semantics 的纠错路径。
+- id: remediate-h-collision-load
+  question_id: diagnostic-18-h-collision-load
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - h-correction
+  reason: 受管错误或不确定信号回到 h-hash-semantics 的纠错路径。
+- id: remediate-h-application
+  question_id: diagnostic-19-h-application
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - h-correction
+  reason: 受管错误或不确定信号回到 h-hash-applications 的纠错路径。
+- id: remediate-s-linear-binary-search
+  question_id: diagnostic-20-s-linear-binary-search
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - s-correction
+  reason: 受管错误或不确定信号回到 s-search 的纠错路径。
+- id: remediate-s-elementary-sort
+  question_id: diagnostic-21-s-elementary-sort
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - s-correction
+  reason: 受管错误或不确定信号回到 s-elementary-sort 的纠错路径。
+- id: remediate-s-comparison-stability
+  question_id: diagnostic-22-s-comparison-stability
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - s-correction
+  reason: 受管错误或不确定信号回到 s-comparison-sort 的纠错路径。
+- id: remediate-s-selection
+  question_id: diagnostic-23-s-selection
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - s-correction
+  reason: 受管错误或不确定信号回到 s-comparison-sort 的纠错路径。
+- id: remediate-r-recursion-state
+  question_id: diagnostic-24-r-recursion-state
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - r-correction
+  reason: 受管错误或不确定信号回到 r-recursion 的纠错路径。
+- id: remediate-r-recurrence-divide
+  question_id: diagnostic-25-r-recurrence-divide
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - r-correction
+  reason: 受管错误或不确定信号回到 r-divide-conquer 的纠错路径。
+- id: remediate-r-stack-conversion
+  question_id: diagnostic-26-r-stack-conversion
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - r-correction
+  reason: 受管错误或不确定信号回到 r-divide-conquer 的纠错路径。
+- id: remediate-t-tree-representation
+  question_id: diagnostic-27-t-tree-representation
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - t-correction
+  reason: 受管错误或不确定信号回到 t-tree-basics 的纠错路径。
+- id: remediate-t-traversal
+  question_id: diagnostic-28-t-traversal
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - t-correction
+  reason: 受管错误或不确定信号回到 t-tree-basics 的纠错路径。
+- id: remediate-t-bst-invariant
+  question_id: diagnostic-29-t-bst-invariant
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - t-correction
+  reason: 受管错误或不确定信号回到 t-bst 的纠错路径。
+- id: remediate-t-heap-priority
+  question_id: diagnostic-30-t-heap-priority
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - t-correction
+  reason: 受管错误或不确定信号回到 t-heap 的纠错路径。
+- id: remediate-g-model-representation
+  question_id: diagnostic-31-g-model-representation
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - g-correction
+  reason: 受管错误或不确定信号回到 g-model-traverse 的纠错路径。
+- id: remediate-g-bfs-dfs
+  question_id: diagnostic-32-g-bfs-dfs
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - g-correction
+  reason: 受管错误或不确定信号回到 g-model-traverse 的纠错路径。
+- id: remediate-g-topological-cycle
+  question_id: diagnostic-33-g-topological-cycle
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - g-correction
+  reason: 受管错误或不确定信号回到 g-topological 的纠错路径。
+- id: remediate-g-shortest-path
+  question_id: diagnostic-34-g-shortest-path
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - g-correction
+  reason: 受管错误或不确定信号回到 g-shortest-path 的纠错路径。
+- id: remediate-g-mst
+  question_id: diagnostic-35-g-mst
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - g-correction
+  reason: 受管错误或不确定信号回到 g-mst 的纠错路径。
+- id: remediate-y-greedy-choice
+  question_id: diagnostic-36-y-greedy-choice
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - y-correction
+  reason: 受管错误或不确定信号回到 y-greedy-proof 的纠错路径。
+- id: remediate-y-exchange-proof
+  question_id: diagnostic-37-y-exchange-proof
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - y-correction
+  reason: 受管错误或不确定信号回到 y-greedy-proof 的纠错路径。
+- id: remediate-y-counterexample
+  question_id: diagnostic-38-y-counterexample
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - y-correction
+  reason: 受管错误或不确定信号回到 y-greedy-counterexample 的纠错路径。
+- id: remediate-d-state-transition
+  question_id: diagnostic-39-d-state-transition
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - d-correction
+  reason: 受管错误或不确定信号回到 d-state 的纠错路径。
+- id: remediate-d-order-memoization
+  question_id: diagnostic-40-d-order-memoization
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - d-correction
+  reason: 受管错误或不确定信号回到 d-computation 的纠错路径。
+- id: remediate-d-optimization
+  question_id: diagnostic-41-d-optimization
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - d-correction
+  reason: 受管错误或不确定信号回到 d-optimization 的纠错路径。
+- id: remediate-d-transfer
+  question_id: diagnostic-42-d-transfer
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - d-correction
+  reason: 受管错误或不确定信号回到 d-optimization 的纠错路径。
+- id: remediate-q-modeling
+  question_id: diagnostic-43-q-modeling
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - q-correction
+  reason: 受管错误或不确定信号回到 q-model-test 的纠错路径。
+- id: remediate-q-testing-debugging
+  question_id: diagnostic-44-q-testing-debugging
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - q-correction
+  reason: 受管错误或不确定信号回到 q-model-test 的纠错路径。
+- id: remediate-q-performance-quality
+  question_id: diagnostic-45-q-performance-quality
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - q-correction
+  reason: 受管错误或不确定信号回到 q-performance 的纠错路径。
+- id: remediate-q-integrated-artifact
+  question_id: diagnostic-46-q-integrated-artifact
+  response_values:
+  - overclaim
+  - uncertain
+  activity_ids:
+  - q-correction
+  reason: 受管错误或不确定信号回到 q-integrated 的纠错路径。

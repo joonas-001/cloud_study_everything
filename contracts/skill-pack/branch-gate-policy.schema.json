@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.cloud-study/contracts/skill-pack/branch-gate-policy.schema.json",
+  "title": "Skill package branch gate policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "version", "skill_id", "skill_version", "gates"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"$ref": "#/$defs/stableId"},
+    "version": {"$ref": "#/$defs/version"},
+    "skill_id": {"$ref": "#/$defs/stableId"},
+    "skill_version": {"$ref": "#/$defs/version"},
+    "gates": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "title", "required_capability_ids", "minimum_levels", "required_retained_count", "blocking_review_flags", "limitations"],
+        "properties": {
+          "id": {"enum": ["engineering", "interview", "competition", "theory"]},
+          "title": {"$ref": "#/$defs/nonEmpty"},
+          "required_capability_ids": {"$ref": "#/$defs/idList"},
+          "minimum_levels": {
+            "type": "object", "additionalProperties": false,
+            "properties": {
+              "understanding": {"$ref": "#/$defs/level"},
+              "operation": {"$ref": "#/$defs/level"},
+              "transfer": {"$ref": "#/$defs/level"},
+              "artifact": {"$ref": "#/$defs/level"},
+              "retention": {"$ref": "#/$defs/level"},
+              "correction": {"$ref": "#/$defs/level"}
+            }
+          },
+          "required_retained_count": {"type": "integer", "minimum": 0},
+          "independent_review_dimensions": {
+            "type": "array", "uniqueItems": true,
+            "items": {"enum": ["understanding", "operation", "transfer", "artifact", "retention", "correction"]}
+          },
+          "blocking_review_flags": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"enum": ["manual_review_pending", "retention_due", "source_review_pending", "version_mismatch"]}
+          },
+          "limitations": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "idList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/stableId"}},
+    "level": {"enum": ["limited", "supported", "retained_limited", "verified", "retained"]}
+  }
+}

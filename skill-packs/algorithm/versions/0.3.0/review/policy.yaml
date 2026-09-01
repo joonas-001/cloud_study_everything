@@ -1,0 +1,21 @@
+schema_version: 1.0.0
+id: algorithm-common-core-fixed-review
+version: 1.0.0
+skill_id: algorithm
+skill_version: 0.3.0
+strategy: fixed_expanding
+interval_days:
+- 1
+- 2
+- 4
+- 7
+- 15
+failure_retry_days: 1
+missed_task_behavior: overdue_not_failure
+completion_checkpoint: 5
+source_ids:
+- spacing-research-set
+- ies-study-guide
+limitations:
+- 固定间隔是透明产品规则，不是对每个人都最优的遗忘曲线。
+- 失败时保持 retention_pending，追加纠错和新复习；完成不表示整体掌握。
