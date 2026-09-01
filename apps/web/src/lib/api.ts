@@ -1,6 +1,7 @@
 import type {
   AiProviderProfileResponse,
   AiProviderResponse,
+  CapabilityProfileResponse,
   CapabilityScopeResponse,
   BranchGateEvaluationResponse,
   CorrectAnswerRequest,
@@ -414,6 +415,32 @@ export function getLearningEvidence(
   runId: string,
 ): Promise<LearningEvidenceResponse> {
   return request(`/learning-runs/${runId}/evidence`);
+}
+
+export function getCapabilityProfile(
+  runId: string,
+): Promise<CapabilityProfileResponse> {
+  return request(`/learning-runs/${encodeURIComponent(runId)}/capability-profile`);
+}
+
+export async function exportCapabilityProfile(
+  runId: string,
+  format: "json" | "csv",
+): Promise<Blob> {
+  const query = new URLSearchParams({ format });
+  const response = await fetch(
+    `${API_BASE_URL}/learning-runs/${encodeURIComponent(runId)}/capability-profile/export?${query.toString()}`,
+    { credentials: "same-origin" },
+  );
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    throw new ApiError(
+      response.status,
+      body.detail?.code ?? "request_failed",
+      body.detail?.message ?? `请求失败（HTTP ${response.status}）`,
+    );
+  }
+  return response.blob();
 }
 
 export function startLearningReview(

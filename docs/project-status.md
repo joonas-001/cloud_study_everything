@@ -17,14 +17,16 @@
   本地库均保留回滚点；Runner 十项矩阵通过且项目容器残留为 0；
 - 7A–7F 已进入主线；PR #18 已合并为 `main@90e16e2`。7F 代码、PR CI 自动验收和项目
   所有者完成确认均已完成；合并后 push CI `32806434805` 共 22 项成功；
-- 第八里程碑 M8-D01–D15、8A、8B、8C 与 8D 当前授权范围已完成；8B 已实现通用契约及关闭入口的
+- 第八里程碑 M8-D01–D15、8A、8B、8C、8D 与 8E 当前授权范围已完成；8B 已实现通用契约及关闭入口的
   `algorithm@0.3.0` 草稿，固定 12 域、46 能力、34 单元、4,740 分钟、166 活动、64 题和
   22 个 Runner 任务；8C 在独立分支实现完全确定性选题、三态路径信号、停止、解释审计、
   修正重算、恢复、重放、固定序列回退和未来／损坏状态拒绝；8D 实现默认 120 分钟每日任务、
   追加式延期、暂停恢复、范围化双语言 Runner 证据、真人评审、固定复习、十二域阶段检查和
-  四分支准确门禁，并新增 Alembic `0011`。`0.3.0` 入口仍关闭，默认入口仍为 `0.2.2`；
-  完整门禁通过 129 项后端、1 项按预期跳过、44 项前端、生产构建、22 项 E2E（6 项按范围
-  跳过）、契约和密钥扫描，8E–8G 未授权；
+  四分支准确门禁，并新增 Alembic `0011`；8E 实现按精确能力 ID、六维、时效与验证方式生成的
+  本地能力档案、JSON／CSV／打印视图、非虚荣学习分析和完全隔离的复习候选影子评估。
+  `0.3.0` 入口仍关闭，默认入口仍为 `0.2.2`；完整本地 `release-readiness` 已通过 132 项后端
+  测试（1 项按预期跳过）、44 项前端测试、生产构建与 13 个静态页面、22 项 E2E（6 项按
+  既有范围跳过）、全部治理检查、契约无漂移和密钥扫描；8F–8G 未授权；
 - 真实 AI、真实来源、邮件、公开发布、扩容和新增付费资源仍未授权。
 
 ## 6C 证据
@@ -57,7 +59,7 @@
 
 ## 下一步
 
-1. 保持 `algorithm@0.3.0` 关闭入口；远程来源实质复核、强制第二评审和锁定镜像 Runner
+1. 保持 `algorithm@0.3.0` 关闭入口；8F 与 8G 继续等待单独授权，远程来源实质复核、强制第二评审和锁定镜像 Runner
    全量复验继续按 `TODO.md` 等待相应授权或 8G，不因本地结构门禁通过而自动解除；
 2. 保持真实 AI、个人知识工作台、文件导入、完整富文本、通用插件平台、四分支课程及产品
    扩展为明确后续待办，不在 8A–8G 中实施；
@@ -68,4 +70,4 @@
 `docs/design/milestone-7f-experience-acceptance.md`；8A 规格、8B 与 8C 证据见
 `docs/architecture/milestone-8a-learning-core-spec.md` 和
 `docs/architecture/milestone-8b-validation.md`、`docs/architecture/milestone-8c-validation.md`
-和 `docs/architecture/milestone-8d-validation.md`。
+和 `docs/architecture/milestone-8d-validation.md`、`docs/architecture/milestone-8e-validation.md`。

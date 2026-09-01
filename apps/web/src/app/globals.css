@@ -3438,6 +3438,334 @@ select[aria-invalid="true"] {
   margin-bottom: 8px;
 }
 
+.capability-profile {
+  display: grid;
+  gap: 20px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.capability-profile__header,
+.capability-profile__analysis,
+.shadow-evaluation {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.capability-profile__header h2,
+.capability-profile__analysis h3,
+.shadow-evaluation h3 {
+  margin: 7px 0 8px;
+}
+
+.capability-profile__header p,
+.capability-profile__analysis > p,
+.shadow-evaluation p {
+  max-width: 700px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.capability-profile__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.capability-profile__scope,
+.capability-profile__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.capability-profile__scope > div,
+.capability-profile__metrics article {
+  display: grid;
+  gap: 5px;
+  padding: 18px 20px;
+  border-right: 1px solid var(--line);
+}
+
+.capability-profile__scope > div:last-child,
+.capability-profile__metrics article:last-child {
+  border-right: 0;
+}
+
+.capability-profile__scope span,
+.capability-profile__scope small,
+.capability-profile__metrics span,
+.capability-profile__metrics small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.capability-profile__metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.capability-profile__metrics strong {
+  color: var(--deep);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+}
+
+.capability-profile__analysis,
+.shadow-evaluation,
+.capability-profile__limitations {
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.capability-profile__analysis dl {
+  display: grid;
+  flex: 0 0 min(48%, 520px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: var(--line);
+}
+
+.capability-profile__analysis dl > div {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  background: var(--mist);
+}
+
+.capability-profile__analysis dt,
+.capability-profile__analysis dd {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+.capability-profile__analysis dt {
+  color: var(--muted);
+}
+
+.capability-domain-list {
+  display: grid;
+  gap: 10px;
+}
+
+.capability-domain {
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.capability-domain > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 58px;
+  padding: 14px 18px;
+  color: var(--deep);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.capability-domain > summary > span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.capability-domain > summary small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.capability-domain__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid var(--line);
+  background: var(--line);
+}
+
+.capability-card {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+  min-width: 0;
+  padding: 20px;
+  background: var(--paper);
+}
+
+.capability-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.capability-card > header span,
+.capability-card > header > strong {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.capability-card h4 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.capability-card__levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.capability-card__levels span {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  background: var(--mist);
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.capability-card__analytics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.capability-card__analytics > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.72rem;
+}
+
+.capability-card__analytics dt {
+  color: var(--muted);
+}
+
+.capability-card__analytics dd {
+  margin: 0;
+  font-family: var(--font-mono);
+}
+
+.capability-card__proof,
+.capability-card__limit {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.capability-card__limit {
+  color: var(--muted);
+}
+
+.capability-card__records {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.capability-card__records summary {
+  color: var(--deep);
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.capability-card__records ol {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.capability-card__records li {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  background: var(--mist);
+  font-size: 0.72rem;
+}
+
+.capability-card__records span,
+.capability-card__records small,
+.shadow-evaluation small {
+  color: var(--muted);
+}
+
+.shadow-evaluation > div:nth-child(2) {
+  display: grid;
+  gap: 7px;
+  max-width: 520px;
+}
+
+.shadow-evaluation ul,
+.capability-profile__limitations ul {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.capability-profile__limitations h3 {
+  margin-top: 0;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  .desktop-sidebar,
+  .mobile-context-bar,
+  .mobile-navigation,
+  .page-header,
+  .evidence-center > :not(.capability-profile),
+  .no-print {
+    display: none !important;
+  }
+
+  .app-shell,
+  .app-shell__content,
+  .page,
+  .evidence-page,
+  .evidence-center,
+  .capability-profile {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+  }
+
+  .capability-profile > *,
+  .capability-domain,
+  .capability-card {
+    margin-bottom: 12px;
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .capability-domain > .capability-domain__grid {
+    display: grid;
+  }
+
+  .capability-domain__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Milestone 7E: semantic component and accessibility baseline. */
 h1,
 h2,
@@ -3691,6 +4019,18 @@ th {
   .learning-sidebar {
     position: static;
   }
+
+  .capability-profile__header {
+    display: grid;
+  }
+
+  .capability-profile__actions {
+    width: 100%;
+  }
+
+  .capability-profile__actions button {
+    flex: 1 1 auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -3701,8 +4041,36 @@ th {
 
   .evidence-scope-bar,
   .evidence-dimension-board,
-  .evidence-followups__grid {
+  .evidence-followups__grid,
+  .capability-profile__scope,
+  .capability-profile__metrics,
+  .capability-domain__grid {
     grid-template-columns: 1fr;
+  }
+
+  .capability-profile__scope > div,
+  .capability-profile__metrics article {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .capability-profile__scope > div:last-child,
+  .capability-profile__metrics article:last-child {
+    border-bottom: 0;
+  }
+
+  .capability-profile__analysis,
+  .shadow-evaluation {
+    display: grid;
+  }
+
+  .capability-profile__analysis dl {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .capability-card__analytics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .evidence-scope-bar > div {

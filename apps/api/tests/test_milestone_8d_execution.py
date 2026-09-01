@@ -6,7 +6,12 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
+from sqlalchemy import func, select
 
+from cloud_study_api.capability_profiles import (
+    CapabilityProfileService,
+    evaluate_review_shadow,
+)
 from cloud_study_api.credentials import MemoryCredentialStore
 from cloud_study_api.database import create_session_factory, upgrade_database
 from cloud_study_api.diagnostics import DiagnosticService
@@ -14,7 +19,7 @@ from cloud_study_api.execution import LearningExecutionError, LearningExecutionS
 from cloud_study_api.governance import validate_repository
 from cloud_study_api.learning import LearningService
 from cloud_study_api.main import app
-from cloud_study_api.models import LearningRun
+from cloud_study_api.models import LearningEvent, LearningRun, ReviewTask
 from cloud_study_api.notifications import NotificationService
 from cloud_study_api.runner import RunnerBackend
 
@@ -386,3 +391,141 @@ def test_milestone_8d_routes_preserve_confirmation_pause_and_gate_contracts(
         )
         assert review.status_code == 201
         assert review.json()["attachments_stored"] is False
+
+
+def test_milestone_8e_profile_is_scoped_private_and_read_only(tmp_path: Path) -> None:
+    clock = [datetime(2026, 8, 31, 8, 0, tzinfo=UTC)]
+    diagnostics, learning, execution = _services(tmp_path, clock)
+    run = _create_run(diagnostics, learning, execution)
+    profile_service = CapabilityProfileService(
+        repository_root=REPOSITORY_ROOT,
+        packages=execution._package_list,
+        session_factory=execution._session_factory,
+        now=lambda: clock[0],
+    )
+
+    structured = next(
+        item for item in run["activities"] if item["template_activity_id"] == "p-structured-check"
+    )
+    execution.submit_attempt(structured["id"], submission={"result": "checked"})
+
+    with execution._session_factory() as database:
+        event_count = database.scalar(select(func.count()).select_from(LearningEvent))
+        review_count = database.scalar(select(func.count()).select_from(ReviewTask))
+
+    profile = profile_service.get_profile(run["id"])
+    assert profile["scope_status"] == "scoped"
+    assert profile["summary"]["capability_count"] == 46
+    assert profile["summary"]["evidenced_capability_count"] >= 1
+    assert profile["privacy"] == {
+        "local_only": True,
+        "public_link_created": False,
+        "certificate_created": False,
+        "sensitive_submission_content_included": False,
+        "credentials_included": False,
+        "income_included": False,
+    }
+    control_flow = next(
+        capability
+        for domain in profile["domains"]
+        for capability in domain["capabilities"]
+        if capability["id"] == "p-control-flow"
+    )
+    understanding = next(
+        item for item in control_flow["dimensions"] if item["dimension"] == "understanding"
+    )
+    assert understanding["evidence_level"] == "supported"
+    assert "source_review_pending" in understanding["review_flags"]
+    assert "整门算法掌握" in control_flow["cannot_prove"][0]
+    assert profile["shadow_evaluation"]["status"] == "insufficient_data"
+    assert profile["shadow_evaluation"]["affects_tasks"] is False
+
+    clock[0] += timedelta(days=91)
+    expired_profile = profile_service.get_profile(run["id"])
+    expired_control_flow = next(
+        capability
+        for domain in expired_profile["domains"]
+        for capability in domain["capabilities"]
+        if capability["id"] == "p-control-flow"
+    )
+    expired_understanding = next(
+        item for item in expired_control_flow["dimensions"] if item["dimension"] == "understanding"
+    )
+    assert expired_understanding["evidence_level"] == "none"
+    assert expired_understanding["expired_count"] == 1
+    assert "只有已过期证据" in expired_control_flow["can_prove"]
+
+    json_export, json_media, json_extension = profile_service.export_profile(run["id"], "json")
+    csv_export, csv_media, csv_extension = profile_service.export_profile(run["id"], "csv")
+    assert json_extension == "json"
+    assert json_media.startswith("application/json")
+    assert b'"submission"' not in json_export
+    assert b"checked" not in json_export
+    assert csv_extension == "csv"
+    assert csv_media.startswith("text/csv")
+    assert csv_export.startswith(b"\xef\xbb\xbf")
+    assert b"checked" not in csv_export
+
+    with execution._session_factory() as database:
+        assert database.scalar(select(func.count()).select_from(LearningEvent)) == event_count
+        assert database.scalar(select(func.count()).select_from(ReviewTask)) == review_count
+
+
+def test_milestone_8e_shadow_evaluation_is_frozen_and_never_exposes_predictions() -> None:
+    samples = [
+        {
+            "run_id": f"run-{run_index}",
+            "checkpoint_index": checkpoint,
+            "attempt_number": 1,
+            "interval_days": [1, 2, 4, 7, 15][checkpoint - 1],
+            "result": "failed" if checkpoint == 4 else "passed",
+        }
+        for run_index in range(6)
+        for checkpoint in range(1, 6)
+    ]
+
+    first = evaluate_review_shadow(samples)
+    second = evaluate_review_shadow(reversed(samples))
+    assert first == second
+    assert first["status"] == "comparison_available"
+    assert first["sample_count"] == 30
+    assert first["failure_count"] == 6
+    assert first["predictions_exposed"] is False
+    assert first["memory_probability_exposed"] is False
+    assert first["affects_tasks"] is False
+    assert first["affects_evidence"] is False
+    assert first["affects_user_conclusions"] is False
+    assert first["authoritative_policy"] == {
+        "strategy": "fixed_expanding",
+        "interval_days": [1, 2, 4, 7, 15],
+        "unchanged": True,
+    }
+
+
+def test_milestone_8e_profile_routes_export_without_sensitive_body(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    clock = [datetime(2026, 8, 31, 8, 0, tzinfo=UTC)]
+    diagnostics, learning, execution = _services(tmp_path, clock)
+    run = _create_run(diagnostics, learning, execution)
+    service = CapabilityProfileService(
+        repository_root=REPOSITORY_ROOT,
+        packages=execution._package_list,
+        session_factory=execution._session_factory,
+        now=lambda: clock[0],
+    )
+    monkeypatch.setenv("CLOUD_STUDY_DATABASE_PATH", str(tmp_path / "profile-route.db"))
+
+    with TestClient(app) as client:
+        app.state.capability_profile_service = service
+        response = client.get(f"/learning-runs/{run['id']}/capability-profile")
+        assert response.status_code == 200
+        assert response.json()["skill_version"] == "0.3.0"
+        assert response.json()["shadow_evaluation"]["status"] == "insufficient_data"
+
+        exported = client.get(f"/learning-runs/{run['id']}/capability-profile/export?format=json")
+        assert exported.status_code == 200
+        assert exported.headers["cache-control"] == "no-store"
+        assert "attachment" in exported.headers["content-disposition"]
+        assert '"submission":' not in exported.text
