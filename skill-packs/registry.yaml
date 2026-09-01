@@ -34,4 +34,4 @@ packages:
     state: draft
     availability: available
     intake: closed
-    manifest_sha256: 7bfbcbfce074793bba6ce3b0caf707b5af478cdd9827f5b665c049dc9d666664
+    manifest_sha256: bb8787a84ed458c874e611ee115664c4410faf7c398e1934dad1333b1ae88fcd

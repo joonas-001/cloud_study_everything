@@ -799,7 +799,7 @@ def test_gate_regression_pauses_active_experiment_and_feedback_never_mutates_pla
     )
 
 
-def test_0010_migration_upgrades_and_downgrades_cleanly(tmp_path: Path) -> None:
+def test_latest_migration_upgrades_and_downgrades_cleanly(tmp_path: Path) -> None:
     database_path = tmp_path / "migration.db"
     config = Config(str(REPOSITORY_ROOT / "apps" / "api" / "alembic.ini"))
     config.set_main_option(
@@ -812,7 +812,7 @@ def test_0010_migration_upgrades_and_downgrades_cleanly(tmp_path: Path) -> None:
     )
     command.upgrade(config, "0009")
     command.upgrade(config, "head")
-    assert read_schema_version(database_path) == "0010"
+    assert read_schema_version(database_path) == "0011"
     engine = create_database_engine(database_path)
     try:
         assert "monetization_experiments" in inspect(engine).get_table_names()

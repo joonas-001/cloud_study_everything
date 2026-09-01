@@ -83,8 +83,8 @@ def run_preflight() -> dict[str, object]:
     database_path = settings.database_path
     if not database_path.is_file() or database_path.is_symlink():
         raise PreflightError("configured database must be an existing regular file")
-    if read_schema_version(database_path) != "0010":
-        raise PreflightError("database must be migrated to Alembic revision 0010")
+    if read_schema_version(database_path) != "0011":
+        raise PreflightError("database must be migrated to Alembic revision 0011")
     try:
         with closing(
             sqlite3.connect(f"file:{database_path.as_posix()}?mode=ro", uri=True)
@@ -138,7 +138,7 @@ def run_preflight() -> dict[str, object]:
         "ok": True,
         "mode": settings.deployment.mode,
         "region": policy["platform"]["region"],
-        "database_revision": "0010",
+        "database_revision": "0011",
         "remote_runner_enabled": settings.deployment.remote_runner_enabled,
         "runner_broker": runner_availability,
         "external_calls_enabled": False,

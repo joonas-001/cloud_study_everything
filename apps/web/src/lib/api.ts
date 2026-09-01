@@ -2,12 +2,14 @@ import type {
   AiProviderProfileResponse,
   AiProviderResponse,
   CapabilityScopeResponse,
+  BranchGateEvaluationResponse,
   CorrectAnswerRequest,
   CreatePathComparisonRequest,
   CreateReadinessEvaluationRequest,
   CreateAiProviderProfileRequest,
   CreateDiagnosticSessionRequest,
   CreateLearningRunRequest,
+  CreateLearningIndependentReviewRequest,
   CreatePlanningProposalRequest,
   CreateSourceCheckRequest,
   DiagnosticSessionResponse,
@@ -21,6 +23,7 @@ import type {
   PlanningOptionResponse,
   LearningEvidenceResponse,
   LearningRunResponse,
+  LearningIndependentReviewResponse,
   MarketResearchOverviewResponse,
   MarketResearchHistoryResponse,
   MarketResearchRunResponse,
@@ -61,6 +64,8 @@ import type {
   ExportExperimentRequest,
   TodayLearningRequest,
   TodayLearningResponse,
+  PauseLearningRunRequest,
+  StageCheckpointResponse,
   UpdateNotificationPreferenceRequest,
   UpdatePlanningStatusRequest,
   UpdatePlanningUnitRequest,
@@ -321,6 +326,42 @@ export function generateTodayLearning(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getLearningStageCheckpoints(
+  runId: string,
+): Promise<Array<StageCheckpointResponse>> {
+  return request(`/learning-runs/${runId}/stage-checkpoints`);
+}
+
+export function getLearningBranchGates(
+  runId: string,
+): Promise<BranchGateEvaluationResponse> {
+  return request(`/learning-runs/${runId}/branch-gates`);
+}
+
+export function createLearningIndependentReview(
+  runId: string,
+  payload: CreateLearningIndependentReviewRequest,
+): Promise<LearningIndependentReviewResponse> {
+  return request(`/learning-runs/${runId}/independent-reviews`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function pauseLearningRun(
+  runId: string,
+  payload: PauseLearningRunRequest,
+): Promise<LearningRunResponse> {
+  return request(`/learning-runs/${runId}/pause`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resumeLearningRun(runId: string): Promise<LearningRunResponse> {
+  return request(`/learning-runs/${runId}/resume`, { method: "POST" });
 }
 
 export function submitLearningActivityAttempt(

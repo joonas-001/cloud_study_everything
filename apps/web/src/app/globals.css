@@ -1435,6 +1435,71 @@ select[aria-invalid="true"] {
   max-width: 180px;
 }
 
+.overtime-confirmation {
+  display: grid;
+  gap: 10px;
+  max-width: 360px;
+}
+
+.overtime-confirmation label {
+  max-width: none;
+}
+
+.run-state-control,
+.pause-control {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--color-surface-muted);
+}
+
+.run-state-control h3,
+.deferred-task-list h3,
+.stage-checkpoints h3,
+.branch-gates h3 {
+  margin: 6px 0 8px;
+}
+
+.run-state-control p,
+.deferred-task-list p,
+.stage-checkpoints p,
+.branch-gates > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.deferred-task-list,
+.stage-checkpoints,
+.branch-gates {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.deferred-task-list ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.deferred-task-list li {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+}
+
+.deferred-task-list li span,
+.activity-scope,
+.recorded-review {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .activity-workspace {
   display: grid;
   grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
@@ -1529,6 +1594,128 @@ select[aria-invalid="true"] {
   background: var(--color-surface);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.independent-review-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--color-surface-muted);
+}
+
+.independent-review-form h4,
+.independent-review-form p {
+  margin: 0;
+}
+
+.review-form-grid,
+.stage-checkpoint-grid,
+.branch-gate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.review-form-grid label,
+.pause-control label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.review-form-grid input,
+.review-form-grid select,
+.pause-control input,
+.overtime-confirmation input {
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: var(--color-surface);
+  color: var(--ink);
+}
+
+.stage-checkpoint-grid,
+.branch-gate-grid {
+  margin-top: 16px;
+}
+
+.stage-checkpoint-grid article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+}
+
+.stage-checkpoint-grid article span,
+.stage-checkpoint-grid article small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.branch-gate-grid article {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--color-surface);
+}
+
+.branch-gate-grid header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.branch-gate-grid header span,
+.branch-gate-grid small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.branch-gate-grid dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.branch-gate-grid dl div {
+  padding: 8px;
+  background: var(--color-surface-muted);
+}
+
+.branch-gate-grid dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.branch-gate-grid dd {
+  margin: 3px 0 0;
+  font-weight: 800;
+}
+
+.branch-gate-grid summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.branch-gate-grid ul {
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.pause-control label {
+  width: min(420px, 100%);
+}
+
+.pause-control > span {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .submission-fields {
@@ -2299,6 +2486,22 @@ select[aria-invalid="true"] {
   .today-control .primary-button,
   .execution-start .primary-button {
     width: 100%;
+  }
+
+  .run-state-control,
+  .pause-control,
+  .branch-gate-grid header {
+    display: grid;
+  }
+
+  .review-form-grid,
+  .stage-checkpoint-grid,
+  .branch-gate-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .branch-gate-grid dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .form-grid,

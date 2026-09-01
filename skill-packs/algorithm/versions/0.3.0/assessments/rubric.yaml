@@ -4,8 +4,8 @@ skill_id: algorithm
 skill_version: 0.3.0
 criteria:
 - id: understanding-rubric
-  title: understanding 有限自评量表
-  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  title: understanding 受管范围观察量表
+  prompt: 是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，并限制结论范围？记录必须另行标明自评或外部真人评审。
   levels:
   - value: not_yet
     label: 尚未满足
@@ -14,11 +14,11 @@ criteria:
     label: 不确定
     observable_description: 结构存在但技术内容需要复核。
   - value: meets
-    label: 自评满足
-    observable_description: 结构要素齐全；仍不是独立验证。
+    label: 观察项满足
+    observable_description: 结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审才属于独立验证。
 - id: operation-rubric
-  title: operation 有限自评量表
-  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  title: operation 受管范围观察量表
+  prompt: 是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，并限制结论范围？记录必须另行标明自评或外部真人评审。
   levels:
   - value: not_yet
     label: 尚未满足
@@ -27,11 +27,11 @@ criteria:
     label: 不确定
     observable_description: 结构存在但技术内容需要复核。
   - value: meets
-    label: 自评满足
-    observable_description: 结构要素齐全；仍不是独立验证。
+    label: 观察项满足
+    observable_description: 结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审才属于独立验证。
 - id: transfer-rubric
-  title: transfer 有限自评量表
-  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  title: transfer 受管范围观察量表
+  prompt: 是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，并限制结论范围？记录必须另行标明自评或外部真人评审。
   levels:
   - value: not_yet
     label: 尚未满足
@@ -40,11 +40,11 @@ criteria:
     label: 不确定
     observable_description: 结构存在但技术内容需要复核。
   - value: meets
-    label: 自评满足
-    observable_description: 结构要素齐全；仍不是独立验证。
+    label: 观察项满足
+    observable_description: 结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审才属于独立验证。
 - id: artifact-rubric
-  title: artifact 有限自评量表
-  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  title: artifact 受管范围观察量表
+  prompt: 是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，并限制结论范围？记录必须另行标明自评或外部真人评审。
   levels:
   - value: not_yet
     label: 尚未满足
@@ -53,11 +53,11 @@ criteria:
     label: 不确定
     observable_description: 结构存在但技术内容需要复核。
   - value: meets
-    label: 自评满足
-    observable_description: 结构要素齐全；仍不是独立验证。
+    label: 观察项满足
+    observable_description: 结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审才属于独立验证。
 - id: retention-rubric
-  title: retention 有限自评量表
-  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  title: retention 受管范围观察量表
+  prompt: 是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，并限制结论范围？记录必须另行标明自评或外部真人评审。
   levels:
   - value: not_yet
     label: 尚未满足
@@ -66,11 +66,11 @@ criteria:
     label: 不确定
     observable_description: 结构存在但技术内容需要复核。
   - value: meets
-    label: 自评满足
-    observable_description: 结构要素齐全；仍不是独立验证。
+    label: 观察项满足
+    observable_description: 结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审才属于独立验证。
 - id: correction-rubric
-  title: correction 有限自评量表
-  prompt: 是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？
+  title: correction 受管范围观察量表
+  prompt: 是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，并限制结论范围？记录必须另行标明自评或外部真人评审。
   levels:
   - value: not_yet
     label: 尚未满足
@@ -79,5 +79,5 @@ criteria:
     label: 不确定
     observable_description: 结构存在但技术内容需要复核。
   - value: meets
-    label: 自评满足
-    observable_description: 结构要素齐全；仍不是独立验证。
+    label: 观察项满足
+    observable_description: 结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审才属于独立验证。

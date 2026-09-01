@@ -290,6 +290,196 @@
         "title": "AiProviderResponse",
         "type": "object"
       },
+      "BranchGateEvaluationResponse": {
+        "properties": {
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "gates": {
+            "items": {
+              "$ref": "#/components/schemas/BranchGateResponse"
+            },
+            "title": "Gates",
+            "type": "array"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "policy_id": {
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "selected_branch_id": {
+            "title": "Selected Branch Id",
+            "type": "null"
+          },
+          "selection_required": {
+            "const": true,
+            "title": "Selection Required",
+            "type": "boolean"
+          },
+          "skill_id": {
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "skill_version": {
+            "title": "Skill Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "skill_id",
+          "skill_version",
+          "policy_id",
+          "policy_version",
+          "evaluated_at",
+          "selected_branch_id",
+          "selection_required",
+          "gates",
+          "limitations"
+        ],
+        "title": "BranchGateEvaluationResponse",
+        "type": "object"
+      },
+      "BranchGateResponse": {
+        "properties": {
+          "blocking_review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocking Review Flags",
+            "type": "array"
+          },
+          "expired_capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Expired Capability Ids",
+            "type": "array"
+          },
+          "future_invalid_capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Future Invalid Capability Ids",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "missing_independent_reviews": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Missing Independent Reviews",
+            "type": "array"
+          },
+          "missing_requirements": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Missing Requirements",
+            "type": "array"
+          },
+          "required_capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Required Capability Ids",
+            "type": "array"
+          },
+          "required_retained_count": {
+            "title": "Required Retained Count",
+            "type": "integer"
+          },
+          "retained_capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Retained Capability Ids",
+            "type": "array"
+          },
+          "retained_shortfall": {
+            "title": "Retained Shortfall",
+            "type": "integer"
+          },
+          "satisfied_capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Satisfied Capability Ids",
+            "type": "array"
+          },
+          "selected": {
+            "const": false,
+            "title": "Selected",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "eligible",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "selected",
+          "required_capability_ids",
+          "satisfied_capability_ids",
+          "expired_capability_ids",
+          "future_invalid_capability_ids",
+          "missing_requirements",
+          "retained_capability_ids",
+          "required_retained_count",
+          "retained_shortfall",
+          "missing_independent_reviews",
+          "blocking_review_flags",
+          "limitations",
+          "meaning"
+        ],
+        "title": "BranchGateResponse",
+        "type": "object"
+      },
       "CapabilityScopeResponse": {
         "properties": {
           "capability_scope_id": {
@@ -315,6 +505,7 @@
           "learning_run_status": {
             "enum": [
               "active",
+              "paused",
               "retention_pending",
               "completed",
               "ended"
@@ -625,6 +816,87 @@
         "title": "CreateIncomeRequest",
         "type": "object"
       },
+      "CreateLearningIndependentReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Id"
+          },
+          "capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 48,
+            "minItems": 1,
+            "title": "Capability Ids",
+            "type": "array"
+          },
+          "conclusion": {
+            "enum": [
+              "meets",
+              "needs_work",
+              "uncertain"
+            ],
+            "title": "Conclusion",
+            "type": "string"
+          },
+          "dimension": {
+            "enum": [
+              "understanding",
+              "operation",
+              "transfer",
+              "artifact",
+              "retention",
+              "correction"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          },
+          "reviewed_at": {
+            "format": "date-time",
+            "title": "Reviewed At",
+            "type": "string"
+          },
+          "reviewer_relationship": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reviewer Relationship",
+            "type": "string"
+          },
+          "rubric_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Rubric Id",
+            "type": "string"
+          },
+          "rubric_version": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Rubric Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capability_ids",
+          "dimension",
+          "reviewer_relationship",
+          "rubric_id",
+          "rubric_version",
+          "conclusion",
+          "reviewed_at"
+        ],
+        "title": "CreateLearningIndependentReviewRequest",
+        "type": "object"
+      },
       "CreateLearningRunRequest": {
         "additionalProperties": false,
         "properties": {
@@ -909,6 +1181,59 @@
           "decision"
         ],
         "title": "DecidePathComparisonRequest",
+        "type": "object"
+      },
+      "DeferredLearningTaskResponse": {
+        "properties": {
+          "activity_id": {
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "daily_priority": {
+            "enum": [
+              "due_retention",
+              "failed_correction",
+              "blocking_prerequisite",
+              "new_content"
+            ],
+            "title": "Daily Priority",
+            "type": "string"
+          },
+          "daily_priority_rank": {
+            "title": "Daily Priority Rank",
+            "type": "integer"
+          },
+          "estimated_minutes": {
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "reason_code": {
+            "enum": [
+              "daily_budget_exhausted",
+              "high_load_domain_limit"
+            ],
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "activity_id",
+          "title",
+          "estimated_minutes",
+          "daily_priority",
+          "daily_priority_rank",
+          "reason_code",
+          "meaning"
+        ],
+        "title": "DeferredLearningTaskResponse",
         "type": "object"
       },
       "DeploymentStatusResponse": {
@@ -2659,6 +2984,13 @@
       },
       "LearningActivityResponse": {
         "properties": {
+          "activity_roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Activity Roles",
+            "type": "array"
+          },
           "attempts": {
             "items": {
               "$ref": "#/components/schemas/ActivityAttemptResponse"
@@ -2677,6 +3009,13 @@
               }
             ],
             "title": "Available At"
+          },
+          "capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capability Ids",
+            "type": "array"
           },
           "completed_at": {
             "anyOf": [
@@ -2700,12 +3039,61 @@
             "title": "Completion Rule",
             "type": "string"
           },
+          "daily_priority": {
+            "anyOf": [
+              {
+                "enum": [
+                  "due_retention",
+                  "failed_correction",
+                  "blocking_prerequisite",
+                  "new_content"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Priority"
+          },
+          "daily_priority_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Priority Rank"
+          },
           "estimated_minutes": {
             "title": "Estimated Minutes",
             "type": "integer"
           },
+          "evidence_ceiling": {
+            "enum": [
+              "none",
+              "limited",
+              "supported",
+              "retained_limited",
+              "verified",
+              "retained"
+            ],
+            "title": "Evidence Ceiling",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "none",
+              "cpp",
+              "python"
+            ],
+            "title": "Language",
             "type": "string"
           },
           "overdue": {
@@ -2800,6 +3188,10 @@
           "completion_rule",
           "submission_fields",
           "source_ids",
+          "capability_ids",
+          "activity_roles",
+          "language",
+          "evidence_ceiling",
           "available_at",
           "overdue",
           "attempts",
@@ -2844,6 +3236,103 @@
           "evidence"
         ],
         "title": "LearningEvidenceResponse",
+        "type": "object"
+      },
+      "LearningIndependentReviewResponse": {
+        "properties": {
+          "activity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Id"
+          },
+          "attachments_stored": {
+            "const": false,
+            "title": "Attachments Stored",
+            "type": "boolean"
+          },
+          "capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capability Ids",
+            "type": "array"
+          },
+          "conclusion": {
+            "enum": [
+              "meets",
+              "needs_work",
+              "uncertain"
+            ],
+            "title": "Conclusion",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dimension": {
+            "title": "Dimension",
+            "type": "string"
+          },
+          "expired": {
+            "title": "Expired",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewed_at": {
+            "format": "date-time",
+            "title": "Reviewed At",
+            "type": "string"
+          },
+          "reviewer_relationship": {
+            "title": "Reviewer Relationship",
+            "type": "string"
+          },
+          "rubric_id": {
+            "title": "Rubric Id",
+            "type": "string"
+          },
+          "rubric_version": {
+            "title": "Rubric Version",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "activity_id",
+          "capability_ids",
+          "dimension",
+          "reviewer_relationship",
+          "rubric_id",
+          "rubric_version",
+          "conclusion",
+          "reviewed_at",
+          "expires_at",
+          "expired",
+          "created_at",
+          "attachments_stored"
+        ],
+        "title": "LearningIndependentReviewResponse",
         "type": "object"
       },
       "LearningRunResponse": {
@@ -2949,6 +3438,29 @@
             "title": "Next Actions",
             "type": "array"
           },
+          "pause_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pause Reason"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At"
+          },
           "planning_proposal_id": {
             "title": "Planning Proposal Id",
             "type": "string"
@@ -3002,6 +3514,7 @@
           "status": {
             "enum": [
               "active",
+              "paused",
               "retention_pending",
               "completed",
               "ended"
@@ -3038,6 +3551,8 @@
           "created_at",
           "updated_at",
           "retention_started_at",
+          "paused_at",
+          "pause_reason",
           "completed_at",
           "ended_at",
           "end_reason"
@@ -3535,7 +4050,8 @@
               "enum": [
                 "manual_review_pending",
                 "retention_due",
-                "source_review_pending"
+                "source_review_pending",
+                "version_mismatch"
               ],
               "type": "string"
             },
@@ -3568,6 +4084,13 @@
             "title": "Attempt Id",
             "type": "string"
           },
+          "capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capability Ids",
+            "type": "array"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -3583,6 +4106,15 @@
           },
           "id": {
             "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "none",
+              "cpp",
+              "python"
+            ],
+            "title": "Language",
             "type": "string"
           },
           "method": {
@@ -3604,7 +4136,9 @@
             "enum": [
               "limited",
               "supported",
-              "retained_limited"
+              "retained_limited",
+              "verified",
+              "retained"
             ],
             "title": "Strength",
             "type": "string"
@@ -3631,6 +4165,8 @@
           "method",
           "result",
           "strength",
+          "capability_ids",
+          "language",
           "review_flags",
           "created_at",
           "superseded_at"
@@ -3986,6 +4522,22 @@
           "decisions"
         ],
         "title": "PathComparisonResponse",
+        "type": "object"
+      },
+      "PauseLearningRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "PauseLearningRunRequest",
         "type": "object"
       },
       "PlanningOptionResponse": {
@@ -5425,6 +5977,49 @@
         "title": "SourceCheckRunResponse",
         "type": "object"
       },
+      "StageCheckpointResponse": {
+        "properties": {
+          "completed_units": {
+            "title": "Completed Units",
+            "type": "integer"
+          },
+          "domain_id": {
+            "title": "Domain Id",
+            "type": "string"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "initial_learning_completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "total_units": {
+            "title": "Total Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "domain_id",
+          "title",
+          "status",
+          "completed_units",
+          "total_units",
+          "meaning"
+        ],
+        "title": "StageCheckpointResponse",
+        "type": "object"
+      },
       "StartReviewResponse": {
         "properties": {
           "activity": {
@@ -5587,12 +6182,30 @@
       "TodayLearningRequest": {
         "additionalProperties": false,
         "properties": {
+          "allow_overtime": {
+            "default": false,
+            "title": "Allow Overtime",
+            "type": "boolean"
+          },
           "available_minutes": {
             "default": 120,
             "maximum": 480.0,
             "minimum": 15.0,
             "title": "Available Minutes",
             "type": "integer"
+          },
+          "overtime_reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overtime Reason"
           }
         },
         "title": "TodayLearningRequest",
@@ -5604,6 +6217,13 @@
             "title": "Available Minutes",
             "type": "integer"
           },
+          "deferred_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DeferredLearningTaskResponse"
+            },
+            "title": "Deferred Tasks",
+            "type": "array"
+          },
           "estimated_minutes": {
             "title": "Estimated Minutes",
             "type": "integer"
@@ -5612,6 +6232,10 @@
             "format": "date-time",
             "title": "Generated At",
             "type": "string"
+          },
+          "overtime": {
+            "title": "Overtime",
+            "type": "boolean"
           },
           "reason": {
             "title": "Reason",
@@ -5635,6 +6259,8 @@
           "available_minutes",
           "estimated_minutes",
           "tasks",
+          "deferred_tasks",
+          "overtime",
           "reason"
         ],
         "title": "TodayLearningResponse",
@@ -7626,6 +8252,48 @@
         ]
       }
     },
+    "/learning-runs/{run_id}/branch-gates": {
+      "get": {
+        "operationId": "get_learning_branch_gates_learning_runs__run_id__branch_gates_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BranchGateEvaluationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Learning Branch Gates",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
     "/learning-runs/{run_id}/end": {
       "post": {
         "operationId": "end_learning_run_learning_runs__run_id__end_post",
@@ -7710,6 +8378,152 @@
         ]
       }
     },
+    "/learning-runs/{run_id}/independent-reviews": {
+      "post": {
+        "operationId": "create_learning_independent_review_learning_runs__run_id__independent_reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLearningIndependentReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningIndependentReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Learning Independent Review",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/pause": {
+      "post": {
+        "operationId": "pause_learning_run_learning_runs__run_id__pause_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseLearningRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pause Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/resume": {
+      "post": {
+        "operationId": "resume_learning_run_learning_runs__run_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume Learning Run",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
     "/learning-runs/{run_id}/reviews": {
       "get": {
         "operationId": "get_learning_reviews_learning_runs__run_id__reviews_get",
@@ -7751,6 +8565,52 @@
           }
         },
         "summary": "Get Learning Reviews",
+        "tags": [
+          "learning-execution"
+        ]
+      }
+    },
+    "/learning-runs/{run_id}/stage-checkpoints": {
+      "get": {
+        "operationId": "get_learning_stage_checkpoints_learning_runs__run_id__stage_checkpoints_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StageCheckpointResponse"
+                  },
+                  "title": "Response Get Learning Stage Checkpoints Learning Runs  Run Id  Stage Checkpoints Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Learning Stage Checkpoints",
         "tags": [
           "learning-execution"
         ]

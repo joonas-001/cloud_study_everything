@@ -38,7 +38,7 @@
 4. 安装精确的 Node.js 24、Python 3.14.3、pnpm 11 和 uv 0.11，并使用锁文件安装；
 5. 复制 `deployment/private-preview.env.example` 到主机受限路径，填入运行时值并设为
    所有者只读；
-6. 生成合成数据库并迁移到 Alembic `0010`，确认外部 AI 和邮件均为关闭；
+6. 生成合成数据库并迁移到 Alembic `0011`，确认外部 AI 和邮件均为关闭；
 7. 安装 `deployment/systemd` 中的单元和独立 journald 配置；Web 单元必须通过
    `tools/run_private_preview_web.mjs` 启动，不得另行猜测 pnpm shim 路径；
 8. 先运行 `tools/deployment_preflight.py`，任何失败都停止；

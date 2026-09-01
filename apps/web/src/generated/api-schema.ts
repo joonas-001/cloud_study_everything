@@ -50,12 +50,44 @@ export interface AiProviderResponse {
   status_note: string;
 }
 
+export interface BranchGateEvaluationResponse {
+  evaluated_at: string;
+  gates: Array<BranchGateResponse>;
+  limitations: Array<string>;
+  policy_id: string;
+  policy_version: string;
+  run_id: string;
+  selected_branch_id: null;
+  selection_required: boolean;
+  skill_id: string;
+  skill_version: string;
+}
+
+export interface BranchGateResponse {
+  blocking_review_flags: Array<string>;
+  expired_capability_ids: Array<string>;
+  future_invalid_capability_ids: Array<string>;
+  id: string;
+  limitations: Array<string>;
+  meaning: string;
+  missing_independent_reviews: Array<Record<string, unknown>>;
+  missing_requirements: Array<Record<string, unknown>>;
+  required_capability_ids: Array<string>;
+  required_retained_count: number;
+  retained_capability_ids: Array<string>;
+  retained_shortfall: number;
+  satisfied_capability_ids: Array<string>;
+  selected: boolean;
+  status: "eligible" | "blocked";
+  title: string;
+}
+
 export interface CapabilityScopeResponse {
   capability_scope_id: string;
   created_at: string;
   dimensions: Array<string>;
   learning_run_id: string;
-  learning_run_status: "active" | "retention_pending" | "completed" | "ended";
+  learning_run_status: "active" | "paused" | "retention_pending" | "completed" | "ended";
   scope_statement: string;
   skill_id: string;
   skill_version: string;
@@ -104,6 +136,17 @@ export interface CreateFeedbackRequest {
 export interface CreateIncomeRequest {
   confirm_manual_record: boolean;
   values: IncomeValuesRequest;
+}
+
+export interface CreateLearningIndependentReviewRequest {
+  activity_id?: string | null;
+  capability_ids: Array<string>;
+  conclusion: "meets" | "needs_work" | "uncertain";
+  dimension: "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction";
+  reviewed_at: string;
+  reviewer_relationship: string;
+  rubric_id: string;
+  rubric_version: string;
 }
 
 export interface CreateLearningRunRequest {
@@ -156,6 +199,16 @@ export interface DecideFeedbackRequest {
 export interface DecidePathComparisonRequest {
   decision: "accepted" | "rejected" | "deferred";
   reason?: string | null;
+}
+
+export interface DeferredLearningTaskResponse {
+  activity_id: string;
+  daily_priority: "due_retention" | "failed_correction" | "blocking_prerequisite" | "new_content";
+  daily_priority_rank: number;
+  estimated_minutes: number;
+  meaning: string;
+  reason_code: "daily_budget_exhausted" | "high_load_domain_limit";
+  title: string;
 }
 
 export interface DeploymentStatusResponse {
@@ -441,12 +494,18 @@ export interface IncomeValuesRequest {
 }
 
 export interface LearningActivityResponse {
+  activity_roles: Array<string>;
   attempts: Array<ActivityAttemptResponse>;
   available_at: string | null;
+  capability_ids: Array<string>;
   completed_at: string | null;
   completion_rule: "confirmation" | "valid_submission" | "deterministic_pass" | "runner_pass";
+  daily_priority?: "due_retention" | "failed_correction" | "blocking_prerequisite" | "new_content" | null;
+  daily_priority_rank?: number | null;
   estimated_minutes: number;
+  evidence_ceiling: "none" | "limited" | "supported" | "retained_limited" | "verified" | "retained";
   id: string;
+  language: "none" | "cpp" | "python";
   overdue: boolean;
   prompt: string;
   reason: string;
@@ -468,6 +527,23 @@ export interface LearningEvidenceResponse {
   run_id: string;
 }
 
+export interface LearningIndependentReviewResponse {
+  activity_id: string | null;
+  attachments_stored: boolean;
+  capability_ids: Array<string>;
+  conclusion: "meets" | "needs_work" | "uncertain";
+  created_at: string;
+  dimension: string;
+  expired: boolean;
+  expires_at: string;
+  id: string;
+  reviewed_at: string;
+  reviewer_relationship: string;
+  rubric_id: string;
+  rubric_version: string;
+  run_id: string;
+}
+
 export interface LearningRunResponse {
   activities: Array<LearningActivityResponse>;
   code_execution: "disabled" | "enabled";
@@ -484,6 +560,8 @@ export interface LearningRunResponse {
   is_preview: boolean;
   lock_sha256: string;
   next_actions: Array<string>;
+  pause_reason: string | null;
+  paused_at: string | null;
   planning_proposal_id: string;
   retention_started_at: string | null;
   reused_from_run_id: string | null;
@@ -492,7 +570,7 @@ export interface LearningRunResponse {
   selected_historical_plan: boolean;
   skill_id: string;
   skill_version: string;
-  status: "active" | "retention_pending" | "completed" | "ended";
+  status: "active" | "paused" | "retention_pending" | "completed" | "ended";
   updated_at: string;
 }
 
@@ -575,21 +653,23 @@ export interface MasteryDimensionResponse {
   dimension: "understanding" | "operation" | "transfer" | "artifact" | "retention" | "correction";
   evidence_count: number;
   evidence_level: "none" | "limited" | "supported" | "verified" | "retained";
-  review_flags: Array<"manual_review_pending" | "retention_due" | "source_review_pending">;
+  review_flags: Array<"manual_review_pending" | "retention_due" | "source_review_pending" | "version_mismatch">;
   updated_at: string;
 }
 
 export interface MasteryEvidenceItemResponse {
   activity_id: string;
   attempt_id: string;
+  capability_ids: Array<string>;
   created_at: string;
   criterion_id: string;
   dimension: string;
   id: string;
+  language: "none" | "cpp" | "python";
   method: string;
   result: string;
   review_flags: Array<string>;
-  strength: "limited" | "supported" | "retained_limited";
+  strength: "limited" | "supported" | "retained_limited" | "verified" | "retained";
   superseded_at: string | null;
 }
 
@@ -642,6 +722,10 @@ export interface PathComparisonResponse {
   payload_sha256: string;
   schema_version: string;
   synthetic: boolean;
+}
+
+export interface PauseLearningRunRequest {
+  reason: string;
 }
 
 export interface PlanningOptionResponse {
@@ -885,6 +969,15 @@ export interface SourceCheckRunResponse {
   trigger: "automatic" | "manual";
 }
 
+export interface StageCheckpointResponse {
+  completed_units: number;
+  domain_id: string;
+  meaning: string;
+  status: "not_started" | "in_progress" | "initial_learning_completed";
+  title: string;
+  total_units: number;
+}
+
 export interface StartReviewResponse {
   activity: LearningActivityResponse;
   review: ReviewTaskResponse;
@@ -917,13 +1010,17 @@ export interface SynthesizeMarketResearchRequest {
 }
 
 export interface TodayLearningRequest {
+  allow_overtime?: boolean;
   available_minutes?: number;
+  overtime_reason?: string | null;
 }
 
 export interface TodayLearningResponse {
   available_minutes: number;
+  deferred_tasks: Array<DeferredLearningTaskResponse>;
   estimated_minutes: number;
   generated_at: string;
+  overtime: boolean;
   reason: string;
   run_id: string;
   tasks: Array<LearningActivityResponse>;

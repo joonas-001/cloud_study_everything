@@ -443,7 +443,7 @@ class LearningRun(Base):
     __tablename__ = "learning_runs"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('active', 'retention_pending', 'completed', 'ended')",
+            "status IN ('active', 'paused', 'retention_pending', 'completed', 'ended')",
             name="ck_learning_runs_status",
         ),
         Index(
@@ -451,7 +451,7 @@ class LearningRun(Base):
             "skill_id",
             "skill_version",
             unique=True,
-            sqlite_where=text("status IN ('active', 'retention_pending')"),
+            sqlite_where=text("status IN ('active', 'paused', 'retention_pending')"),
         ),
     )
 
@@ -477,6 +477,8 @@ class LearningRun(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     retention_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    paused_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    pause_reason: Mapped[str | None] = mapped_column(String(500))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     end_reason: Mapped[str | None] = mapped_column(String(100))
@@ -646,6 +648,8 @@ class MasteryEvidence(Base):
     strength: Mapped[str] = mapped_column(String(32), nullable=False)
     review_flags_json: Mapped[str] = mapped_column(Text, nullable=False)
     rubric_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    capability_ids_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    language: Mapped[str] = mapped_column(String(20), nullable=False, default="none")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     superseded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     superseded_by_attempt_id: Mapped[str | None] = mapped_column(
@@ -728,6 +732,40 @@ class LearningEvent(Base):
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class LearningIndependentReview(Base):
+    __tablename__ = "learning_independent_reviews"
+    __table_args__ = (
+        CheckConstraint(
+            "dimension IN ('understanding', 'operation', 'transfer', "
+            "'artifact', 'retention', 'correction')",
+            name="ck_learning_independent_reviews_dimension",
+        ),
+        CheckConstraint(
+            "conclusion IN ('meets', 'needs_work', 'uncertain')",
+            name="ck_learning_independent_reviews_conclusion",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_runs.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    activity_id: Mapped[str | None] = mapped_column(
+        ForeignKey("learning_activities.id", ondelete="RESTRICT")
+    )
+    capability_ids_json: Mapped[str] = mapped_column(Text, nullable=False)
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    reviewer_relationship: Mapped[str] = mapped_column(String(200), nullable=False)
+    rubric_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    rubric_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    conclusion: Mapped[str] = mapped_column(String(32), nullable=False)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class RunnerInvocation(Base):

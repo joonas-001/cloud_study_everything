@@ -30,6 +30,7 @@ from cloud_study_api.models import (
     DiagnosticSession,
     LearningActivity,
     LearningEvent,
+    LearningIndependentReview,
     LearningRun,
     LearningRunLock,
     LearningUnitInstance,
@@ -52,7 +53,9 @@ from cloud_study_api.runner import (
     RuntimeRegistry,
 )
 
-ENGINE_PROTOCOL_VERSION = "0.3.0"
+ENGINE_PROTOCOL_VERSION = "0.4.0"
+DEFAULT_DAILY_MINUTES = 120
+EVIDENCE_VALID_DAYS = 90
 MASTERY_DIMENSIONS = (
     "understanding",
     "operation",
@@ -62,6 +65,7 @@ MASTERY_DIMENSIONS = (
     "correction",
 )
 EVIDENCE_RANK = {
+    "none": 0,
     "limited": 1,
     "retained_limited": 1,
     "supported": 2,
@@ -233,7 +237,7 @@ class LearningExecutionService:
                 select(LearningRun).where(
                     LearningRun.skill_id == proposal.skill_id,
                     LearningRun.skill_version == proposal.skill_version,
-                    LearningRun.status.in_(["active", "retention_pending"]),
+                    LearningRun.status.in_(["active", "paused", "retention_pending"]),
                 )
             )
             if existing is not None:
@@ -444,7 +448,7 @@ class LearningExecutionService:
                 select(LearningRun).where(
                     LearningRun.skill_id == skill_id,
                     LearningRun.skill_version == skill_version,
-                    LearningRun.status.in_(["active", "retention_pending"]),
+                    LearningRun.status.in_(["active", "paused", "retention_pending"]),
                 )
             )
             if run is None:
@@ -484,7 +488,14 @@ class LearningExecutionService:
             database.commit()
             return self._run_payload(database, run)
 
-    def today(self, run_id: str, available_minutes: int) -> dict[str, Any]:
+    def today(
+        self,
+        run_id: str,
+        available_minutes: int,
+        *,
+        allow_overtime: bool = False,
+        overtime_reason: str | None = None,
+    ) -> dict[str, Any]:
         if not 15 <= available_minutes <= 480:
             raise LearningExecutionError(
                 422,
@@ -494,6 +505,27 @@ class LearningExecutionService:
         now = self._now()
         with self._session_factory() as database:
             run = self._run(database, run_id)
+            package = self._package(run.skill_id, run.skill_version)
+            common_core = self._is_common_core(package)
+            if common_core and available_minutes > DEFAULT_DAILY_MINUTES:
+                if not allow_overtime or not overtime_reason or not overtime_reason.strip():
+                    raise LearningExecutionError(
+                        422,
+                        "daily_overtime_confirmation_required",
+                        "超过 120 分钟必须仅对当天明确确认并记录原因。",
+                    )
+                if len(overtime_reason.strip()) > 500:
+                    raise LearningExecutionError(
+                        422,
+                        "daily_overtime_reason_too_long",
+                        "超时原因不能超过 500 个字符。",
+                    )
+            elif allow_overtime:
+                raise LearningExecutionError(
+                    422,
+                    "daily_overtime_not_needed",
+                    "不超过 120 分钟时不需要超时确认。",
+                )
             if run.status in {"completed", "ended"}:
                 return {
                     "run_id": run.id,
@@ -501,7 +533,20 @@ class LearningExecutionService:
                     "available_minutes": available_minutes,
                     "estimated_minutes": 0,
                     "tasks": [],
+                    "deferred_tasks": [],
+                    "overtime": False,
                     "reason": "学习执行已进入终态，没有可继续的今日任务。",
+                }
+            if run.status == "paused":
+                return {
+                    "run_id": run.id,
+                    "generated_at": now,
+                    "available_minutes": available_minutes,
+                    "estimated_minutes": 0,
+                    "tasks": [],
+                    "deferred_tasks": [],
+                    "overtime": False,
+                    "reason": "学习执行已暂停；恢复后才会重新生成任务。暂停不表示能力失败。",
                 }
             self._refresh_due_reviews(database, run, now)
             activities = database.scalars(
@@ -514,22 +559,56 @@ class LearningExecutionService:
             ).all()
             ordered = sorted(
                 activities,
-                key=lambda item: (
-                    0
-                    if item.activity_type == "review"
-                    else 1
-                    if item.activity_type == "correction"
-                    else 2,
-                    item.sequence,
+                key=(
+                    (lambda item: (*self._daily_priority(item), item.sequence))
+                    if common_core
+                    else (
+                        lambda item: (
+                            0
+                            if item.activity_type == "review"
+                            else 1
+                            if item.activity_type == "correction"
+                            else 2,
+                            item.sequence,
+                        )
+                    )
                 ),
             )
             selected: list[LearningActivity] = []
+            deferred: list[dict[str, Any]] = []
             used = 0
+            selected_high_load_domains: set[str] = set()
             for activity in ordered:
-                if selected and used + activity.estimated_minutes > available_minutes:
+                definition = cast(dict[str, Any], json.loads(activity.definition_json))
+                domain_id = self._activity_domain(definition)
+                high_load_new_domain = bool(
+                    common_core
+                    and self._daily_priority(activity)[0] == 3
+                    and definition.get("unit_cognitive_load") == "high"
+                    and domain_id
+                )
+                if (
+                    high_load_new_domain
+                    and selected_high_load_domains
+                    and domain_id not in selected_high_load_domains
+                ):
+                    deferred.append(self._deferred_task_payload(activity, "high_load_domain_limit"))
+                    continue
+                if used + activity.estimated_minutes > available_minutes:
+                    deferred.append(self._deferred_task_payload(activity, "daily_budget_exhausted"))
                     continue
                 selected.append(activity)
                 used += activity.estimated_minutes
+                if high_load_new_domain:
+                    selected_high_load_domains.add(domain_id)
+            task_payloads: list[dict[str, Any]] = []
+            for activity in selected:
+                item = self._activity_payload(database, activity, now)
+                if common_core:
+                    priority_code, priority_rank = self._daily_priority_label(activity)
+                    item["daily_priority"] = priority_code
+                    item["daily_priority_rank"] = priority_rank
+                task_payloads.append(item)
             self._event(
                 database,
                 run.id,
@@ -538,6 +617,13 @@ class LearningExecutionService:
                     "available_minutes": available_minutes,
                     "activity_ids": [activity.id for activity in selected],
                     "estimated_minutes": used,
+                    "deferred": deferred,
+                    "overtime": available_minutes > DEFAULT_DAILY_MINUTES,
+                    "overtime_reason": (
+                        overtime_reason.strip()
+                        if available_minutes > DEFAULT_DAILY_MINUTES and overtime_reason
+                        else None
+                    ),
                 },
                 now,
             )
@@ -547,7 +633,9 @@ class LearningExecutionService:
                 "generated_at": now,
                 "available_minutes": available_minutes,
                 "estimated_minutes": used,
-                "tasks": [self._activity_payload(database, activity, now) for activity in selected],
+                "tasks": task_payloads,
+                "deferred_tasks": deferred,
+                "overtime": available_minutes > DEFAULT_DAILY_MINUTES,
                 "reason": (
                     "按到期复习、阻断纠错和当前核心活动排序；未完成任务顺延，不记为能力失败。"
                 ),
@@ -1221,11 +1309,235 @@ class LearningExecutionService:
                         "method": item.method,
                         "result": item.result,
                         "strength": item.strength,
+                        "capability_ids": json.loads(item.capability_ids_json),
+                        "language": item.language,
                         "review_flags": json.loads(item.review_flags_json),
                         "created_at": item.created_at,
                         "superseded_at": item.superseded_at,
                     }
                     for item in evidence
+                ],
+            }
+
+    def get_stage_checkpoints(self, run_id: str) -> list[dict[str, Any]]:
+        with self._session_factory() as database:
+            run = self._run(database, run_id)
+            package = self._package(run.skill_id, run.skill_version)
+            if not self._is_common_core(package):
+                return []
+            graph = self._content(package, "capability_graph")
+            units = database.scalars(
+                select(LearningUnitInstance)
+                .where(LearningUnitInstance.run_id == run.id)
+                .order_by(LearningUnitInstance.sequence)
+            ).all()
+            grouped: dict[str, list[LearningUnitInstance]] = {
+                domain["id"]: [] for domain in graph["domains"]
+            }
+            for unit in units:
+                definition = cast(dict[str, Any], json.loads(unit.snapshot_json))
+                capability_ids = set(definition.get("capability_ids", []))
+                domain_ids = {
+                    capability["domain_id"]
+                    for capability in graph["capabilities"]
+                    if capability["id"] in capability_ids
+                }
+                for domain_id in domain_ids:
+                    grouped.setdefault(domain_id, []).append(unit)
+            checkpoints: list[dict[str, Any]] = []
+            for domain in graph["domains"]:
+                domain_units = grouped.get(domain["id"], [])
+                completed = sum(item.status == "completed" for item in domain_units)
+                if not domain_units or (
+                    completed == 0 and all(item.status == "pending" for item in domain_units)
+                ):
+                    status = "not_started"
+                elif completed == len(domain_units):
+                    status = "initial_learning_completed"
+                else:
+                    status = "in_progress"
+                checkpoints.append(
+                    {
+                        "domain_id": domain["id"],
+                        "title": domain["title"],
+                        "status": status,
+                        "completed_units": completed,
+                        "total_units": len(domain_units),
+                        "meaning": "流程阶段检查，不表示该领域或整门算法掌握。",
+                    }
+                )
+            return checkpoints
+
+    def add_independent_review(
+        self,
+        run_id: str,
+        *,
+        activity_id: str | None,
+        capability_ids: list[str],
+        dimension: str,
+        reviewer_relationship: str,
+        rubric_id: str,
+        rubric_version: str,
+        conclusion: str,
+        reviewed_at: datetime,
+    ) -> dict[str, Any]:
+        if dimension not in MASTERY_DIMENSIONS:
+            raise LearningExecutionError(422, "invalid_review_dimension", "不支持的评审维度。")
+        if conclusion not in {"meets", "needs_work", "uncertain"}:
+            raise LearningExecutionError(422, "invalid_review_conclusion", "不支持的评审结论。")
+        normalized_relationship = reviewer_relationship.strip()
+        if not normalized_relationship:
+            raise LearningExecutionError(
+                422,
+                "independent_review_relationship_required",
+                "真人评审必须记录评审者与学习者的关系。",
+            )
+        now = self._now()
+        if _aware_utc(reviewed_at) > _aware_utc(now):
+            raise LearningExecutionError(
+                422,
+                "independent_review_future_dated",
+                "真人评审日期不能晚于当前时间。",
+            )
+        normalized_capabilities = sorted(set(capability_ids))
+        if not normalized_capabilities:
+            raise LearningExecutionError(
+                422,
+                "independent_review_scope_required",
+                "真人评审必须绑定至少一个精确能力 ID。",
+            )
+        with self._session_factory() as database:
+            run = self._run(database, run_id)
+            if run.status == "ended":
+                raise LearningExecutionError(
+                    409,
+                    "learning_run_read_only",
+                    "已明确结束的学习执行不可追加评审。",
+                )
+            package = self._package(run.skill_id, run.skill_version)
+            graph = self._content(package, "capability_graph")
+            known_capabilities = {item["id"] for item in graph["capabilities"]}
+            if not set(normalized_capabilities) <= known_capabilities:
+                raise LearningExecutionError(
+                    422,
+                    "independent_review_scope_unknown",
+                    "真人评审包含不属于精确技能版本的能力 ID。",
+                )
+            if activity_id is not None:
+                activity = database.get(LearningActivity, activity_id)
+                if activity is None or activity.run_id != run.id:
+                    raise LearningExecutionError(
+                        422,
+                        "independent_review_activity_mismatch",
+                        "真人评审活动不属于当前学习执行。",
+                    )
+                definition = cast(dict[str, Any], json.loads(activity.definition_json))
+                if not set(normalized_capabilities) <= set(definition.get("capability_ids", [])):
+                    raise LearningExecutionError(
+                        422,
+                        "independent_review_scope_mismatch",
+                        "真人评审范围必须精确落在所绑定活动的能力范围内。",
+                    )
+            rubric = self._content(package, "rubric_definition")
+            expected_rubric_id = f"{dimension}-rubric"
+            known_rubrics = {item["id"] for item in rubric["criteria"]}
+            if rubric_id != expected_rubric_id or rubric_id not in known_rubrics:
+                raise LearningExecutionError(
+                    422,
+                    "independent_review_rubric_unapproved",
+                    "真人评审必须使用当前技能版本和维度的受管独立评审量表。",
+                )
+            if rubric_version != rubric["schema_version"]:
+                raise LearningExecutionError(
+                    422,
+                    "independent_review_rubric_version_mismatch",
+                    "真人评审量表版本与当前技能版本不一致。",
+                )
+            review = LearningIndependentReview(
+                id=str(uuid4()),
+                run_id=run.id,
+                activity_id=activity_id,
+                capability_ids_json=canonical_json(normalized_capabilities),
+                dimension=dimension,
+                reviewer_relationship=normalized_relationship,
+                rubric_id=rubric_id,
+                rubric_version=rubric_version,
+                conclusion=conclusion,
+                reviewed_at=reviewed_at,
+                expires_at=_aware_utc(reviewed_at) + timedelta(days=EVIDENCE_VALID_DAYS),
+                created_at=now,
+            )
+            database.add(review)
+            self._event(
+                database,
+                run.id,
+                "independent_review_recorded",
+                {
+                    "review_id": review.id,
+                    "activity_id": activity_id,
+                    "capability_ids": normalized_capabilities,
+                    "dimension": dimension,
+                    "reviewer_relationship": normalized_relationship,
+                    "rubric_id": rubric_id,
+                    "rubric_version": rubric_version,
+                    "conclusion": conclusion,
+                    "expires_at": review.expires_at.isoformat(),
+                    "attachments_stored": False,
+                },
+                now,
+            )
+            database.commit()
+            return self._independent_review_payload(review, now)
+
+    def get_branch_gates(self, run_id: str) -> dict[str, Any]:
+        now = self._now()
+        with self._session_factory() as database:
+            run = self._run(database, run_id)
+            package = self._package(run.skill_id, run.skill_version)
+            if not self._is_common_core(package):
+                raise LearningExecutionError(
+                    409,
+                    "branch_gate_policy_unavailable",
+                    "该精确技能版本没有四分支门禁策略。",
+                )
+            policy = self._content(package, "branch_gate_policy")
+            graph = self._content(package, "capability_graph")
+            capability_titles = {item["id"]: item["title"] for item in graph["capabilities"]}
+            evidence = database.scalars(
+                select(MasteryEvidence).where(
+                    MasteryEvidence.run_id == run.id,
+                    MasteryEvidence.superseded_at.is_(None),
+                )
+            ).all()
+            reviews = database.scalars(
+                select(LearningIndependentReview).where(LearningIndependentReview.run_id == run.id)
+            ).all()
+            source_pending = self._source_review_pending(package)
+            gates = [
+                self._evaluate_branch_gate(
+                    gate,
+                    evidence,
+                    reviews,
+                    capability_titles,
+                    source_pending,
+                    now,
+                )
+                for gate in policy["gates"]
+            ]
+            return {
+                "run_id": run.id,
+                "skill_id": run.skill_id,
+                "skill_version": run.skill_version,
+                "policy_id": policy["id"],
+                "policy_version": policy["version"],
+                "evaluated_at": now,
+                "selected_branch_id": None,
+                "selection_required": True,
+                "gates": gates,
+                "limitations": [
+                    "门禁只计算共同主干后的入口资格，不创建四分支课程。",
+                    "学习执行 completed、基础设施探针、自评或 AI 评价均不能自动解锁。",
+                    "未选择目标时系统不会代替用户选择工程、面试、竞赛或理论分支。",
                 ],
             }
 
@@ -1252,6 +1564,12 @@ class LearningExecutionService:
                     "Review task not found.",
                 )
             run = self._run(database, review.run_id)
+            if run.status == "paused":
+                raise LearningExecutionError(
+                    409,
+                    "learning_run_paused",
+                    "学习执行已暂停；恢复后才能开始复习。",
+                )
             self._refresh_due_reviews(database, run, now)
             if review.status != "available":
                 raise LearningExecutionError(
@@ -1265,11 +1583,77 @@ class LearningExecutionService:
                 "activity": self._activity_payload(database, activity, now),
             }
 
-    def end_run(self, run_id: str) -> dict[str, Any]:
+    def pause_run(self, run_id: str, reason: str) -> dict[str, Any]:
+        normalized_reason = reason.strip()
+        if not normalized_reason or len(normalized_reason) > 500:
+            raise LearningExecutionError(
+                422,
+                "invalid_pause_reason",
+                "暂停原因必须为 1 至 500 个字符。",
+            )
         now = self._now()
         with self._session_factory() as database:
             run = self._run(database, run_id)
             if run.status not in {"active", "retention_pending"}:
+                raise LearningExecutionError(
+                    409,
+                    "learning_run_not_pausable",
+                    "只有进行中或待复习的学习执行可以暂停。",
+                )
+            previous_status = run.status
+            run.status = "paused"
+            run.paused_at = now
+            run.pause_reason = normalized_reason
+            run.updated_at = now
+            self._event(
+                database,
+                run.id,
+                "learning_run_paused",
+                {
+                    "previous_status": previous_status,
+                    "reason": normalized_reason,
+                    "meaning": "pause_not_failure",
+                },
+                now,
+            )
+            database.commit()
+            return self._run_payload(database, run)
+
+    def resume_run(self, run_id: str) -> dict[str, Any]:
+        now = self._now()
+        with self._session_factory() as database:
+            run = self._run(database, run_id)
+            if run.status != "paused":
+                raise LearningExecutionError(
+                    409,
+                    "learning_run_not_paused",
+                    "只有已暂停的学习执行可以恢复。",
+                )
+            run.status = "retention_pending" if run.retention_started_at else "active"
+            previous_pause_reason = run.pause_reason
+            run.paused_at = None
+            run.pause_reason = None
+            run.updated_at = now
+            self._refresh_due_reviews(database, run, now)
+            self._event(
+                database,
+                run.id,
+                "learning_run_resumed",
+                {
+                    "next_status": run.status,
+                    "previous_pause_reason": previous_pause_reason,
+                    "overdue_tasks_are_not_failures": True,
+                },
+                now,
+            )
+            database.commit()
+            return self._run_payload(database, run)
+
+    def end_run(self, run_id: str) -> dict[str, Any]:
+        now = self._now()
+        with self._session_factory() as database:
+            run = self._run(database, run_id)
+            if run.status not in {"active", "paused", "retention_pending"}:
                 raise LearningExecutionError(
                     409,
                     "learning_run_terminal",
@@ -1399,6 +1783,224 @@ class LearningExecutionService:
                 "Learning run not found.",
             )
         return run
+
+    @staticmethod
+    def _is_common_core(package: SkillPackage) -> bool:
+        return any(
+            item.get("kind") == "branch_gate_policy"
+            for item in package.manifest.get("content_files", [])
+        )
+
+    @staticmethod
+    def _daily_priority(activity: LearningActivity) -> tuple[int]:
+        if activity.activity_type == "review":
+            return (0,)
+        if activity.activity_type == "correction" or activity.status == "correction_required":
+            return (1,)
+        if activity.activity_type in {
+            "structured_check",
+            "code_text",
+            "transfer",
+            "project_evidence",
+        }:
+            return (2,)
+        return (3,)
+
+    def _daily_priority_label(self, activity: LearningActivity) -> tuple[str, int]:
+        rank = self._daily_priority(activity)[0]
+        return (
+            (
+                "due_retention"
+                if rank == 0
+                else "failed_correction"
+                if rank == 1
+                else "blocking_prerequisite"
+                if rank == 2
+                else "new_content"
+            ),
+            rank + 1,
+        )
+
+    @staticmethod
+    def _activity_domain(definition: dict[str, Any]) -> str:
+        capability_ids = definition.get("capability_ids", [])
+        if not capability_ids:
+            return ""
+        first = str(capability_ids[0])
+        return first.split("-", maxsplit=1)[0]
+
+    def _deferred_task_payload(
+        self,
+        activity: LearningActivity,
+        reason_code: str,
+    ) -> dict[str, Any]:
+        priority, rank = self._daily_priority_label(activity)
+        return {
+            "activity_id": activity.id,
+            "title": activity.title,
+            "estimated_minutes": activity.estimated_minutes,
+            "daily_priority": priority,
+            "daily_priority_rank": rank,
+            "reason_code": reason_code,
+            "meaning": "追加式顺延，不记为能力失败。",
+        }
+
+    def _source_review_pending(self, package: SkillPackage) -> bool:
+        catalog = self._content(package, "source_catalog")
+        return any(
+            "未进行远程实质内容复核" in str(item.get("access_note", ""))
+            for item in catalog.get("sources", [])
+        )
+
+    @staticmethod
+    def _independent_review_payload(
+        review: LearningIndependentReview,
+        now: datetime,
+    ) -> dict[str, Any]:
+        return {
+            "id": review.id,
+            "run_id": review.run_id,
+            "activity_id": review.activity_id,
+            "capability_ids": json.loads(review.capability_ids_json),
+            "dimension": review.dimension,
+            "reviewer_relationship": review.reviewer_relationship,
+            "rubric_id": review.rubric_id,
+            "rubric_version": review.rubric_version,
+            "conclusion": review.conclusion,
+            "reviewed_at": review.reviewed_at,
+            "expires_at": review.expires_at,
+            "expired": _aware_utc(review.expires_at) < _aware_utc(now),
+            "created_at": review.created_at,
+            "attachments_stored": False,
+        }
+
+    def _evaluate_branch_gate(
+        self,
+        gate: dict[str, Any],
+        evidence: Sequence[MasteryEvidence],
+        reviews: Sequence[LearningIndependentReview],
+        capability_titles: dict[str, str],
+        source_pending: bool,
+        now: datetime,
+    ) -> dict[str, Any]:
+        required = set(gate["required_capability_ids"])
+        valid_after = _aware_utc(now) - timedelta(days=EVIDENCE_VALID_DAYS)
+        current_by_capability: dict[str, list[MasteryEvidence]] = {
+            capability_id: [] for capability_id in required
+        }
+        expired_capabilities: set[str] = set()
+        future_capabilities: set[str] = set()
+        for item in evidence:
+            scoped = set(json.loads(item.capability_ids_json)) & required
+            if not scoped:
+                continue
+            created_at = _aware_utc(item.created_at)
+            if created_at > _aware_utc(now):
+                future_capabilities.update(scoped)
+                continue
+            if created_at < valid_after:
+                expired_capabilities.update(scoped)
+                continue
+            for capability_id in scoped:
+                current_by_capability[capability_id].append(item)
+
+        missing_details: list[dict[str, Any]] = []
+        satisfied_capabilities: list[str] = []
+        blocking_flags: set[str] = set()
+        for capability_id in sorted(required):
+            capability_missing = False
+            items = current_by_capability[capability_id]
+            for dimension, minimum in gate["minimum_levels"].items():
+                dimension_items = [item for item in items if item.dimension == dimension]
+                actual = max(
+                    (dimension_items),
+                    key=lambda item: EVIDENCE_RANK[item.strength],
+                    default=None,
+                )
+                actual_level = actual.strength if actual else "none"
+                if EVIDENCE_RANK[actual_level] < EVIDENCE_RANK[minimum]:
+                    capability_missing = True
+                    missing_details.append(
+                        {
+                            "capability_id": capability_id,
+                            "title": capability_titles[capability_id],
+                            "dimension": dimension,
+                            "required_level": minimum,
+                            "actual_level": actual_level,
+                            "state": (
+                                "future_invalid"
+                                if capability_id in future_capabilities
+                                else "expired"
+                                if capability_id in expired_capabilities
+                                else "missing"
+                            ),
+                        }
+                    )
+                elif actual is not None:
+                    blocking_flags.update(json.loads(actual.review_flags_json))
+            if not capability_missing:
+                satisfied_capabilities.append(capability_id)
+
+        retained_capabilities = sorted(
+            {
+                capability_id
+                for capability_id, items in current_by_capability.items()
+                if any(item.strength == "retained" for item in items)
+            }
+        )
+        retained_shortfall = max(
+            0,
+            gate["required_retained_count"] - len(retained_capabilities),
+        )
+        missing_independent_reviews: list[dict[str, str]] = []
+        for dimension in gate["independent_review_dimensions"]:
+            for capability_id in sorted(required):
+                matched = any(
+                    item.dimension == dimension
+                    and item.conclusion == "meets"
+                    and capability_id in json.loads(item.capability_ids_json)
+                    and _aware_utc(item.reviewed_at) <= _aware_utc(now)
+                    and _aware_utc(item.expires_at) >= _aware_utc(now)
+                    for item in reviews
+                )
+                if not matched:
+                    missing_independent_reviews.append(
+                        {
+                            "capability_id": capability_id,
+                            "title": capability_titles[capability_id],
+                            "dimension": dimension,
+                        }
+                    )
+
+        relevant_blocking_flags = blocking_flags & set(gate["blocking_review_flags"])
+        if source_pending and "source_review_pending" in gate["blocking_review_flags"]:
+            relevant_blocking_flags.add("source_review_pending")
+        if future_capabilities and "version_mismatch" in gate["blocking_review_flags"]:
+            relevant_blocking_flags.add("version_mismatch")
+        eligible = not (
+            missing_details
+            or retained_shortfall
+            or missing_independent_reviews
+            or relevant_blocking_flags
+        )
+        return {
+            "id": gate["id"],
+            "title": gate["title"],
+            "status": "eligible" if eligible else "blocked",
+            "selected": False,
+            "required_capability_ids": gate["required_capability_ids"],
+            "satisfied_capability_ids": satisfied_capabilities,
+            "expired_capability_ids": sorted(expired_capabilities & required),
+            "future_invalid_capability_ids": sorted(future_capabilities & required),
+            "missing_requirements": missing_details,
+            "retained_capability_ids": retained_capabilities,
+            "required_retained_count": gate["required_retained_count"],
+            "retained_shortfall": retained_shortfall,
+            "missing_independent_reviews": missing_independent_reviews,
+            "blocking_review_flags": sorted(relevant_blocking_flags),
+            "limitations": gate["limitations"],
+            "meaning": "入口资格仅适用于列出的共同主干能力范围，不表示整门算法掌握。",
+        }
 
     def _is_historical(
         self,
@@ -1536,6 +2138,11 @@ class LearningExecutionService:
                 continue
             sequence += 1
             unit = units[definition["unit_id"]]
+            unit_definition = cast(dict[str, Any], json.loads(unit.snapshot_json))
+            stored_definition = {
+                **definition,
+                "unit_cognitive_load": unit_definition.get("cognitive_load", "medium"),
+            }
             reason = definition["reason"]
             if definition["id"] in remediation_reasons:
                 reason = f"{reason} 诊断依据：{remediation_reasons[definition['id']]}"
@@ -1552,7 +2159,7 @@ class LearningExecutionService:
                     estimated_minutes=definition["estimated_minutes"],
                     required=definition["required"] or definition["id"] in selected_remediation,
                     status="available" if unit.sequence == 1 else "pending",
-                    definition_json=canonical_json(definition),
+                    definition_json=canonical_json(stored_definition),
                     available_at=now if unit.sequence == 1 else None,
                 )
             )
@@ -1654,6 +2261,7 @@ class LearningExecutionService:
     ) -> int:
         package = self._package(run.skill_id, run.skill_version)
         assessment = self._content(package, "assessment_definition")
+        definition = cast(dict[str, Any], json.loads(activity.definition_json))
         template_id = activity.template_activity_id.split(":", maxsplit=1)[0]
         criteria = [
             criterion
@@ -1670,6 +2278,7 @@ class LearningExecutionService:
             if method == "runner" and criterion["evaluation_method"] != "runner":
                 continue
             strength = criterion["evidence_strength"]
+            dimension = criterion["dimension"]
             flags = set(criterion["review_flags"])
             if method == "self_review":
                 strength = "limited"
@@ -1678,10 +2287,31 @@ class LearningExecutionService:
                 strength = "limited"
                 flags.add("manual_review_pending")
             if (
-                criterion["dimension"] == "correction"
+                dimension == "correction"
                 and activity.template_activity_id != "checkpoint-correction"
+                and not self._is_common_core(package)
             ):
                 strength = "limited"
+            if (
+                activity.activity_type == "review"
+                and method == "runner"
+                and definition.get("retention_of_activity_id")
+            ):
+                dimension = "retention"
+                strength = "retained"
+            ceiling = definition.get("evidence_ceiling")
+            if ceiling == "none":
+                continue
+            if ceiling in EVIDENCE_RANK and EVIDENCE_RANK[strength] > EVIDENCE_RANK[ceiling]:
+                strength = ceiling
+            criterion_capabilities = set(criterion.get("capability_ids", []))
+            activity_capabilities = set(definition.get("capability_ids", []))
+            capability_ids = sorted(
+                criterion_capabilities & activity_capabilities
+                if criterion_capabilities and activity_capabilities
+                else criterion_capabilities or activity_capabilities
+            )
+            language = str(criterion.get("language", definition.get("language", "none")))
             database.add(
                 MasteryEvidence(
                     id=str(uuid4()),
@@ -1689,13 +2319,19 @@ class LearningExecutionService:
                     activity_id=activity.id,
                     attempt_id=attempt.id,
                     evaluation_id=evaluation.id,
-                    criterion_id=criterion["id"],
-                    dimension=criterion["dimension"],
+                    criterion_id=(
+                        f"{criterion['id']}:retention"
+                        if dimension == "retention" and method == "runner"
+                        else criterion["id"]
+                    ),
+                    dimension=dimension,
                     method=method,
                     result=evaluation.result,
                     strength=strength,
                     review_flags_json=canonical_json(sorted(flags)),
                     rubric_version="1.0.0",
+                    capability_ids_json=canonical_json(capability_ids),
+                    language=language,
                     created_at=now,
                 )
             )
@@ -1791,10 +2427,60 @@ class LearningExecutionService:
         policy = self._content(package, "review_policy")
         learning = self._content(package, "learning_definition")
         template = next(
-            activity
-            for activity in learning["activities"]
-            if activity["id"] == "retention-review-template"
+            (
+                activity
+                for activity in learning["activities"]
+                if activity["id"] == "retention-review-template"
+            ),
+            None,
         )
+        if template is None:
+            review_templates = [
+                activity for activity in learning["activities"] if activity["type"] == "review"
+            ]
+            template = {
+                "id": "common-core-retention-review",
+                "type": "review",
+                "title": "共同主干固定延迟复习检查",
+                "prompt": "完成到期主动提取后选择 reviewed；若仍不确定请选择 uncertain 并先纠错。",
+                "reason": "固定 1、2、4、7、15 天策略的范围化复习检查。",
+                "estimated_minutes": 20,
+                "required": True,
+                "completion_rule": "deterministic_pass",
+                "source_ids": sorted(
+                    {
+                        source_id
+                        for item in review_templates
+                        for source_id in item.get("source_ids", [])
+                    }
+                ),
+                "capability_ids": sorted(
+                    {
+                        capability_id
+                        for item in review_templates
+                        for capability_id in item.get("capability_ids", [])
+                    }
+                ),
+                "activity_roles": ["review"],
+                "language": "none",
+                "evidence_ceiling": "none",
+                "submission_fields": [
+                    {
+                        "id": "result",
+                        "kind": "choice",
+                        "label": "延迟复习结果",
+                        "required": True,
+                        "min_length": 1,
+                        "max_length": 20,
+                        "options": ["reviewed", "uncertain"],
+                    }
+                ],
+                "deterministic_check": {
+                    "field_id": "result",
+                    "accepted_values": ["reviewed"],
+                    "feedback": "流程通过不表示掌握；Runner 保持证据仍须同范围复测。",
+                },
+            }
         interval_days = (
             policy["failure_retry_days"] if retry else policy["interval_days"][checkpoint_index - 1]
         )
@@ -1820,11 +2506,54 @@ class LearningExecutionService:
             "checkpoint_index": checkpoint_index,
             "attempt_number": attempt_number,
         }
+        if self._is_common_core(package):
+            original_runner_activities = database.scalars(
+                select(LearningActivity).where(
+                    LearningActivity.run_id == run.id,
+                    LearningActivity.activity_type == "code_text",
+                    LearningActivity.status == "completed",
+                )
+            ).all()
+            for original in original_runner_activities:
+                original_definition = cast(dict[str, Any], json.loads(original.definition_json))
+                replay_definition = {
+                    **original_definition,
+                    "type": "review",
+                    "title": f"延迟 Runner 复测 · {original.title}",
+                    "reason": "只有同语言、同任务、同运行时和完整测试再次通过才产生 retained。",
+                    "evidence_ceiling": "retained",
+                    "activity_roles": ["review", "runner_retention"],
+                    "checkpoint_index": checkpoint_index,
+                    "attempt_number": attempt_number,
+                    "retention_of_activity_id": original.id,
+                }
+                database.add(
+                    LearningActivity(
+                        id=str(uuid4()),
+                        run_id=run.id,
+                        unit_instance_id=original.unit_instance_id,
+                        template_activity_id=(
+                            f"{original.template_activity_id}:retention:"
+                            f"{checkpoint_index}:{attempt_number}"
+                        ),
+                        activity_type="review",
+                        sequence=sequence,
+                        title=replay_definition["title"],
+                        reason=replay_definition["reason"],
+                        estimated_minutes=original.estimated_minutes,
+                        required=True,
+                        status="available" if _aware_utc(now) >= due_at else "pending",
+                        definition_json=canonical_json(replay_definition),
+                        available_at=due_at,
+                    )
+                )
+                database.flush()
+                sequence += 1
         activity = LearningActivity(
             id=str(uuid4()),
             run_id=run.id,
             unit_instance_id=cast(LearningUnitInstance, unit).id,
-            template_activity_id=f"retention-review-template:{checkpoint_index}:{attempt_number}",
+            template_activity_id=f"{template['id']}:{checkpoint_index}:{attempt_number}",
             activity_type="review",
             sequence=sequence,
             title=f"{template['title']} · 第 {checkpoint_index} 个检查点",
@@ -1879,6 +2608,17 @@ class LearningExecutionService:
     ) -> None:
         if run.status != "retention_pending":
             return
+        due_activities = database.scalars(
+            select(LearningActivity).where(
+                LearningActivity.run_id == run.id,
+                LearningActivity.activity_type == "review",
+                LearningActivity.status == "pending",
+                LearningActivity.available_at.is_not(None),
+                LearningActivity.available_at <= now,
+            )
+        ).all()
+        for activity in due_activities:
+            activity.status = "available"
         reviews = database.scalars(
             select(ReviewTask).where(
                 ReviewTask.run_id == run.id,
@@ -1889,9 +2629,9 @@ class LearningExecutionService:
             if _aware_utc(review.due_at) > _aware_utc(now):
                 continue
             review.status = "available"
-            activity = database.get(LearningActivity, review.activity_id)
-            if activity is not None and activity.status == "pending":
-                activity.status = "available"
+            review_activity = database.get(LearningActivity, review.activity_id)
+            if review_activity is not None and review_activity.status == "pending":
+                review_activity.status = "available"
             self._event(
                 database,
                 run.id,
@@ -2105,6 +2845,9 @@ class LearningExecutionService:
             if run.status == "retention_pending":
                 next_actions.append("wait_for_or_complete_review")
             next_actions.append("end_run")
+            next_actions.append("pause_run")
+        elif run.status == "paused":
+            next_actions.extend(["resume_run", "end_run"])
         elif run.status in {"completed", "ended"}:
             next_actions.append("reuse_plan_with_confirmation")
         return {
@@ -2124,7 +2867,13 @@ class LearningExecutionService:
             "selected_historical_plan": run.selected_historical_plan,
             "reused_from_run_id": run.reused_from_run_id,
             "lock_sha256": content_lock.lock_sha256 if content_lock else "",
-            "engine_protocol_version": ENGINE_PROTOCOL_VERSION,
+            "engine_protocol_version": (
+                json.loads(content_lock.lock_json).get(
+                    "engine_protocol_version", ENGINE_PROTOCOL_VERSION
+                )
+                if content_lock
+                else ENGINE_PROTOCOL_VERSION
+            ),
             "runner_protocol_version": (
                 json.loads(content_lock.lock_json)["runner_protocol_version"]
                 if content_lock
@@ -2132,17 +2881,7 @@ class LearningExecutionService:
                     "version"
                 ]
             ),
-            "evidence_limitations": [
-                "4A/4B 均不产生整体掌握结论。",
-                (
-                    "Runner 只验证锁定测试覆盖的明确操作范围。"
-                    if content_lock
-                    and json.loads(content_lock.lock_json)["capabilities"]["code_execution"]
-                    == "enabled"
-                    else "代码文本未执行，操作和作品证据受限。"
-                ),
-                "自评不是独立人工审核。",
-            ],
+            "evidence_limitations": self._evidence_limitations(run),
             "activities": [
                 self._activity_payload(database, activity, self._now()) for activity in activities
             ],
@@ -2152,6 +2891,8 @@ class LearningExecutionService:
             "created_at": run.created_at,
             "updated_at": run.updated_at,
             "retention_started_at": run.retention_started_at,
+            "paused_at": run.paused_at,
+            "pause_reason": run.pause_reason,
             "completed_at": run.completed_at,
             "ended_at": run.ended_at,
             "end_reason": run.end_reason,
@@ -2183,6 +2924,10 @@ class LearningExecutionService:
             "completion_rule": definition["completion_rule"],
             "submission_fields": definition["submission_fields"],
             "source_ids": definition.get("source_ids", []),
+            "capability_ids": definition.get("capability_ids", []),
+            "activity_roles": definition.get("activity_roles", []),
+            "language": definition.get("language", "none"),
+            "evidence_ceiling": definition.get("evidence_ceiling", "limited"),
             "available_at": activity.available_at,
             "overdue": bool(
                 activity.available_at

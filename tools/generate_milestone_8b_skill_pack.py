@@ -853,8 +853,11 @@ def build() -> None:
         "criteria": [
             {
                 "id": f"{dimension}-rubric",
-                "title": f"{dimension} 有限自评量表",
-                "prompt": "是否给出了可观察步骤、明确假设、边界或反例，并限制结论范围？",
+                "title": f"{dimension} 受管范围观察量表",
+                "prompt": (
+                    "是否在精确能力范围内给出了可观察步骤、明确假设、边界或反例，"
+                    "并限制结论范围？记录必须另行标明自评或外部真人评审。"
+                ),
                 "levels": [
                     {
                         "value": "not_yet",
@@ -868,8 +871,11 @@ def build() -> None:
                     },
                     {
                         "value": "meets",
-                        "label": "自评满足",
-                        "observable_description": "结构要素齐全；仍不是独立验证。",
+                        "label": "观察项满足",
+                        "observable_description": (
+                            "结构要素齐全；自评仍只是有限证据，只有精确范围的外部真人评审"
+                            "才属于独立验证。"
+                        ),
                     },
                 ],
             }

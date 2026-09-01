@@ -117,6 +117,7 @@ def check_structure(root: Path) -> None:
         "apps/api/migrations/versions/0006_add_readiness_5a.py",
         "apps/api/migrations/versions/0009_add_isolated_runner_4b.py",
         "apps/api/migrations/versions/0010_add_experiments_5c.py",
+        "apps/api/migrations/versions/0011_add_milestone_8d_execution.py",
         "apps/api/src/cloud_study_api/main.py",
         "apps/api/src/cloud_study_api/backups.py",
         "apps/api/src/cloud_study_api/deployment.py",

@@ -203,7 +203,7 @@ def test_private_preview_preflight_is_read_only_and_version_locked(
     )
     result = deployment_preflight.run_preflight()
     assert result["ok"] is True
-    assert result["database_revision"] == "0010"
+    assert result["database_revision"] == "0011"
     assert result["node_executable"] == node_command
     assert result["remote_runner_enabled"] is False
     assert result["external_calls_enabled"] is False

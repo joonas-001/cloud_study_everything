@@ -457,6 +457,16 @@ class LearningActivityResponse(BaseModel):
     ]
     submission_fields: list[SubmissionFieldResponse]
     source_ids: list[str]
+    capability_ids: list[str]
+    activity_roles: list[str]
+    language: Literal["none", "cpp", "python"]
+    evidence_ceiling: Literal[
+        "none", "limited", "supported", "retained_limited", "verified", "retained"
+    ]
+    daily_priority: (
+        Literal["due_retention", "failed_correction", "blocking_prerequisite", "new_content"] | None
+    ) = None
+    daily_priority_rank: int | None = None
     available_at: datetime | None
     overdue: bool
     attempts: list[ActivityAttemptResponse]
@@ -479,6 +489,7 @@ class MasteryDimensionResponse(BaseModel):
             "manual_review_pending",
             "retention_due",
             "source_review_pending",
+            "version_mismatch",
         ]
     ]
     evidence_count: int
@@ -505,7 +516,7 @@ class LearningRunResponse(BaseModel):
     diagnostic_session_id: str
     skill_id: str
     skill_version: str
-    status: Literal["active", "retention_pending", "completed", "ended"]
+    status: Literal["active", "paused", "retention_pending", "completed", "ended"]
     is_preview: bool
     code_execution: Literal["disabled", "enabled"]
     external_ai: Literal["disabled"]
@@ -522,6 +533,8 @@ class LearningRunResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     retention_started_at: datetime | None
+    paused_at: datetime | None
+    pause_reason: str | None
     completed_at: datetime | None
     ended_at: datetime | None
     end_reason: str | None
@@ -531,6 +544,20 @@ class TodayLearningRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     available_minutes: int = Field(default=120, ge=15, le=480)
+    allow_overtime: bool = False
+    overtime_reason: str | None = Field(default=None, min_length=1, max_length=500)
+
+
+class DeferredLearningTaskResponse(BaseModel):
+    activity_id: str
+    title: str
+    estimated_minutes: int
+    daily_priority: Literal[
+        "due_retention", "failed_correction", "blocking_prerequisite", "new_content"
+    ]
+    daily_priority_rank: int
+    reason_code: Literal["daily_budget_exhausted", "high_load_domain_limit"]
+    meaning: str
 
 
 class TodayLearningResponse(BaseModel):
@@ -539,7 +566,15 @@ class TodayLearningResponse(BaseModel):
     available_minutes: int
     estimated_minutes: int
     tasks: list[LearningActivityResponse]
+    deferred_tasks: list[DeferredLearningTaskResponse]
+    overtime: bool
     reason: str
+
+
+class PauseLearningRunRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(min_length=1, max_length=500)
 
 
 class SubmitActivityAttemptRequest(BaseModel):
@@ -594,7 +629,9 @@ class MasteryEvidenceItemResponse(BaseModel):
     dimension: str
     method: str
     result: str
-    strength: Literal["limited", "supported", "retained_limited"]
+    strength: Literal["limited", "supported", "retained_limited", "verified", "retained"]
+    capability_ids: list[str]
+    language: Literal["none", "cpp", "python"]
     review_flags: list[str]
     created_at: datetime
     superseded_at: datetime | None
@@ -605,6 +642,79 @@ class LearningEvidenceResponse(BaseModel):
     limitations: list[str]
     dimensions: list[MasteryDimensionResponse]
     evidence: list[MasteryEvidenceItemResponse]
+
+
+class StageCheckpointResponse(BaseModel):
+    domain_id: str
+    title: str
+    status: Literal["not_started", "in_progress", "initial_learning_completed"]
+    completed_units: int
+    total_units: int
+    meaning: str
+
+
+class CreateLearningIndependentReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    activity_id: str | None = Field(default=None, max_length=36)
+    capability_ids: list[str] = Field(min_length=1, max_length=48)
+    dimension: Literal[
+        "understanding", "operation", "transfer", "artifact", "retention", "correction"
+    ]
+    reviewer_relationship: str = Field(min_length=1, max_length=200)
+    rubric_id: str = Field(min_length=1, max_length=100)
+    rubric_version: str = Field(min_length=1, max_length=50)
+    conclusion: Literal["meets", "needs_work", "uncertain"]
+    reviewed_at: datetime
+
+
+class LearningIndependentReviewResponse(BaseModel):
+    id: str
+    run_id: str
+    activity_id: str | None
+    capability_ids: list[str]
+    dimension: str
+    reviewer_relationship: str
+    rubric_id: str
+    rubric_version: str
+    conclusion: Literal["meets", "needs_work", "uncertain"]
+    reviewed_at: datetime
+    expires_at: datetime
+    expired: bool
+    created_at: datetime
+    attachments_stored: Literal[False]
+
+
+class BranchGateResponse(BaseModel):
+    id: str
+    title: str
+    status: Literal["eligible", "blocked"]
+    selected: Literal[False]
+    required_capability_ids: list[str]
+    satisfied_capability_ids: list[str]
+    expired_capability_ids: list[str]
+    future_invalid_capability_ids: list[str]
+    missing_requirements: list[dict[str, object]]
+    retained_capability_ids: list[str]
+    required_retained_count: int
+    retained_shortfall: int
+    missing_independent_reviews: list[dict[str, str]]
+    blocking_review_flags: list[str]
+    limitations: list[str]
+    meaning: str
+
+
+class BranchGateEvaluationResponse(BaseModel):
+    run_id: str
+    skill_id: str
+    skill_version: str
+    policy_id: str
+    policy_version: str
+    evaluated_at: datetime
+    selected_branch_id: None
+    selection_required: Literal[True]
+    gates: list[BranchGateResponse]
+    limitations: list[str]
 
 
 class StartReviewResponse(BaseModel):
@@ -631,7 +741,7 @@ ReadinessStatus = Literal[
 
 class CapabilityScopeResponse(BaseModel):
     learning_run_id: str
-    learning_run_status: Literal["active", "retention_pending", "completed", "ended"]
+    learning_run_status: Literal["active", "paused", "retention_pending", "completed", "ended"]
     skill_id: str
     skill_version: str
     capability_scope_id: str
@@ -1901,10 +2011,98 @@ def generate_today_learning(
     service: LearningExecutionServiceDependency,
 ) -> TodayLearningResponse:
     try:
-        result = service.today(run_id, payload.available_minutes)
+        result = service.today(
+            run_id,
+            payload.available_minutes,
+            allow_overtime=payload.allow_overtime,
+            overtime_reason=payload.overtime_reason,
+        )
     except LearningExecutionError as error:
         _raise_service_http(error)
     return TodayLearningResponse.model_validate(result)
+
+
+@router.get(
+    "/learning-runs/{run_id}/stage-checkpoints",
+    response_model=list[StageCheckpointResponse],
+    tags=["learning-execution"],
+)
+def get_learning_stage_checkpoints(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> list[StageCheckpointResponse]:
+    try:
+        result = service.get_stage_checkpoints(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return [StageCheckpointResponse.model_validate(item) for item in result]
+
+
+@router.get(
+    "/learning-runs/{run_id}/branch-gates",
+    response_model=BranchGateEvaluationResponse,
+    tags=["learning-execution"],
+)
+def get_learning_branch_gates(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> BranchGateEvaluationResponse:
+    try:
+        result = service.get_branch_gates(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return BranchGateEvaluationResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-runs/{run_id}/independent-reviews",
+    response_model=LearningIndependentReviewResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["learning-execution"],
+)
+def create_learning_independent_review(
+    run_id: str,
+    payload: CreateLearningIndependentReviewRequest,
+    service: LearningExecutionServiceDependency,
+) -> LearningIndependentReviewResponse:
+    try:
+        result = service.add_independent_review(run_id, **payload.model_dump())
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningIndependentReviewResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-runs/{run_id}/pause",
+    response_model=LearningRunResponse,
+    tags=["learning-execution"],
+)
+def pause_learning_run(
+    run_id: str,
+    payload: PauseLearningRunRequest,
+    service: LearningExecutionServiceDependency,
+) -> LearningRunResponse:
+    try:
+        result = service.pause_run(run_id, payload.reason)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)
+
+
+@router.post(
+    "/learning-runs/{run_id}/resume",
+    response_model=LearningRunResponse,
+    tags=["learning-execution"],
+)
+def resume_learning_run(
+    run_id: str,
+    service: LearningExecutionServiceDependency,
+) -> LearningRunResponse:
+    try:
+        result = service.resume_run(run_id)
+    except LearningExecutionError as error:
+        _raise_service_http(error)
+    return LearningRunResponse.model_validate(result)
 
 
 @router.post(
