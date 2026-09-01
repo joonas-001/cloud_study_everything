@@ -3,7 +3,24 @@
   "repository": "joonas-001/cloud_study_everything",
   "remote_sync": {
     "authorized": false,
-    "note": "Creating or changing remote labels, milestones, pinned issues, repository settings, or test issues requires separate owner authorization."
+    "note": "General remote synchronization remains unauthorized. The completed operation below was separately authorized and does not authorize labels, milestones, repository settings, security settings, or test issues.",
+    "completed_operations": [
+      {
+        "operation": "pinned_submission_issue",
+        "authorized_at": "2026-09-01",
+        "completed_at": "2026-09-01",
+        "issue_number": 26,
+        "title": "提交issues请看这里",
+        "url": "https://github.com/joonas-001/cloud_study_everything/issues/26",
+        "source": "docs/contributing/issue-submission-hub.md",
+        "issue_labels": ["documentation"],
+        "submission_labels": {
+          "bug": "bug",
+          "feature_request": "enhancement",
+          "other": "question"
+        }
+      }
+    ]
   },
   "labels": [
     {"name": "type:bug", "category": "type", "color": "d73a4a", "description": "可复现缺陷或回归"},

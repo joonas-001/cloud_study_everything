@@ -92,3 +92,19 @@ Issues、API、Web、E2E、契约漂移和密钥扫描检查。
 - 未写入真实库，未迁移数据，未修改云端，未调用外部 AI；
 - `algorithm@0.3.0` 继续 `draft + intake: closed`，默认入口继续为 `algorithm@0.2.2`；
 - 8G 完整验收与入口决定仍须项目所有者另行授权。
+
+## 5. 8F 后续远程入口记录
+
+2026-09-01，项目所有者另行授权创建一个 GitHub Issues 提交入口。远程
+[Issue #26](https://github.com/joonas-001/cloud_study_everything/issues/26) 已按标题
+“提交issues请看这里”创建并置顶，提供 Bug、Feature Request 和 Other 三栏即时预填链接，
+分别使用 GitHub 已存在的 `bug`、`enhancement` 和 `question` 标签；置顶 Issue 自身使用
+`documentation` 标签。正文来源为 `docs/contributing/issue-submission-hub.md`。
+
+这次授权只覆盖该 Issue 的创建与置顶。受管 `type:*`／`status:*` 标签同步、GitHub
+Milestone、仓库设置、Private Vulnerability Reporting 开关和测试 Issue 仍未授权。
+
+仓库新增确定性校验，解析三条链接并核对标题、标签、预填正文、私密安全入口、详细研究
+链接和唯一受管远程操作记录。完整 `pnpm release-readiness` 通过 147 项后端测试（1 项按
+预期跳过）、44 项前端测试、13 个静态页面、26 项 E2E（6 项按既有范围跳过）、全部治理、
+契约无漂移和密钥扫描。

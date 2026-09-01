@@ -9,7 +9,7 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 import yaml
 from cloud_study_api.governance import (
@@ -1149,6 +1149,68 @@ def check_issue_workflow(root: Path) -> None:
     ):
         raise CheckFailure("the private security-reporting entry is missing")
 
+    submission_hub_path = root / "docs" / "contributing" / "issue-submission-hub.md"
+    submission_hub = submission_hub_path.read_text(encoding="utf-8")
+    required_hub_fragments = {
+        "# 提交issues请看这里",
+        "## 简要提交流程",
+        "Bug／缺陷 | Feature Request／功能建议 | Other／其他",
+        "issues/new?labels=bug&title=%5BBug%5D%20&body=",
+        "issues/new?labels=enhancement&title=%5BFeature%5D%20&body=",
+        "issues/new?labels=question&title=%5BOther%5D%20&body=",
+        "security/advisories/new",
+        "GitHub Issues 提交流程研究与云奕学适配连接",
+        "blob/main/docs/research/github-issues-workflow.md",
+    }
+    missing_hub_fragments = sorted(
+        fragment
+        for fragment in required_hub_fragments
+        if fragment not in submission_hub
+    )
+    if missing_hub_fragments:
+        raise CheckFailure(
+            f"the pinned Issue submission hub is incomplete: {missing_hub_fragments}"
+        )
+    submission_urls = re.findall(
+        r"https://github\.com/joonas-001/cloud_study_everything/issues/new\?[^)\s]+",
+        submission_hub,
+    )
+    expected_submissions = {
+        "bug": ("[Bug] ", {"发生了什么", "期望行为", "复现步骤", "版本"}),
+        "enhancement": (
+            "[Feature] ",
+            {"要解决的问题", "理想行为", "验收标准", "影响"},
+        ),
+        "question": ("[Other] ", {"类型", "最小描述", "期望处理"}),
+    }
+    observed_submission_labels: set[str] = set()
+    for submission_url in submission_urls:
+        query = parse_qs(urlsplit(submission_url).query, keep_blank_values=True)
+        labels = query.get("labels", [])
+        titles = query.get("title", [])
+        bodies = query.get("body", [])
+        if len(labels) != 1 or labels[0] not in expected_submissions:
+            raise CheckFailure("the pinned Issue submission link uses an unknown label")
+        label = labels[0]
+        expected_title, required_body_fragments = expected_submissions[label]
+        if titles != [expected_title] or len(bodies) != 1:
+            raise CheckFailure(
+                f"the pinned Issue submission link for {label} is not prefilled"
+            )
+        missing_body_fragments = sorted(
+            fragment
+            for fragment in required_body_fragments
+            if fragment not in bodies[0]
+        )
+        if missing_body_fragments:
+            raise CheckFailure(
+                f"the pinned Issue template for {label} is incomplete: "
+                f"{missing_body_fragments}"
+            )
+        observed_submission_labels.add(label)
+    if observed_submission_labels != set(expected_submissions):
+        raise CheckFailure("the pinned Issue hub must expose exactly three templates")
+
     contract = json.loads(
         (root / "governance" / "issues-v1.json").read_text(encoding="utf-8")
     )
@@ -1158,6 +1220,26 @@ def check_issue_workflow(root: Path) -> None:
     if not isinstance(remote_sync, dict) or remote_sync.get("authorized") is not False:
         raise CheckFailure(
             "the Issue workflow must not authorize remote synchronization"
+        )
+    completed_operations = remote_sync.get("completed_operations")
+    expected_pinned_operation = {
+        "operation": "pinned_submission_issue",
+        "authorized_at": "2026-09-01",
+        "completed_at": "2026-09-01",
+        "issue_number": 26,
+        "title": "提交issues请看这里",
+        "url": "https://github.com/joonas-001/cloud_study_everything/issues/26",
+        "source": "docs/contributing/issue-submission-hub.md",
+        "issue_labels": ["documentation"],
+        "submission_labels": {
+            "bug": "bug",
+            "feature_request": "enhancement",
+            "other": "question",
+        },
+    }
+    if completed_operations != [expected_pinned_operation]:
+        raise CheckFailure(
+            "the Issue workflow must record only the authorized pinned submission Issue"
         )
     labels = contract.get("labels")
     if not isinstance(labels, list) or not labels:

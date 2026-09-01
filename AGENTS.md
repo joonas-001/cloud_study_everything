@@ -373,6 +373,15 @@
   和密钥扫描。8G 未访问远程来源，因此 `M8B-002` 仍阻断入口；`algorithm@0.3.0` 必须保持
   `draft + intake: closed`，默认入口保持 `0.2.2`，直到项目所有者作出最终入口决定。8G 不
   授权真实库写入、Tailnet 候选、GitHub 远程写操作、外部 AI、公开发布或云端变更。
+- GitHub Issues 置顶入口授权与状态：项目所有者于 2026-09-01 在 8G 之外单独授权创建并
+  置顶一个提交入口。远程 Issue #26 标题为“提交issues请看这里”，正文由
+  `docs/contributing/issue-submission-hub.md` 受管，提供 Bug、Feature Request、Other 三栏
+  即时预填链接，分别使用 GitHub 已存在的 `bug`、`enhancement`、`question` 标签；Issue
+  自身使用 `documentation` 标签。该有限授权已完成，不构成持续远程同步授权，也不包含
+  创建或同步 `type:*`／`status:*` 受管标签、Milestone、仓库设置、Private Vulnerability
+  Reporting 开关、测试 Issue 或其他 GitHub 写操作。确定性检查会解析三条链接并核对标题、
+  标签和预填正文；完整 `release-readiness` 通过 147 项后端（1 项按预期跳过）、44 项前端、
+  13 个静态页面、26 项 E2E（6 项按范围跳过）、全部治理、契约无漂移和密钥扫描。
 - 当前未决定：
   - OpenAI、Moonshot AI 及 5B 范围外用途的首批模型清单；
   - 6B 后续运维复核、月度预算周期开始后的实际消耗；
