@@ -56,7 +56,7 @@
 | 第五里程碑 5C | 已合并并验证 | PR #8 已合并到 `main@9928e23`，合并后 CI `30701908365` 共 21 项成功；就业优先实验、分级证据门禁、外部真人评审、用户手动作记录、隐私收入记录与学习回流已形成纵向切片；当前用户真实求职动作证据补齐暂时阻塞 |
 | 第六里程碑 6A–6D | 6D 已完成并合并 | 浏览器同源 API 修复精确提交 `c781fe1` 已部署，旧 `5b4af16` 保留为回滚点；真实库 47 表／54 行、策略 `1.1.0`、远程 Runner、身份、Tailnet HTTPS、备份、资源和自动回滚均已复验。项目所有者已完成真实手机确认、账单复核并取消剩余观察期；PR #19 已合并为 `main@d4f079c`。Headless 浏览器限制继续记录，真实 AI／来源／邮件、公开访问和扩容继续关闭 |
 | 第七里程碑 7A–7F | 已完成并合并 | PR #18 已合并为 `main@90e16e2`；合并后 push CI `32806434805` 共 22 项成功。Windows 实际高对比度和连续两小时阅读疲劳为非阻断后续人工任务，未执行前不得写成已通过或声称 WCAG 合规认证 |
-| 第八里程碑 8A–8G | 8A–8F 当前授权范围已完成 | 8B 建立关闭入口的 `algorithm@0.3.0` 草稿，含 12 域、46 能力、34 单元、64 题及 22 个双语言 Runner 定义；8C 实现确定性自适应诊断；8D 实现共同主干学习执行与分支门禁；8E 实现本地能力档案、隐私导出、非虚荣分析及隔离影子评估；8F 实现三个 Issue Forms、双语指南、受管标签／生命周期契约和只复制不提交的允许列表诊断。默认入口仍为 `0.2.2`；远程来源复核、第二评审、真实 Runner 复验和 GitHub 远程写操作继续待办，8G 未授权 |
+| 第八里程碑 8A–8G | 8G 技术验收完成，入口待决定 | `algorithm@0.3.0` 的 12 域、46 能力、34 单元、64 题和 22 个双语言 Runner 任务已完成第二评审、迁移回滚、真实 Runner 全量复验、隐私回归和完整门禁；后端 147 项、前端 44 项、生产构建及 E2E 26 项通过。远程来源实质复核仍未授权，默认入口保持 `0.2.2`，当前推荐继续关闭 `0.3.0` 并等待项目所有者最终决定 |
 
 当前 Web 页面提供算法诊断、规划、学习执行和目标准备度的本地受限流程。规划、确定性练习和 5A 准备度比较由本地规则处理；自由文本和代码文本只做结构校验，不能据此判断内容正确，也不代表算法技能包已经激活、用户已经掌握相关能力或已经具备真实交付资格。
 
@@ -78,6 +78,8 @@ GitHub 同类开源项目、能力差距、采用门禁和建议复核频率见
 [`docs/architecture/milestone-8e-validation.md`](docs/architecture/milestone-8e-validation.md)。
 8F 的 Issues 治理、脱敏诊断和本地发布准备验证见
 [`docs/architecture/milestone-8f-validation.md`](docs/architecture/milestone-8f-validation.md)。
+8G 的第二评审、迁移回滚、真实 Runner 和完整门禁证据见
+[`docs/architecture/milestone-8g-validation.md`](docs/architecture/milestone-8g-validation.md)。
 
 新窗口读取项目现状时，先查看 [`docs/project-status.md`](docs/project-status.md)，再读取
 [`AGENTS.md`](AGENTS.md) 和 [`TODO.md`](TODO.md)；状态入口不替代项目约束和用户授权。

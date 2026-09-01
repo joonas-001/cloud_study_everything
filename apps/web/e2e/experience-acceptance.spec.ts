@@ -234,8 +234,17 @@ test("survives repeated cross-area use without losing navigation context", async
   for (let round = 0; round < 3; round += 1) {
     for (const path of journey) {
       await page.goto(path);
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+          }),
+      );
       await page.waitForLoadState("networkidle");
       await expect(page.locator("main#main-content h1")).toBeVisible();
+      if (path === "/") {
+        await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
+      }
       await expectNoHorizontalOverflow(page);
     }
   }
