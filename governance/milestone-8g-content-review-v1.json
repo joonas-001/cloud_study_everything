@@ -1,0 +1,148 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "milestone-8g-second-review-2026-09-01",
+  "reviewed_at": "2026-09-01",
+  "reviewer_role": "independent-second-pass",
+  "skill_id": "algorithm",
+  "skill_version": "0.3.0",
+  "manifest_sha256": "884fc51a24e65ce81706c4a4b669023dbe8c32a62cffcbdaa0e9d7846a2e2114",
+  "review_sections": {
+    "content_facts": {
+      "population_count": 34,
+      "minimum_ratio": 0.25,
+      "reviewed_ids": [
+        "p-programming-core",
+        "m-counting-probability",
+        "a-recurrence",
+        "l-linear-adt",
+        "h-hash-semantics",
+        "s-comparison-sort",
+        "g-shortest-path",
+        "d-state",
+        "q-integrated"
+      ],
+      "status": "passed"
+    },
+    "diagnostic_items": {
+      "population_count": 64,
+      "minimum_ratio": 0.30,
+      "reviewed_ids": [
+        "diagnostic-01-p-control-flow",
+        "diagnostic-04-p-python-runtime",
+        "diagnostic-07-m-induction-sums-logs",
+        "diagnostic-10-a-case-analysis",
+        "diagnostic-13-l-array-sequence",
+        "diagnostic-16-l-selection",
+        "diagnostic-19-h-application",
+        "diagnostic-22-s-comparison-stability",
+        "diagnostic-25-r-recurrence-divide",
+        "diagnostic-28-t-traversal",
+        "diagnostic-31-g-model-representation",
+        "diagnostic-34-g-shortest-path",
+        "diagnostic-35-g-mst",
+        "diagnostic-37-y-exchange-proof",
+        "diagnostic-40-d-order-memoization",
+        "diagnostic-43-q-modeling",
+        "diagnostic-46-q-integrated-artifact",
+        "diagnostic-49-p-cpp-stl",
+        "diagnostic-57-a-recurrence",
+        "diagnostic-64-h-collision-load"
+      ],
+      "status": "passed_after_correction",
+      "corrected_findings": [
+        {
+          "id": "diagnostic-35-g-mst",
+          "finding": "正确选项遗漏最小化目标，容易把目标函数误读为任意总边权。",
+          "resolution": "明确为在连通所有顶点时最小化总边权。"
+        },
+        {
+          "id": "diagnostic-57-a-recurrence",
+          "finding": "增长阶结论缺少基例与输入规模假设。",
+          "resolution": "补充 T(1)=Theta(1) 且 n 为 2 的幂。"
+        }
+      ]
+    },
+    "source_mappings": {
+      "population_count": 10,
+      "minimum_ratio": 0.30,
+      "reviewed_ids": [
+        "python-tutorial-314",
+        "mit-mathematics-for-cs",
+        "open-data-structures-01g",
+        "erickson-algorithms"
+      ],
+      "status": "metadata_mapping_only",
+      "limitation": "8G 未授权远程来源实质复核；精确页面、许可、可访问性与教学结论映射继续由 M8B-002 阻断入口。"
+    },
+    "runner_tasks": {
+      "population_count": 22,
+      "minimum_ratio": 1.0,
+      "reviewed_ids": [
+        "p-runner-cpp-task",
+        "p-runner-python-task",
+        "a-runner-cpp-task",
+        "a-runner-python-task",
+        "l-runner-cpp-task",
+        "l-runner-python-task",
+        "h-runner-cpp-task",
+        "h-runner-python-task",
+        "s-runner-cpp-task",
+        "s-runner-python-task",
+        "r-runner-cpp-task",
+        "r-runner-python-task",
+        "t-runner-cpp-task",
+        "t-runner-python-task",
+        "g-runner-cpp-task",
+        "g-runner-python-task",
+        "y-runner-cpp-task",
+        "y-runner-python-task",
+        "d-runner-cpp-task",
+        "d-runner-python-task",
+        "q-runner-cpp-task",
+        "q-runner-python-task"
+      ],
+      "status": "passed_live",
+      "live_test_count": 66,
+      "creates_user_capability_evidence": false
+    },
+    "rubrics": {
+      "population_count": 6,
+      "minimum_ratio": 1.0,
+      "reviewed_ids": [
+        "understanding-rubric",
+        "operation-rubric",
+        "transfer-rubric",
+        "artifact-rubric",
+        "retention-rubric",
+        "correction-rubric"
+      ],
+      "status": "passed"
+    },
+    "assessment_criteria": {
+      "population_count": 60,
+      "minimum_ratio": 1.0,
+      "reviewed_by_policy": true,
+      "status": "passed"
+    },
+    "branch_gates": {
+      "population_count": 4,
+      "minimum_ratio": 1.0,
+      "reviewed_ids": ["engineering", "interview", "competition", "theory"],
+      "status": "passed"
+    }
+  },
+  "mandatory_second_review_topics": {
+    "multiple_solution_handling": "passed",
+    "complexity_assumptions": "passed_after_correction",
+    "proof_and_counterexample_scope": "passed",
+    "runner_hidden_tests": "passed_live",
+    "evidence_level_boundaries": "passed",
+    "branch_gate_non_mastery_language": "passed"
+  },
+  "entry_decision": {
+    "recommended_state": "keep_closed",
+    "blocking_items": ["M8B-002", "project_owner_acceptance"],
+    "default_version": "0.2.2",
+    "candidate_version": "0.3.0"
+  }
+}

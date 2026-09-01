@@ -29,7 +29,7 @@ content_files:
   sha256: fc30181445d35392a8ceaa124f3aa8ee1c18f027e0f5eaf23ad2c00f9418588e
 - kind: diagnostic_definition
   path: assessments/diagnostic.yaml
-  sha256: 422b064abe708868b38315a31de34e886e0113973e6ed1fb7cfb02121c9b4090
+  sha256: 7f792c8fe3a3a09e919ff4cf1937b41a91e599fac7f830ed5faf27b7f56431f8
 - kind: learning_definition
   path: curriculum/learning.yaml
   sha256: d5cc7e5759f370446a4ca1d7a4bf953d23ea3eac9572c46e8983016136ce8e84

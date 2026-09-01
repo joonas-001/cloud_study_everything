@@ -1176,7 +1176,7 @@ questions:
   ambiguity_review_status: reviewed
   options:
   - value: scoped
-    label: 连通所有顶点的总边权
+    label: 在连通所有顶点时最小化总边权
   - value: overclaim
     label: 指定两点间的最短距离
   - value: uncertain
@@ -1882,7 +1882,7 @@ questions:
     skipped: diagnostic-57-a-recurrence
     uncertain: diagnostic-57-a-recurrence
 - id: diagnostic-57-a-recurrence
-  prompt: 独立复核：递推 T(n)=T(n/2)+Theta(1) 的代表性增长阶是什么？
+  prompt: 独立复核：设 T(1)=Theta(1)，且 n 是 2 的幂；递推 T(n)=T(n/2)+Theta(1) 的增长阶是什么？
   reason: 为能力 a-recurrence 产生受管、可复算的诊断信号。
   response_type: single_choice
   question_version: 1.0.0

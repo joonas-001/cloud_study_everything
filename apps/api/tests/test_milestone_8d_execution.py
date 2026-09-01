@@ -4,16 +4,24 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from cloud_study_api.capability_profiles import (
     CapabilityProfileService,
     evaluate_review_shadow,
 )
 from cloud_study_api.credentials import MemoryCredentialStore
-from cloud_study_api.database import create_session_factory, upgrade_database
+from cloud_study_api.database import (
+    create_database_engine,
+    create_database_url,
+    create_session_factory,
+    read_schema_version,
+    upgrade_database,
+)
 from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionError, LearningExecutionService
 from cloud_study_api.governance import validate_repository
@@ -162,6 +170,96 @@ def _submission(activity: dict[str, Any]) -> dict[str, str]:
         else:
             values[field["id"]] = "证" * max(20, field["min_length"])
     return values
+
+
+def _migration_config(database_path: Path) -> Config:
+    config = Config(str(REPOSITORY_ROOT / "apps" / "api" / "alembic.ini"))
+    config.set_main_option(
+        "script_location",
+        str(REPOSITORY_ROOT / "apps" / "api" / "migrations"),
+    )
+    config.set_main_option(
+        "sqlalchemy.url",
+        create_database_url(database_path).replace("%", "%%"),
+    )
+    return config
+
+
+def test_milestone_8g_round_trip_keeps_history_and_safely_ends_paused_run(
+    tmp_path: Path,
+) -> None:
+    clock = [datetime(2026, 9, 1, 8, 0, tzinfo=UTC)]
+    diagnostics, learning, execution = _services(tmp_path, clock)
+    run = _create_run(diagnostics, learning, execution)
+    execution.pause_run(run["id"], "8G 迁移回滚演练")
+    database_path = tmp_path / "milestone-8d.db"
+    config = _migration_config(database_path)
+
+    command.downgrade(config, "0010")
+
+    assert read_schema_version(database_path) == "0010"
+    engine = create_database_engine(database_path)
+    try:
+        with engine.connect() as connection:
+            row = connection.execute(
+                text(
+                    "SELECT skill_id, skill_version, status, end_reason "
+                    "FROM learning_runs WHERE id = :run_id"
+                ),
+                {"run_id": run["id"]},
+            ).one()
+            assert row == (
+                "algorithm",
+                "0.3.0",
+                "ended",
+                "milestone_8d_migration_downgrade",
+            )
+            assert (
+                connection.execute(
+                    text(
+                        "SELECT COUNT(*) FROM diagnostic_sessions "
+                        "WHERE id = :session_id AND skill_version = '0.3.0'"
+                    ),
+                    {"session_id": run["diagnostic_session_id"]},
+                ).scalar_one()
+                == 1
+            )
+            assert (
+                connection.execute(
+                    text(
+                        "SELECT COUNT(*) FROM planning_proposals "
+                        "WHERE id = :proposal_id AND skill_version = '0.3.0'"
+                    ),
+                    {"proposal_id": run["planning_proposal_id"]},
+                ).scalar_one()
+                == 1
+            )
+    finally:
+        engine.dispose()
+
+    command.upgrade(config, "head")
+
+    assert read_schema_version(database_path) == "0011"
+    engine = create_database_engine(database_path)
+    try:
+        with engine.connect() as connection:
+            row = connection.execute(
+                text(
+                    "SELECT skill_version, status, pause_reason "
+                    "FROM learning_runs WHERE id = :run_id"
+                ),
+                {"run_id": run["id"]},
+            ).one()
+            assert row == ("0.3.0", "ended", None)
+            assert (
+                connection.execute(
+                    text("SELECT COUNT(*) FROM learning_activities WHERE run_id = :run_id"),
+                    {"run_id": run["id"]},
+                ).scalar_one()
+                > 0
+            )
+    finally:
+        engine.dispose()
 
 
 def test_common_core_daily_budget_pause_stage_and_scoped_gate(tmp_path: Path) -> None:

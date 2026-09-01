@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -1458,6 +1459,137 @@ def check_secrets(root: Path) -> None:
         raise CheckFailure(f"potential secrets found: {findings}")
 
 
+def check_milestone_8g(root: Path) -> None:
+    review_path = root / "governance/milestone-8g-content-review-v1.json"
+    review = _read_json(review_path)
+    if review.get("schema_version") != "1.0.0":
+        raise CheckFailure("8G content review schema version is not governed")
+    if review.get("skill_id") != "algorithm" or review.get("skill_version") != "0.3.0":
+        raise CheckFailure("8G content review must bind algorithm@0.3.0")
+
+    package_root = root / "skill-packs/algorithm/versions/0.3.0"
+    manifest_path = package_root / "manifest.yaml"
+    manifest_digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    if review.get("manifest_sha256") != manifest_digest:
+        raise CheckFailure("8G content review does not bind the current 0.3.0 manifest")
+
+    def read_yaml(relative_path: str) -> dict[str, Any]:
+        value = yaml.safe_load(
+            (package_root / relative_path).read_text(encoding="utf-8")
+        )
+        if not isinstance(value, dict):
+            raise CheckFailure(f"8G review input is not an object: {relative_path}")
+        return value
+
+    learning = read_yaml("curriculum/learning.yaml")
+    diagnostic = read_yaml("assessments/diagnostic.yaml")
+    sources = read_yaml("sources/catalog.yaml")
+    runner_tasks = read_yaml("assessments/runner-tasks.yaml")
+    rubrics = read_yaml("assessments/rubric.yaml")
+    assessment = read_yaml("assessments/assessment.yaml")
+    branch_gates = read_yaml("assessments/branch-gates.yaml")
+
+    populations = {
+        "content_facts": {item["id"] for item in learning["units"]},
+        "diagnostic_items": {item["id"] for item in diagnostic["questions"]},
+        "source_mappings": {item["id"] for item in sources["sources"]},
+        "runner_tasks": {item["id"] for item in runner_tasks["tasks"]},
+        "rubrics": {item["id"] for item in rubrics["criteria"]},
+        "branch_gates": {item["id"] for item in branch_gates["gates"]},
+    }
+    sections = review.get("review_sections")
+    if not isinstance(sections, dict):
+        raise CheckFailure("8G content review sections are missing")
+    for name, population in populations.items():
+        section = sections.get(name)
+        if not isinstance(section, dict):
+            raise CheckFailure(f"8G review section is missing: {name}")
+        if section.get("population_count") != len(population):
+            raise CheckFailure(f"8G review population drifted: {name}")
+        minimum_ratio = section.get("minimum_ratio")
+        reviewed_ids = section.get("reviewed_ids")
+        if not isinstance(minimum_ratio, (int, float)) or not isinstance(
+            reviewed_ids, list
+        ):
+            raise CheckFailure(f"8G review coverage is invalid: {name}")
+        if len(reviewed_ids) != len(set(reviewed_ids)):
+            raise CheckFailure(f"8G review contains duplicate IDs: {name}")
+        unknown = set(reviewed_ids) - population
+        if unknown:
+            raise CheckFailure(f"8G review contains unknown {name}: {sorted(unknown)}")
+        if len(reviewed_ids) / len(population) < float(minimum_ratio):
+            raise CheckFailure(f"8G review coverage is below policy: {name}")
+        if (
+            not str(section.get("status", "")).startswith("passed")
+            and name != "source_mappings"
+        ):
+            raise CheckFailure(f"8G review is not accepted: {name}")
+
+    source_section = sections["source_mappings"]
+    if source_section.get("status") != "metadata_mapping_only":
+        raise CheckFailure("8G must not claim unperformed remote source review")
+    assessment_section = sections.get("assessment_criteria")
+    if not isinstance(assessment_section, dict):
+        raise CheckFailure("8G assessment criteria review is missing")
+    if assessment_section.get("population_count") != len(assessment["criteria"]):
+        raise CheckFailure("8G assessment criteria population drifted")
+    if assessment_section.get("minimum_ratio") != 1.0:
+        raise CheckFailure("8G assessment criteria must receive 100% review")
+    if assessment_section.get("reviewed_by_policy") is not True:
+        raise CheckFailure("8G assessment criteria review was not completed")
+
+    topics = review.get("mandatory_second_review_topics")
+    required_topics = {
+        "multiple_solution_handling",
+        "complexity_assumptions",
+        "proof_and_counterexample_scope",
+        "runner_hidden_tests",
+        "evidence_level_boundaries",
+        "branch_gate_non_mastery_language",
+    }
+    if not isinstance(topics, dict) or set(topics) != required_topics:
+        raise CheckFailure("8G mandatory second-review topics are incomplete")
+    if any(not str(status).startswith("passed") for status in topics.values()):
+        raise CheckFailure("8G mandatory second review contains an unresolved finding")
+
+    registry = yaml.safe_load(
+        (root / "skill-packs/registry.yaml").read_text(encoding="utf-8")
+    )
+    packages = registry["packages"]
+    open_versions = [item["version"] for item in packages if item["intake"] == "open"]
+    if open_versions != ["0.2.2"]:
+        raise CheckFailure(
+            "8G must keep 0.2.2 as the sole open intake before owner acceptance"
+        )
+    candidate = next(item for item in packages if item["version"] == "0.3.0")
+    if (
+        candidate["intake"] != "closed"
+        or candidate["manifest_sha256"] != manifest_digest
+    ):
+        raise CheckFailure(
+            "8G candidate must remain closed and bind the reviewed manifest"
+        )
+    decision = review.get("entry_decision")
+    if (
+        not isinstance(decision, dict)
+        or decision.get("recommended_state") != "keep_closed"
+    ):
+        raise CheckFailure(
+            "8G entry recommendation must remain closed while blockers exist"
+        )
+    blockers = decision.get("blocking_items")
+    if not isinstance(blockers, list) or "M8B-002" not in blockers:
+        raise CheckFailure(
+            "8G entry decision must preserve the remote source review blocker"
+        )
+
+    package = json.loads((root / "package.json").read_text(encoding="utf-8"))
+    if package["scripts"].get("check:runner-live-8g") is None:
+        raise CheckFailure(
+            "8G full Runner task probe is not exposed as a governed command"
+        )
+
+
 CHECKS = {
     "markdown": check_markdown,
     "structure": check_structure,
@@ -1477,6 +1609,7 @@ CHECKS = {
     "external-call-boundary": check_external_call_boundary,
     "deployment-policy": check_deployment_policy,
     "issues": check_issue_workflow,
+    "milestone-8g": check_milestone_8g,
     "contracts": check_contracts,
     "secrets": check_secrets,
 }
