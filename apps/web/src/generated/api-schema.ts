@@ -612,6 +612,35 @@ export interface IncomeValuesRequest {
   verification_level: "self_reported" | "platform_record" | "received";
 }
 
+export interface IssueReportFieldResponse {
+  key: string;
+  label: string;
+  required: boolean;
+  value: string;
+}
+
+export interface IssueReportPreviewRequest {
+  event_names?: Array<string>;
+  included_optional_fields: Array<"page_route" | "operation_type" | "skill_version" | "request_audit_id" | "reason_code" | "event_names" | "runner_details">;
+  operation_type?: string | null;
+  page_route?: string | null;
+  reason_code?: string | null;
+  report_type: "bug" | "feature" | "content";
+  request_audit_id?: string | null;
+  skill_version?: string | null;
+}
+
+export interface IssueReportPreviewResponse {
+  attachments_enabled: boolean;
+  automatic_submission_enabled: boolean;
+  copy_required_before_open: boolean;
+  fields: Array<IssueReportFieldResponse>;
+  privacy_notice: string;
+  rendered_text: string;
+  report_type: "bug" | "feature" | "content";
+  submission_url: string;
+}
+
 export interface LearningActivityResponse {
   activity_roles: Array<string>;
   attempts: Array<ActivityAttemptResponse>;

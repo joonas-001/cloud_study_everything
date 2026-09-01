@@ -55,6 +55,8 @@ import type {
   ExperimentResponse,
   ExperimentReviewRequest,
   ExperimentTransitionRequest,
+  IssueReportPreviewRequest,
+  IssueReportPreviewResponse,
   ExperimentActionRequest,
   ExperimentOutcomeRequest,
   CreateIncomeRequest,
@@ -134,6 +136,15 @@ export function updatePrivacySettings(
   });
 }
 
+export function previewIssueReport(
+  payload: IssueReportPreviewRequest,
+): Promise<IssueReportPreviewResponse> {
+  return request("/settings/issue-report/preview", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function getActiveDiagnosticSession(
   skillId: string,
   skillVersion: string,
@@ -196,6 +207,7 @@ export function endDiagnosticSession(
 export function getLatestDiagnosticSession(
   skillId: string,
   skillVersion: string,
+  signal?: AbortSignal,
 ): Promise<DiagnosticSessionResponse | null> {
   const query = new URLSearchParams({
     skill_id: skillId,
@@ -203,6 +215,7 @@ export function getLatestDiagnosticSession(
   });
   return request<DiagnosticSessionResponse>(
     `/diagnostic-sessions/latest?${query.toString()}`,
+    { signal },
   ).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 404) {
       return null;
@@ -223,6 +236,7 @@ export function createPlanningProposal(
 export function getLatestPlanningProposal(
   skillId: string,
   skillVersion: string,
+  signal?: AbortSignal,
 ): Promise<PlanningProposalResponse | null> {
   const query = new URLSearchParams({
     skill_id: skillId,
@@ -230,6 +244,7 @@ export function getLatestPlanningProposal(
   });
   return request<PlanningProposalResponse>(
     `/planning-proposals/latest?${query.toString()}`,
+    { signal },
   ).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 404) {
       return null;
@@ -282,6 +297,7 @@ export function createLearningRun(
 export function getActiveLearningRun(
   skillId: string,
   skillVersion: string,
+  signal?: AbortSignal,
 ): Promise<LearningRunResponse | null> {
   const query = new URLSearchParams({
     skill_id: skillId,
@@ -289,6 +305,7 @@ export function getActiveLearningRun(
   });
   return request<LearningRunResponse>(
     `/learning-runs/active?${query.toString()}`,
+    { signal },
   ).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 404) {
       return null;
@@ -300,6 +317,7 @@ export function getActiveLearningRun(
 export function getLatestLearningRun(
   skillId: string,
   skillVersion: string,
+  signal?: AbortSignal,
 ): Promise<LearningRunResponse | null> {
   const query = new URLSearchParams({
     skill_id: skillId,
@@ -307,6 +325,7 @@ export function getLatestLearningRun(
   });
   return request<LearningRunResponse>(
     `/learning-run-latest?${query.toString()}`,
+    { signal },
   ).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 404) {
       return null;
@@ -697,12 +716,13 @@ export function createSourceCheck(
 export function getSourceChangeCandidates(
   skillId: string,
   skillVersion: string,
+  signal?: AbortSignal,
 ): Promise<Array<SourceChangeCandidateResponse>> {
   const query = new URLSearchParams({
     skill_id: skillId,
     skill_version: skillVersion,
   });
-  return request(`/source-change-candidates?${query.toString()}`);
+  return request(`/source-change-candidates?${query.toString()}`, { signal });
 }
 
 export function resolveSourceChangeCandidate(
@@ -715,8 +735,8 @@ export function resolveSourceChangeCandidate(
   });
 }
 
-export function getNotifications(): Promise<Array<NotificationResponse>> {
-  return request("/notifications");
+export function getNotifications(signal?: AbortSignal): Promise<Array<NotificationResponse>> {
+  return request("/notifications", { signal });
 }
 
 export function markNotificationRead(

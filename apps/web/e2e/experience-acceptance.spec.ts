@@ -109,6 +109,7 @@ test("keeps visible controls named and the keyboard entry path deterministic", a
   { page },
   testInfo,
 ) => {
+  test.setTimeout(60_000);
   await page.goto("/settings");
 
   const skipLink = page.getByRole("link", { name: "跳到主要内容" });

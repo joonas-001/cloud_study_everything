@@ -1115,6 +1115,115 @@ def check_contracts(root: Path) -> None:
         raise CheckFailure("OpenAPI contract must contain the /health path")
 
 
+def check_issue_workflow(root: Path) -> None:
+    template_root = root / ".github" / "ISSUE_TEMPLATE"
+    expected_templates = {
+        "bug.yml": "type:bug",
+        "feature.yml": "type:enhancement",
+        "content.yml": "type:content",
+    }
+    for filename, type_label in expected_templates.items():
+        document = yaml.safe_load(
+            (template_root / filename).read_text(encoding="utf-8")
+        )
+        if not isinstance(document, dict):
+            raise CheckFailure(f"{filename} must be a YAML object")
+        if document.get("labels") != [type_label, "status:needs-triage"]:
+            raise CheckFailure(f"{filename} does not use the managed initial labels")
+        body = document.get("body")
+        if not isinstance(body, list) or not body:
+            raise CheckFailure(f"{filename} must define a non-empty Issue Form body")
+        if not any(
+            isinstance(item, dict) and item.get("type") == "checkboxes" for item in body
+        ):
+            raise CheckFailure(f"{filename} must include an explicit confirmation")
+
+    config = yaml.safe_load((template_root / "config.yml").read_text(encoding="utf-8"))
+    if not isinstance(config, dict) or config.get("blank_issues_enabled") is not False:
+        raise CheckFailure("blank GitHub Issues must remain disabled")
+    contact_links = config.get("contact_links")
+    if not isinstance(contact_links, list) or not any(
+        isinstance(link, dict) and "security/advisories/new" in str(link.get("url", ""))
+        for link in contact_links
+    ):
+        raise CheckFailure("the private security-reporting entry is missing")
+
+    contract = json.loads(
+        (root / "governance" / "issues-v1.json").read_text(encoding="utf-8")
+    )
+    if contract.get("schema_version") != "1.0.0":
+        raise CheckFailure("the managed Issue workflow version must be 1.0.0")
+    remote_sync = contract.get("remote_sync")
+    if not isinstance(remote_sync, dict) or remote_sync.get("authorized") is not False:
+        raise CheckFailure(
+            "the Issue workflow must not authorize remote synchronization"
+        )
+    labels = contract.get("labels")
+    if not isinstance(labels, list) or not labels:
+        raise CheckFailure("the managed label dictionary is missing")
+    names = [label.get("name") for label in labels if isinstance(label, dict)]
+    if len(names) != len(labels) or len(names) != len(set(names)):
+        raise CheckFailure("managed Issue label names must be present and unique")
+    for label in labels:
+        if (
+            not isinstance(label, dict)
+            or re.fullmatch(r"[0-9a-f]{6}", str(label.get("color", ""))) is None
+        ):
+            raise CheckFailure(
+                "managed Issue label colors must be six lowercase hex digits"
+            )
+    required_labels = {
+        *expected_templates.values(),
+        "status:needs-triage",
+        "status:needs-info",
+        "status:accepted",
+        "status:blocked",
+        "status:in-progress",
+        "status:needs-verification",
+        "known-issue",
+        "duplicate",
+        "regression",
+    }
+    missing_labels = sorted(required_labels - set(names))
+    if missing_labels:
+        raise CheckFailure(f"managed Issue labels are missing: {missing_labels}")
+    lifecycle = contract.get("lifecycle")
+    if not isinstance(lifecycle, dict):
+        raise CheckFailure("the managed Issue lifecycle is missing")
+    if lifecycle.get("automatic_close_enabled") is not False:
+        raise CheckFailure("automatic Issue closure must remain disabled")
+    if lifecycle.get("manual_needs_info_close_after_days") != 14:
+        raise CheckFailure("needs-info must retain the managed 14-day manual rule")
+    transitions = lifecycle.get("transitions")
+    if not isinstance(transitions, dict):
+        raise CheckFailure("managed Issue lifecycle transitions are missing")
+    allowed_states = set(names) | {"closed"}
+    invalid_states = sorted(
+        {
+            state
+            for source, targets in transitions.items()
+            for state in [
+                source,
+                *(targets if isinstance(targets, list) else [targets]),
+            ]
+            if state not in allowed_states
+        }
+    )
+    if invalid_states:
+        raise CheckFailure(f"Issue lifecycle uses unmanaged states: {invalid_states}")
+
+    guide = (root / "docs" / "contributing" / "reporting-issues.md").read_text(
+        encoding="utf-8"
+    )
+    security = (root / "SECURITY.md").read_text(encoding="utf-8")
+    required_guidance = ["不会自动提交", "完整日志", "Private Vulnerability Reporting"]
+    missing_guidance = [
+        token for token in required_guidance if token not in f"{guide}\n{security}"
+    ]
+    if missing_guidance:
+        raise CheckFailure(f"Issue privacy guidance is missing: {missing_guidance}")
+
+
 def check_deployment_policy(root: Path) -> None:
     schema = _read_json(
         root / "contracts/deployment/private-deployment-policy.schema.json"
@@ -1367,6 +1476,7 @@ CHECKS = {
     "monetization-policy": check_monetization_policy,
     "external-call-boundary": check_external_call_boundary,
     "deployment-policy": check_deployment_policy,
+    "issues": check_issue_workflow,
     "contracts": check_contracts,
     "secrets": check_secrets,
 }

@@ -21,6 +21,7 @@ from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionService
 from cloud_study_api.experiments import ExperimentService
 from cloud_study_api.governance import validate_repository
+from cloud_study_api.issue_reporting import IssueReportService
 from cloud_study_api.learning import LearningService
 from cloud_study_api.market_research import MarketResearchService
 from cloud_study_api.notifications import NotificationService
@@ -56,6 +57,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         provider_registry=ProviderRegistry(),
     )
     app.state.notification_service = notification_service
+    app.state.issue_report_service = IssueReportService(
+        repository_root=settings.repository_root,
+        session_factory=session_factory,
+        deployment_status=app.state.deployment_guard.status(),
+    )
     app.state.learning_service = LearningService(
         repository_root=settings.repository_root,
         packages=packages,
