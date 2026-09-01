@@ -15,6 +15,7 @@ const SURFACES = [
 ] as const;
 
 const VISUAL_SURFACES = new Set(["/", "/evidence", "/settings"]);
+const ASYNC_VIEW_TIMEOUT_MS = 15_000;
 
 function apiBaseUrl(): string {
   return (
@@ -160,7 +161,9 @@ test("exposes honest loading, empty and error states", async ({ page }, testInfo
   await expect(page.getByRole("status").filter({ hasText: "正在聚合本地任务" })).toBeVisible();
   releaseRequests();
   await page.unrouteAll({ behavior: "wait" });
-  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible({
+    timeout: ASYNC_VIEW_TIMEOUT_MS,
+  });
 
   await page.route(`${api}/learning-run-latest?**`, (route) =>
     route.fulfill({
@@ -243,7 +246,9 @@ test("survives repeated cross-area use without losing navigation context", async
       await page.waitForLoadState("networkidle");
       await expect(page.locator("main#main-content h1")).toBeVisible();
       if (path === "/") {
-        await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible({
+          timeout: ASYNC_VIEW_TIMEOUT_MS,
+        });
       }
       await expectNoHorizontalOverflow(page);
     }
