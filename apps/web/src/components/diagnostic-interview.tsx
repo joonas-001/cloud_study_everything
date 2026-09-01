@@ -38,6 +38,23 @@ function responseLabel(answer: DiagnosticAnswerResponse): string {
   return option?.label ?? answer.content ?? "已回答";
 }
 
+function endReasonLabel(reason: string | null): string {
+  switch (reason) {
+    case "inactivity_timeout":
+      return "连续无操作超时";
+    case "diagnostic_time_limit":
+      return "达到诊断时间上限";
+    case "diagnostic_question_limit":
+      return "达到诊断题量上限";
+    case "diagnostic_complete":
+      return "受管诊断状态已完整分类";
+    case "user_ended":
+      return "由你主动结束";
+    default:
+      return reason ?? "系统按受管规则结束";
+  }
+}
+
 export function DiagnosticInterview() {
   const [privacy, setPrivacy] = useState<PrivacySettingsResponse | null>(null);
   const [session, setSession] = useState<DiagnosticSessionResponse | null>(null);
@@ -179,7 +196,7 @@ export function DiagnosticInterview() {
   return (
     <div className="diagnostic-layout">
       <aside className="control-rail" aria-label="诊断配置">
-        <div className="eyebrow">算法 · 0.2.2</div>
+        <div className="eyebrow">算法 · {session?.skill_version ?? SKILL_VERSION}</div>
         <h2>诊断预览</h2>
         <p className="muted">
           当前技能包仍为草稿。结构化信号只用于安排补救活动，不会直接生成掌握结论。
@@ -198,6 +215,20 @@ export function DiagnosticInterview() {
             <dt>超时规则</dt>
             <dd>{privacy?.inactivity_timeout_minutes ?? 120} 分钟无操作</dd>
           </div>
+          {session?.limits ? (
+            <>
+              <div>
+                <dt>诊断上限</dt>
+                <dd>
+                  {session.limits.question_max} 题 / {session.limits.minutes_max} 分钟
+                </dd>
+              </div>
+              <div>
+                <dt>证据上限</dt>
+                <dd>仅限诊断路径信号</dd>
+              </div>
+            </>
+          ) : null}
         </dl>
 
         <div className="privacy-setting">
@@ -258,12 +289,70 @@ export function DiagnosticInterview() {
               </span>
             </header>
 
+            {session.diagnostic_mode === "deterministic_adaptive" &&
+            session.decision ? (
+              <section className="panel" aria-label="自适应诊断决定">
+                <span className="eyebrow">确定性自适应 · 可重放</span>
+                <h3>本次选题依据</h3>
+                <p>{session.decision.explanation}</p>
+                <dl className="facts">
+                  <div>
+                    <dt>已用题量</dt>
+                    <dd>
+                      {session.decision.question_count} / {session.limits?.question_max ?? "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>估算答题时间</dt>
+                    <dd>{session.decision.estimated_minutes} 分钟</dd>
+                  </div>
+                  <div>
+                    <dt>可继续</dt>
+                    <dd>
+                      {
+                        session.capability_states.filter(
+                          (item) => item.status === "ready",
+                        ).length
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>需补救 / 尚不确定</dt>
+                    <dd>
+                      {
+                        session.capability_states.filter(
+                          (item) => item.status === "remediation_required",
+                        ).length
+                      }{" "}
+                      /{" "}
+                      {
+                        session.capability_states.filter(
+                          (item) => item.status === "inconclusive",
+                        ).length
+                      }
+                    </dd>
+                  </div>
+                </dl>
+                <p className="muted">
+                  这些状态只服务当前路径决策，不是 supported、verified、retained 或整体掌握。
+                </p>
+              </section>
+            ) : null}
+
             {session.status === "active" && session.current_question ? (
               <div className="question-block">
                 <p className="question-reason">
-                  <span>为什么问</span>
-                  {session.current_question.reason}
+                  <span>
+                    {session.diagnostic_mode === "deterministic_adaptive"
+                      ? "为什么现在问"
+                      : "为什么问"}
+                  </span>
+                  {session.current_question.selection_explanation ??
+                    session.current_question.reason}
                 </p>
+                {session.current_question.selection_explanation ? (
+                  <p className="muted">能力范围：{session.current_question.reason}</p>
+                ) : null}
                 <h3>{session.current_question.prompt}</h3>
                 {session.current_question.response_type === "code_text" ? (
                   <p className="code-warning">
@@ -353,9 +442,7 @@ export function DiagnosticInterview() {
                 <span className="step-mark">✓</span>
                 <h3>记录已锁定</h3>
                 <p>
-                  结束原因：{session.end_reason === "inactivity_timeout"
-                    ? "连续无操作超时"
-                    : "由你主动结束"}
+                  结束原因：{endReasonLabel(session.end_reason)}
                   。草稿预览不会生成正式计划。
                 </p>
                 <a className="primary-button" href="/learning">

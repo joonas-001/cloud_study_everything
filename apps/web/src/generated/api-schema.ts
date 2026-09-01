@@ -182,20 +182,52 @@ export interface DiagnosticAnswerResponse {
   revision: number;
 }
 
+export interface DiagnosticCapabilityStateResponse {
+  capability_id: string;
+  inconclusive_signal_count: number;
+  negative_signal_count: number;
+  positive_signal_count: number;
+  reason_codes: Array<string>;
+  status: "ready" | "remediation_required" | "inconclusive";
+}
+
+export interface DiagnosticDecisionResponse {
+  engine_version: string;
+  estimated_minutes: number;
+  explanation: string;
+  question_count: number;
+  selected_question_id: string | null;
+  selection_reason_code: string;
+  state_sha256: string;
+  stop_reason: string | null;
+  strategy: "adaptive" | "managed_fixed_sequence" | "stopped";
+}
+
+export interface DiagnosticLimitsResponse {
+  evidence_ceiling: string;
+  minutes_max: number;
+  question_max: number;
+}
+
 export interface DiagnosticQuestionResponse {
   id: string;
   options: Array<Record<string, unknown>>;
   prompt: string;
   reason: string;
   response_type: "free_text" | "code_text" | "single_choice";
+  selection_explanation?: string | null;
+  selection_reason_code?: string | null;
 }
 
 export interface DiagnosticSessionResponse {
   answers: Array<DiagnosticAnswerResponse>;
   can_generate_plan: boolean;
+  capability_states: Array<DiagnosticCapabilityStateResponse>;
   created_at: string;
   credential_reference: string | null;
   current_question: DiagnosticQuestionResponse | null;
+  decision: DiagnosticDecisionResponse | null;
+  diagnostic_mode: "fixed_sequence" | "deterministic_adaptive";
   end_reason: string | null;
   ended_at: string | null;
   external_ai_consent: boolean;
@@ -203,6 +235,7 @@ export interface DiagnosticSessionResponse {
   id: string;
   is_preview: boolean;
   last_activity_at: string;
+  limits: DiagnosticLimitsResponse | null;
   model_id: string;
   provider_id: string;
   ready_to_end: boolean;

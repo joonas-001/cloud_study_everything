@@ -16,6 +16,8 @@ class ProviderCapabilities:
 class AnswerSnapshot:
     question_id: str
     response_kind: str
+    content: str | None = None
+    revision: int = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +28,32 @@ class DiagnosticQuestion:
     response_type: str
     options: tuple[tuple[str, str], ...]
     transitions: dict[str, str | None]
+    question_version: str | None = None
+    capability_ids: tuple[str, ...] = ()
+    prerequisite_capability_ids: tuple[str, ...] = ()
+    difficulty: str | None = None
+    signal_kind: str | None = None
+    deterministic_answer_values: frozenset[str] = frozenset()
+    critical_misconception_values: frozenset[str] = frozenset()
+    selection_reason_code: str | None = None
+    allows_early_stop: bool = False
+    estimated_minutes: int = 1
+
+
+@dataclass(frozen=True, slots=True)
+class DiagnosticCapability:
+    capability_id: str
+    prerequisite_capability_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class AdaptiveDiagnosticPolicy:
+    policy_id: str
+    version: str
+    session_question_max: int
+    session_minutes_max: int
+    fallback: str
+    evidence_ceiling: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +63,9 @@ class DiagnosticDefinition:
     skill_version: str
     start_question_id: str
     questions: dict[str, DiagnosticQuestion]
+    schema_version: str = "1.0.0"
+    policy: AdaptiveDiagnosticPolicy | None = None
+    capabilities: dict[str, DiagnosticCapability] | None = None
 
 
 class DiagnosticProvider(Protocol):

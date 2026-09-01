@@ -88,6 +88,8 @@ export default defineConfig({
           command: "pnpm --filter @cloud-study/web dev --hostname 127.0.0.1",
           cwd: repositoryRoot,
           env: {
+            CLOUD_STUDY_API_INTERNAL_URL: "http://127.0.0.1:8000",
+            NEXT_PUBLIC_API_BASE_URL: "/api",
             NEXT_TELEMETRY_DISABLED: "1",
           },
           port: 3000,

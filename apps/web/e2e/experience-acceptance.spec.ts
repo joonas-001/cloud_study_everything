@@ -17,7 +17,10 @@ const SURFACES = [
 const VISUAL_SURFACES = new Set(["/", "/evidence", "/settings"]);
 
 function apiBaseUrl(): string {
-  return process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000";
+  return (
+    process.env.PLAYWRIGHT_BROWSER_API_BASE_URL ??
+    "http://127.0.0.1:3000/api"
+  );
 }
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
