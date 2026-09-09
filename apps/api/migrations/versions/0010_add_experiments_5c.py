@@ -167,7 +167,7 @@ def upgrade() -> None:
             name="ck_experiment_actions_result",
         ),
         sa.CheckConstraint(
-            "user_confirmed_external = 1",
+            "user_confirmed_external = true",
             name="ck_experiment_actions_user_confirmed",
         ),
         sa.ForeignKeyConstraint(

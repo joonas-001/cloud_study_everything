@@ -34,6 +34,7 @@ from cloud_study_api.models import (
     MarketResearchRun,
     MarketResearchSynthesisAttempt,
     UserGoalSelection,
+    UserSettings,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -202,6 +203,10 @@ def _service(
         assert settings is not None
         settings.external_ai_enabled = external_ai_enabled
         settings.updated_at = now()
+        user_settings = database.scalar(select(UserSettings))
+        assert user_settings is not None
+        user_settings.external_ai_enabled = external_ai_enabled
+        user_settings.updated_at = now()
         database.add(
             UserGoalSelection(
                 id="market-research-goal",

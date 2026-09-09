@@ -1,6 +1,8 @@
 import type {
   AiProviderProfileResponse,
   AiProviderResponse,
+  AuthenticationActionResponse,
+  AuthenticationSessionResponse,
   CapabilityProfileResponse,
   CapabilityScopeResponse,
   BranchGateEvaluationResponse,
@@ -12,6 +14,7 @@ import type {
   CreateLearningRunRequest,
   CreateLearningIndependentReviewRequest,
   CreatePlanningProposalRequest,
+  CreatePrivacyExportRequest,
   CreateSourceCheckRequest,
   DiagnosticSessionResponse,
   DeploymentStatusResponse,
@@ -32,6 +35,13 @@ import type {
   PathComparisonDecisionResponse,
   PathComparisonResponse,
   PrivacySettingsResponse,
+  PrivacyAccessReportResponse,
+  PrivacyDeletionJobResponse,
+  PrivacyExportResponse,
+  PrivacyOverviewResponse,
+  PrivacyCorrectionRequest,
+  AcceptPrivacyPoliciesRequest,
+  UpdatePrivacyChoicesRequest,
   ReadinessEvaluationResponse,
   ReadinessHistoryResponse,
   ResolveSourceChangeRequest,
@@ -102,7 +112,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    credentials: "same-origin",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...init?.headers,
@@ -127,6 +137,18 @@ export function getDeploymentStatus(): Promise<DeploymentStatusResponse> {
   return request("/deployment/status");
 }
 
+export function getAuthenticationSession(): Promise<AuthenticationSessionResponse> {
+  return request("/auth/session");
+}
+
+export function logoutAllAuthenticationSessions(): Promise<AuthenticationActionResponse> {
+  return request("/auth/logout-all", { method: "POST" });
+}
+
+export function cancelAccountDeletion(): Promise<AuthenticationActionResponse> {
+  return request("/auth/account/deletion-cancel", { method: "POST" });
+}
+
 export function updatePrivacySettings(
   payload: UpdatePrivacySettingsRequest,
 ): Promise<PrivacySettingsResponse> {
@@ -134,6 +156,58 @@ export function updatePrivacySettings(
     method: "PUT",
     body: JSON.stringify(payload),
   });
+}
+
+export function getPrivacyOverview(): Promise<PrivacyOverviewResponse> {
+  return request("/privacy");
+}
+
+export function acceptPrivacyPolicies(
+  payload: AcceptPrivacyPoliciesRequest,
+): Promise<PrivacyOverviewResponse> {
+  return request("/privacy/policy-acceptances", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updatePrivacyChoices(
+  payload: UpdatePrivacyChoicesRequest,
+): Promise<PrivacyOverviewResponse> {
+  return request("/privacy/choices", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getPrivacyAccessReport(): Promise<PrivacyAccessReportResponse> {
+  return request("/privacy/access");
+}
+
+export function correctPrivacyData(
+  payload: PrivacyCorrectionRequest,
+): Promise<PrivacyOverviewResponse> {
+  return request("/privacy/corrections", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createPrivacyExport(
+  payload: CreatePrivacyExportRequest,
+): Promise<PrivacyExportResponse> {
+  return request("/privacy/exports", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createPrivacyDeletionJob(): Promise<PrivacyDeletionJobResponse> {
+  return request("/privacy/deletion-jobs", { method: "POST" });
+}
+
+export function cancelPrivacyDeletionJob(): Promise<PrivacyDeletionJobResponse> {
+  return request("/privacy/deletion-jobs/current/cancel", { method: "POST" });
 }
 
 export function previewIssueReport(
@@ -449,7 +523,7 @@ export async function exportCapabilityProfile(
   const query = new URLSearchParams({ format });
   const response = await fetch(
     `${API_BASE_URL}/learning-runs/${encodeURIComponent(runId)}/capability-profile/export?${query.toString()}`,
-    { credentials: "same-origin" },
+    { credentials: "include" },
   );
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
@@ -688,7 +762,7 @@ export async function exportExperiment(
     `${API_BASE_URL}/experiments/${encodeURIComponent(experimentId)}/exports`,
     {
       method: "POST",
-      credentials: "same-origin",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     },

@@ -17,20 +17,20 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("activity_evaluations", recreate="always") as batch:
+    with op.batch_alter_table("activity_evaluations", recreate="auto") as batch:
         batch.drop_constraint("ck_activity_evaluations_method", type_="check")
         batch.create_check_constraint(
             "ck_activity_evaluations_method",
             "method IN "
             "('deterministic', 'self_review', 'review_pending', 'not_executable', 'runner')",
         )
-    with op.batch_alter_table("mastery_evidence", recreate="always") as batch:
+    with op.batch_alter_table("mastery_evidence", recreate="auto") as batch:
         batch.drop_constraint("ck_mastery_evidence_strength", type_="check")
         batch.create_check_constraint(
             "ck_mastery_evidence_strength",
             "strength IN ('limited', 'supported', 'retained_limited', 'verified', 'retained')",
         )
-    with op.batch_alter_table("mastery_snapshots", recreate="always") as batch:
+    with op.batch_alter_table("mastery_snapshots", recreate="auto") as batch:
         batch.drop_constraint("ck_mastery_snapshots_level", type_="check")
         batch.create_check_constraint(
             "ck_mastery_snapshots_level",
@@ -138,19 +138,19 @@ def downgrade() -> None:
         WHERE evidence_level IN ('verified', 'retained')
         """
     )
-    with op.batch_alter_table("mastery_snapshots", recreate="always") as batch:
+    with op.batch_alter_table("mastery_snapshots", recreate="auto") as batch:
         batch.drop_constraint("ck_mastery_snapshots_level", type_="check")
         batch.create_check_constraint(
             "ck_mastery_snapshots_level",
             "evidence_level IN ('none', 'limited', 'supported')",
         )
-    with op.batch_alter_table("mastery_evidence", recreate="always") as batch:
+    with op.batch_alter_table("mastery_evidence", recreate="auto") as batch:
         batch.drop_constraint("ck_mastery_evidence_strength", type_="check")
         batch.create_check_constraint(
             "ck_mastery_evidence_strength",
             "strength IN ('limited', 'supported', 'retained_limited')",
         )
-    with op.batch_alter_table("activity_evaluations", recreate="always") as batch:
+    with op.batch_alter_table("activity_evaluations", recreate="auto") as batch:
         batch.drop_constraint("ck_activity_evaluations_method", type_="check")
         batch.create_check_constraint(
             "ck_activity_evaluations_method",

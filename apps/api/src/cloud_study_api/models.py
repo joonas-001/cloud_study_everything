@@ -25,6 +25,308 @@ class Base(DeclarativeBase):
     pass
 
 
+class UserOwnedMixin:
+    """Marker and required owner column for every private business object."""
+
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+
+
+class InternalUser(Base):
+    __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('active', 'suspended', 'deletion_pending', 'deleted')",
+            name="ck_users_status",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    deletion_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ExternalIdentity(Base):
+    __tablename__ = "external_identities"
+    __table_args__ = (UniqueConstraint("issuer", "subject", name="uq_external_identity_subject"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    issuer: Mapped[str] = mapped_column(String(255), nullable=False)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class UserRoleAssignment(Base):
+    __tablename__ = "user_role_assignments"
+    __table_args__ = (
+        CheckConstraint(
+            "role IN ('user', 'owner_operator', 'support_restricted')",
+            name="ck_user_role_assignments_role",
+        ),
+    )
+
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    role: Mapped[str] = mapped_column(String(32), nullable=False)
+    assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AccountStateEvent(Base):
+    __tablename__ = "account_state_events"
+    __table_args__ = (
+        CheckConstraint(
+            "previous_status IS NULL OR previous_status IN "
+            "('active', 'suspended', 'deletion_pending', 'deleted')",
+            name="ck_account_state_events_previous_status",
+        ),
+        CheckConstraint(
+            "new_status IN ('active', 'suspended', 'deletion_pending', 'deleted')",
+            name="ck_account_state_events_new_status",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    actor_user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), index=True
+    )
+    previous_status: Mapped[str | None] = mapped_column(String(32))
+    new_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(100), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AccountInvitation(Base):
+    __tablename__ = "account_invitations"
+    __table_args__ = (
+        CheckConstraint(
+            "role IN ('user', 'support_restricted')",
+            name="ck_account_invitations_role",
+        ),
+        CheckConstraint(
+            "expires_at > created_at",
+            name="ck_account_invitations_positive_lifetime",
+        ),
+        CheckConstraint(
+            "(accepted_at IS NULL AND accepted_by_user_id IS NULL) OR "
+            "(accepted_at IS NOT NULL AND accepted_by_user_id IS NOT NULL)",
+            name="ck_account_invitations_acceptance_pair",
+        ),
+        CheckConstraint(
+            "accepted_at IS NULL OR revoked_at IS NULL",
+            name="ck_account_invitations_single_terminal_state",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    token_sha256: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_by_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    accepted_by_user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), index=True
+    )
+    role: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class OidcLoginTransaction(Base):
+    __tablename__ = "oidc_login_transactions"
+    __table_args__ = (
+        CheckConstraint(
+            "expires_at > created_at",
+            name="ck_oidc_login_transactions_positive_lifetime",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    state_sha256: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    nonce_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    encrypted_pkce_verifier: Mapped[str] = mapped_column(Text, nullable=False)
+    invitation_id: Mapped[str | None] = mapped_column(
+        ForeignKey("account_invitations.id", ondelete="RESTRICT"), index=True
+    )
+    prior_session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("application_sessions.id", ondelete="SET NULL"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ApplicationSession(Base):
+    __tablename__ = "application_sessions"
+    __table_args__ = (
+        CheckConstraint(
+            "idle_expires_at <= absolute_expires_at",
+            name="ck_application_sessions_idle_within_absolute",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_sha256: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    idle_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    absolute_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    authenticated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    mfa_authenticated: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revocation_reason: Mapped[str | None] = mapped_column(String(100))
+
+
+class AuthSecurityEvent(Base):
+    __tablename__ = "auth_security_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(100), nullable=False)
+    correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AuthRateLimitBucket(Base):
+    __tablename__ = "auth_rate_limit_buckets"
+    __table_args__ = (
+        UniqueConstraint("action", "key_sha256", name="uq_auth_rate_limit_bucket"),
+        CheckConstraint(
+            "attempt_count >= 1",
+            name="ck_auth_rate_limit_buckets_positive_attempts",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    action: Mapped[str] = mapped_column(String(40), nullable=False)
+    key_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    window_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    attempt_count: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class PrivacyPolicyAcceptance(UserOwnedMixin, Base):
+    __tablename__ = "privacy_policy_acceptances"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "document_type",
+            "document_version",
+            "content_sha256",
+            name="uq_privacy_policy_acceptance_version",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    document_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PrivacyChoice(UserOwnedMixin, Base):
+    __tablename__ = "privacy_choices"
+    __table_args__ = (
+        UniqueConstraint("user_id", "purpose", name="uq_privacy_choice_purpose"),
+        CheckConstraint(
+            "purpose IN ('external_ai', 'external_sources', 'email_notifications', "
+            "'support_diagnostics')",
+            name="ck_privacy_choices_purpose",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    purpose: Mapped[str] = mapped_column(String(40), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    notice_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PrivacyRequest(UserOwnedMixin, Base):
+    __tablename__ = "privacy_requests"
+    __table_args__ = (
+        CheckConstraint(
+            "request_type IN ('access', 'correction', 'export')",
+            name="ck_privacy_requests_type",
+        ),
+        CheckConstraint(
+            "status IN ('completed', 'failed')",
+            name="ck_privacy_requests_status",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    request_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    scope_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PrivacyDeletionJob(Base):
+    __tablename__ = "privacy_deletion_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('waiting', 'cancelled', 'completed', 'failed')",
+            name="ck_privacy_deletion_jobs_status",
+        ),
+        Index(
+            "uq_privacy_deletion_job_waiting_user",
+            "user_id",
+            unique=True,
+            sqlite_where=text("status = 'waiting'"),
+            postgresql_where=text("status = 'waiting'"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    # Deliberately opaque and without a foreign key so the minimal deletion ledger
+    # remains enforceable even after identity bindings and private rows are removed.
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    execute_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    backup_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failure_code: Mapped[str | None] = mapped_column(String(100))
+
+
+class PrivacyDeletionTombstone(Base):
+    __tablename__ = "privacy_deletion_tombstones"
+    __table_args__ = (
+        UniqueConstraint("deletion_job_id", name="uq_privacy_deletion_tombstone_job"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    deletion_job_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    backup_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    retain_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_reapplied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class AppSettings(Base):
     __tablename__ = "app_settings"
     __table_args__ = (
@@ -54,7 +356,25 @@ class AppSettings(Base):
     )
 
 
-class DiagnosticSession(Base):
+class UserSettings(UserOwnedMixin, Base):
+    __tablename__ = "user_settings"
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_user_settings_user"),
+        CheckConstraint(
+            "inactivity_timeout_minutes >= 1",
+            name="ck_user_settings_positive_timeout",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    external_ai_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    inactivity_timeout_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=120)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now
+    )
+
+
+class DiagnosticSession(UserOwnedMixin, Base):
     __tablename__ = "diagnostic_sessions"
     __table_args__ = (
         CheckConstraint(
@@ -63,10 +383,12 @@ class DiagnosticSession(Base):
         ),
         Index(
             "uq_active_diagnostic_skill_version",
+            "user_id",
             "skill_id",
             "skill_version",
             unique=True,
             sqlite_where=text("status = 'active'"),
+            postgresql_where=text("status = 'active'"),
         ),
     )
 
@@ -105,7 +427,7 @@ class DiagnosticSession(Base):
     end_reason: Mapped[str | None] = mapped_column(String(100))
 
 
-class DiagnosticAnswer(Base):
+class DiagnosticAnswer(UserOwnedMixin, Base):
     __tablename__ = "diagnostic_answers"
     __table_args__ = (
         CheckConstraint(
@@ -138,7 +460,7 @@ class DiagnosticAnswer(Base):
     )
 
 
-class DiagnosticEvent(Base):
+class DiagnosticEvent(UserOwnedMixin, Base):
     __tablename__ = "diagnostic_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -170,6 +492,7 @@ class SourceCheckRun(Base):
             "local_date",
             unique=True,
             sqlite_where=text("trigger = 'automatic'"),
+            postgresql_where=text("trigger = 'automatic'"),
         ),
         CheckConstraint(
             "trigger IN ('automatic', 'manual')",
@@ -241,7 +564,7 @@ class SourceChangeCandidate(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class PlanningProposal(Base):
+class PlanningProposal(UserOwnedMixin, Base):
     __tablename__ = "planning_proposals"
     __table_args__ = (
         CheckConstraint(
@@ -270,7 +593,7 @@ class PlanningProposal(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class PlanningUnit(Base):
+class PlanningUnit(UserOwnedMixin, Base):
     __tablename__ = "planning_units"
     __table_args__ = (
         UniqueConstraint("proposal_id", "sequence", name="uq_planning_unit_sequence"),
@@ -291,7 +614,7 @@ class PlanningUnit(Base):
     completion_criteria_json: Mapped[str] = mapped_column(Text, nullable=False)
 
 
-class PlanningUnitSource(Base):
+class PlanningUnitSource(UserOwnedMixin, Base):
     __tablename__ = "planning_unit_sources"
     __table_args__ = (
         UniqueConstraint(
@@ -310,7 +633,7 @@ class PlanningUnitSource(Base):
     source_id: Mapped[str] = mapped_column(String(100), nullable=False)
 
 
-class PlanningChangeEvent(Base):
+class PlanningChangeEvent(UserOwnedMixin, Base):
     __tablename__ = "planning_change_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -324,10 +647,10 @@ class PlanningChangeEvent(Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class NotificationPreference(Base):
+class NotificationPreference(UserOwnedMixin, Base):
     __tablename__ = "notification_preferences"
     __table_args__ = (
-        CheckConstraint("id = 1", name="ck_notification_preferences_singleton"),
+        UniqueConstraint("user_id", name="uq_notification_preferences_user"),
         CheckConstraint(
             "smtp_security IN ('starttls', 'ssl')",
             name="ck_notification_preferences_smtp_security",
@@ -338,7 +661,7 @@ class NotificationPreference(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     email_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     email_action_required: Mapped[bool] = mapped_column(
         Boolean,
@@ -361,7 +684,7 @@ class NotificationPreference(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class Notification(Base):
+class Notification(UserOwnedMixin, Base):
     __tablename__ = "notifications"
     __table_args__ = (
         CheckConstraint(
@@ -383,7 +706,7 @@ class Notification(Base):
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class EmailOutbox(Base):
+class EmailOutbox(UserOwnedMixin, Base):
     __tablename__ = "email_outbox"
     __table_args__ = (
         CheckConstraint(
@@ -406,7 +729,7 @@ class EmailOutbox(Base):
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class AiProviderProfile(Base):
+class AiProviderProfile(UserOwnedMixin, Base):
     __tablename__ = "ai_provider_profiles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -439,7 +762,7 @@ class SkillVersionContentLock(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class LearningRun(Base):
+class LearningRun(UserOwnedMixin, Base):
     __tablename__ = "learning_runs"
     __table_args__ = (
         CheckConstraint(
@@ -448,10 +771,12 @@ class LearningRun(Base):
         ),
         Index(
             "uq_nonterminal_learning_run_skill_version",
+            "user_id",
             "skill_id",
             "skill_version",
             unique=True,
             sqlite_where=text("status IN ('active', 'paused', 'retention_pending')"),
+            postgresql_where=text("status IN ('active', 'paused', 'retention_pending')"),
         ),
     )
 
@@ -484,7 +809,7 @@ class LearningRun(Base):
     end_reason: Mapped[str | None] = mapped_column(String(100))
 
 
-class LearningRunLock(Base):
+class LearningRunLock(UserOwnedMixin, Base):
     __tablename__ = "learning_run_locks"
 
     run_id: Mapped[str] = mapped_column(
@@ -496,7 +821,7 @@ class LearningRunLock(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class LearningUnitInstance(Base):
+class LearningUnitInstance(UserOwnedMixin, Base):
     __tablename__ = "learning_unit_instances"
     __table_args__ = (
         CheckConstraint(
@@ -521,7 +846,7 @@ class LearningUnitInstance(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class LearningActivity(Base):
+class LearningActivity(UserOwnedMixin, Base):
     __tablename__ = "learning_activities"
     __table_args__ = (
         CheckConstraint(
@@ -561,7 +886,7 @@ class LearningActivity(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class ActivityAttempt(Base):
+class ActivityAttempt(UserOwnedMixin, Base):
     __tablename__ = "activity_attempts"
     __table_args__ = (
         UniqueConstraint("activity_id", "revision", name="uq_activity_attempt_revision"),
@@ -581,7 +906,7 @@ class ActivityAttempt(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ActivityEvaluation(Base):
+class ActivityEvaluation(UserOwnedMixin, Base):
     __tablename__ = "activity_evaluations"
     __table_args__ = (
         CheckConstraint(
@@ -609,7 +934,7 @@ class ActivityEvaluation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class MasteryEvidence(Base):
+class MasteryEvidence(UserOwnedMixin, Base):
     __tablename__ = "mastery_evidence"
     __table_args__ = (
         CheckConstraint(
@@ -657,7 +982,7 @@ class MasteryEvidence(Base):
     )
 
 
-class MasterySnapshot(Base):
+class MasterySnapshot(UserOwnedMixin, Base):
     __tablename__ = "mastery_snapshots"
     __table_args__ = (
         CheckConstraint(
@@ -685,7 +1010,7 @@ class MasterySnapshot(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ReviewTask(Base):
+class ReviewTask(UserOwnedMixin, Base):
     __tablename__ = "review_tasks"
     __table_args__ = (
         CheckConstraint(
@@ -720,7 +1045,7 @@ class ReviewTask(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class LearningEvent(Base):
+class LearningEvent(UserOwnedMixin, Base):
     __tablename__ = "learning_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -734,7 +1059,7 @@ class LearningEvent(Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class LearningIndependentReview(Base):
+class LearningIndependentReview(UserOwnedMixin, Base):
     __tablename__ = "learning_independent_reviews"
     __table_args__ = (
         CheckConstraint(
@@ -768,7 +1093,7 @@ class LearningIndependentReview(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class RunnerInvocation(Base):
+class RunnerInvocation(UserOwnedMixin, Base):
     __tablename__ = "runner_invocations"
     __table_args__ = (
         CheckConstraint(
@@ -781,6 +1106,7 @@ class RunnerInvocation(Base):
             "singleton_key",
             unique=True,
             sqlite_where=text("status IN ('queued', 'running')"),
+            postgresql_where=text("status IN ('queued', 'running')"),
         ),
     )
 
@@ -816,7 +1142,7 @@ class RunnerInvocation(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class UserGoalSelection(Base):
+class UserGoalSelection(UserOwnedMixin, Base):
     __tablename__ = "user_goal_selections"
     __table_args__ = (
         CheckConstraint(
@@ -826,11 +1152,13 @@ class UserGoalSelection(Base):
         ),
         Index(
             "uq_active_user_goal_scope",
+            "user_id",
             "skill_id",
             "skill_version",
             "capability_scope_id",
             unique=True,
             sqlite_where=text("superseded_at IS NULL"),
+            postgresql_where=text("superseded_at IS NULL"),
         ),
     )
 
@@ -865,7 +1193,7 @@ class ReadinessPolicySnapshot(Base):
 class MarketEvidenceSnapshot(Base):
     __tablename__ = "market_evidence_snapshots"
     __table_args__ = (
-        CheckConstraint("synthetic = 1", name="ck_market_evidence_5a_synthetic"),
+        CheckConstraint("synthetic = true", name="ck_market_evidence_5a_synthetic"),
         CheckConstraint(
             "freshness_status IN ('current', 'stale', 'conflicted', 'indeterminate')",
             name="ck_market_evidence_freshness",
@@ -888,7 +1216,7 @@ class MarketEvidenceSnapshot(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ReadinessEvaluation(Base):
+class ReadinessEvaluation(UserOwnedMixin, Base):
     __tablename__ = "readiness_evaluations"
     __table_args__ = (
         CheckConstraint(
@@ -927,10 +1255,10 @@ class ReadinessEvaluation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class PathComparison(Base):
+class PathComparison(UserOwnedMixin, Base):
     __tablename__ = "path_comparisons"
     __table_args__ = (
-        CheckConstraint("synthetic = 1", name="ck_path_comparisons_5a_synthetic"),
+        CheckConstraint("synthetic = true", name="ck_path_comparisons_5a_synthetic"),
         UniqueConstraint("evaluation_id", name="uq_path_comparison_evaluation"),
     )
 
@@ -950,7 +1278,7 @@ class PathComparison(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class PathComparisonDecision(Base):
+class PathComparisonDecision(UserOwnedMixin, Base):
     __tablename__ = "path_comparison_decisions"
     __table_args__ = (
         CheckConstraint(
@@ -976,7 +1304,7 @@ class PathComparisonDecision(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ReadinessEvent(Base):
+class ReadinessEvent(UserOwnedMixin, Base):
     __tablename__ = "readiness_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -997,7 +1325,7 @@ class ReadinessEvent(Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class MarketResearchRun(Base):
+class MarketResearchRun(UserOwnedMixin, Base):
     __tablename__ = "market_research_runs"
     __table_args__ = (
         CheckConstraint(
@@ -1015,10 +1343,15 @@ class MarketResearchRun(Base):
         ),
         Index(
             "uq_active_market_research_run",
+            "user_id",
             "catalog_id",
             "catalog_version",
             unique=True,
             sqlite_where=text(
+                "status IN ('source_pending', 'synthesis_pending', "
+                "'synthesis_in_progress', 'review_pending')"
+            ),
+            postgresql_where=text(
                 "status IN ('source_pending', 'synthesis_pending', "
                 "'synthesis_in_progress', 'review_pending')"
             ),
@@ -1080,7 +1413,7 @@ class MarketResearchRun(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class MarketResearchSynthesisAttempt(Base):
+class MarketResearchSynthesisAttempt(UserOwnedMixin, Base):
     __tablename__ = "market_research_synthesis_attempts"
     __table_args__ = (
         CheckConstraint(
@@ -1120,7 +1453,7 @@ class MarketResearchSynthesisAttempt(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class MarketResearchEvent(Base):
+class MarketResearchEvent(UserOwnedMixin, Base):
     __tablename__ = "market_research_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -1152,7 +1485,7 @@ class ExperimentPolicySnapshot(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class MonetizationExperiment(Base):
+class MonetizationExperiment(UserOwnedMixin, Base):
     __tablename__ = "monetization_experiments"
     __table_args__ = (
         CheckConstraint(
@@ -1218,7 +1551,7 @@ class MonetizationExperiment(Base):
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class ExperimentIndependentReview(Base):
+class ExperimentIndependentReview(UserOwnedMixin, Base):
     __tablename__ = "experiment_independent_reviews"
     __table_args__ = (
         CheckConstraint(
@@ -1252,7 +1585,7 @@ class ExperimentIndependentReview(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ExperimentActionRecord(Base):
+class ExperimentActionRecord(UserOwnedMixin, Base):
     __tablename__ = "experiment_action_records"
     __table_args__ = (
         CheckConstraint(
@@ -1266,7 +1599,7 @@ class ExperimentActionRecord(Base):
             name="ck_experiment_actions_result",
         ),
         CheckConstraint(
-            "user_confirmed_external = 1",
+            "user_confirmed_external = true",
             name="ck_experiment_actions_user_confirmed",
         ),
     )
@@ -1285,7 +1618,7 @@ class ExperimentActionRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ExperimentOutcome(Base):
+class ExperimentOutcome(UserOwnedMixin, Base):
     __tablename__ = "experiment_outcomes"
     __table_args__ = (
         CheckConstraint(
@@ -1306,7 +1639,7 @@ class ExperimentOutcome(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ExperimentIncomeRecord(Base):
+class ExperimentIncomeRecord(UserOwnedMixin, Base):
     __tablename__ = "experiment_income_records"
     __table_args__ = (
         CheckConstraint(
@@ -1328,7 +1661,7 @@ class ExperimentIncomeRecord(Base):
     redacted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class ExperimentIncomeRevision(Base):
+class ExperimentIncomeRevision(UserOwnedMixin, Base):
     __tablename__ = "experiment_income_revisions"
     __table_args__ = (
         UniqueConstraint(
@@ -1373,7 +1706,7 @@ class ExperimentIncomeRevision(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class ExperimentFeedbackSuggestion(Base):
+class ExperimentFeedbackSuggestion(UserOwnedMixin, Base):
     __tablename__ = "experiment_feedback_suggestions"
     __table_args__ = (
         CheckConstraint(
@@ -1413,7 +1746,7 @@ class ExperimentFeedbackSuggestion(Base):
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class ExperimentEvent(Base):
+class ExperimentEvent(UserOwnedMixin, Base):
     __tablename__ = "experiment_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

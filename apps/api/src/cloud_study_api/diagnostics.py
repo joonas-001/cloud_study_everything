@@ -24,8 +24,10 @@ from cloud_study_api.models import (
     DiagnosticAnswer,
     DiagnosticEvent,
     DiagnosticSession,
+    UserSettings,
     utc_now,
 )
+from cloud_study_api.principals import current_principal
 from cloud_study_api.providers import (
     AdaptiveDiagnosticPolicy,
     AnswerSnapshot,
@@ -82,6 +84,10 @@ class DiagnosticService:
             previous = settings.external_ai_enabled
             settings.external_ai_enabled = external_ai_enabled
             settings.updated_at = self._now()
+            if current_principal().role == "owner_operator":
+                global_settings = self._global_settings(database)
+                global_settings.external_ai_enabled = external_ai_enabled
+                global_settings.updated_at = settings.updated_at
             database.add(
                 DiagnosticEvent(
                     session_id=None,
@@ -121,7 +127,7 @@ class DiagnosticService:
                 provider=provider,
                 credential_reference=credential_reference,
                 external_ai_consent=external_ai_consent,
-                external_ai_enabled=settings.external_ai_enabled,
+                external_ai_enabled=self._external_ai_enabled(database, settings),
             )
             try:
                 ensure_package_content_lock(database, package, now)
@@ -362,13 +368,22 @@ class DiagnosticService:
             database.commit()
             return self._session_payload(database, session, definition, provider, settings)
 
-    def _settings(self, database: Session) -> AppSettings:
-        settings = database.get(AppSettings, 1)
+    def _settings(self, database: Session) -> UserSettings:
+        settings = database.scalar(select(UserSettings))
         if settings is None:
-            raise RuntimeError("app settings row is missing")
+            raise RuntimeError("user settings row is missing")
         return settings
 
-    def _privacy_payload(self, settings: AppSettings) -> dict[str, Any]:
+    def _global_settings(self, database: Session) -> AppSettings:
+        settings = database.get(AppSettings, 1)
+        if settings is None:
+            raise RuntimeError("global app settings row is missing")
+        return settings
+
+    def _external_ai_enabled(self, database: Session, settings: UserSettings) -> bool:
+        return settings.external_ai_enabled and self._global_settings(database).external_ai_enabled
+
+    def _privacy_payload(self, settings: UserSettings) -> dict[str, Any]:
         return {
             "external_ai_enabled": settings.external_ai_enabled,
             "inactivity_timeout_minutes": settings.inactivity_timeout_minutes,
@@ -584,7 +599,7 @@ class DiagnosticService:
         self,
         database: Session,
         session: DiagnosticSession,
-        settings: AppSettings,
+        settings: UserSettings,
         now: datetime,
     ) -> bool:
         if session.status != "active":
@@ -610,7 +625,7 @@ class DiagnosticService:
     def _writable_context(
         self, database: Session, session_id: str
     ) -> tuple[
-        AppSettings,
+        UserSettings,
         DiagnosticSession,
         DiagnosticDefinition,
         DiagnosticProvider,
@@ -636,7 +651,7 @@ class DiagnosticService:
         if session.status != "active":
             raise DiagnosticError(409, "session_not_active", "The session is read-only.")
         if self._provider(session.provider_id, session.model_id).capabilities.is_external:
-            if not settings.external_ai_enabled:
+            if not self._external_ai_enabled(database, settings):
                 raise DiagnosticError(
                     403,
                     "external_ai_disabled",
@@ -759,7 +774,7 @@ class DiagnosticService:
         session: DiagnosticSession,
         definition: DiagnosticDefinition,
         provider: DiagnosticProvider,
-        settings: AppSettings,
+        settings: UserSettings,
     ) -> dict[str, Any]:
         latest = self._latest_answers(database, session.id)
         snapshots = self._answer_snapshots(latest)

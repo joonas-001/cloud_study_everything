@@ -8,6 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from cloud_study_api.ai_configuration import AiConfigurationService
+from cloud_study_api.authentication import (
+    AuthenticationService,
+    DeterministicOidcAdapter,
+    ManagedOidcNotActivatedAdapter,
+)
 from cloud_study_api.capability_profiles import CapabilityProfileService
 from cloud_study_api.config import Settings
 from cloud_study_api.content_locking import validate_or_backfill_persisted_content_locks
@@ -21,10 +26,12 @@ from cloud_study_api.diagnostics import DiagnosticService
 from cloud_study_api.execution import LearningExecutionService
 from cloud_study_api.experiments import ExperimentService
 from cloud_study_api.governance import validate_repository
+from cloud_study_api.identity import IdentityService
 from cloud_study_api.issue_reporting import IssueReportService
 from cloud_study_api.learning import LearningService
 from cloud_study_api.market_research import MarketResearchService
 from cloud_study_api.notifications import NotificationService
+from cloud_study_api.privacy import PrivacyService
 from cloud_study_api.providers import ProviderRegistry
 from cloud_study_api.readiness import ReadinessService
 from cloud_study_api.routes import router
@@ -42,6 +49,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     packages = validate_repository(settings.repository_root)
     upgrade_database(settings.database_path, settings.repository_root)
     session_factory = create_session_factory(settings.database_path)
+    app.state.identity_service = IdentityService(session_factory)
+    oidc_adapter = (
+        DeterministicOidcAdapter(settings.authentication)
+        if settings.authentication.mode == "synthetic_oidc"
+        else ManagedOidcNotActivatedAdapter()
+    )
+    app.state.oidc_adapter = oidc_adapter
+    app.state.authentication_service = AuthenticationService(
+        session_factory=session_factory,
+        settings=settings.authentication,
+        adapter=oidc_adapter,
+    )
+    app.state.privacy_service = PrivacyService(
+        session_factory=session_factory,
+        repository_root=settings.repository_root,
+    )
     validate_or_backfill_persisted_content_locks(session_factory, packages)
     credential_store = create_credential_store()
     notification_service = NotificationService(
@@ -126,9 +149,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_origin_regex=r"http://(?:localhost|127\.0\.0\.1)(?::\d+)?$",
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PUT"],
-    allow_headers=["Content-Type"],
+    allow_headers=[
+        "Content-Type",
+        "X-Cloud-Study-Synthetic-Issuer",
+        "X-Cloud-Study-Synthetic-Subject",
+    ],
 )
 app.middleware("http")(enforce_deployment_security)
 app.include_router(router)
