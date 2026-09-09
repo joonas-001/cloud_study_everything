@@ -160,10 +160,10 @@ test("exposes honest loading, empty and error states", async ({ page }, testInfo
   await page.goto("/");
   await expect(page.getByRole("status").filter({ hasText: "正在聚合本地任务" })).toBeVisible();
   releaseRequests();
-  await page.unrouteAll({ behavior: "wait" });
   await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible({
     timeout: ASYNC_VIEW_TIMEOUT_MS,
   });
+  await page.unrouteAll({ behavior: "wait" });
 
   await page.route(`${api}/learning-run-latest?**`, (route) =>
     route.fulfill({

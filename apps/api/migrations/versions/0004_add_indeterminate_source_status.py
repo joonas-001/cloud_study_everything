@@ -23,7 +23,7 @@ _INDETERMINATE_STATUS_CHECK = (
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("source_check_results", recreate="always") as batch_op:
+    with op.batch_alter_table("source_check_results", recreate="auto") as batch_op:
         batch_op.drop_constraint(
             "ck_source_check_results_status",
             type_="check",
@@ -36,7 +36,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.execute("UPDATE source_check_results SET status = 'manual' WHERE status = 'indeterminate'")
-    with op.batch_alter_table("source_check_results", recreate="always") as batch_op:
+    with op.batch_alter_table("source_check_results", recreate="auto") as batch_op:
         batch_op.drop_constraint(
             "ck_source_check_results_status",
             type_="check",

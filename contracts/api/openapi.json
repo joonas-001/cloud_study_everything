@@ -290,6 +290,164 @@
         "title": "AiProviderResponse",
         "type": "object"
       },
+      "AuthenticationActionResponse": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "AuthenticationActionResponse",
+        "type": "object"
+      },
+      "AuthenticationSessionResponse": {
+        "properties": {
+          "absolute_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Absolute Expires At"
+          },
+          "account_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "suspended",
+                  "deletion_pending",
+                  "deleted"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Status"
+          },
+          "authenticated": {
+            "title": "Authenticated",
+            "type": "boolean"
+          },
+          "authenticated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authenticated At"
+          },
+          "idle_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idle Expires At"
+          },
+          "mfa_authenticated": {
+            "default": false,
+            "title": "Mfa Authenticated",
+            "type": "boolean"
+          },
+          "mode": {
+            "enum": [
+              "legacy_owner",
+              "synthetic_oidc",
+              "managed_oidc"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "user",
+                  "owner_operator",
+                  "support_restricted"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "mode",
+          "authenticated"
+        ],
+        "title": "AuthenticationSessionResponse",
+        "type": "object"
+      },
+      "AuthenticationStartResponse": {
+        "properties": {
+          "authorization_url": {
+            "title": "Authorization Url",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authorization_url",
+          "expires_at"
+        ],
+        "title": "AuthenticationStartResponse",
+        "type": "object"
+      },
+      "BeginAuthenticationRequest": {
+        "properties": {
+          "invitation_token": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invitation Token"
+          }
+        },
+        "title": "BeginAuthenticationRequest",
+        "type": "object"
+      },
       "BranchGateEvaluationResponse": {
         "properties": {
           "evaluated_at": {
@@ -1451,6 +1609,28 @@
           "confirm_manual_record"
         ],
         "title": "CreateIncomeRequest",
+        "type": "object"
+      },
+      "CreateInvitationRequest": {
+        "properties": {
+          "expires_in_minutes": {
+            "default": 1440,
+            "maximum": 10080.0,
+            "minimum": 5.0,
+            "title": "Expires In Minutes",
+            "type": "integer"
+          },
+          "role": {
+            "default": "user",
+            "enum": [
+              "user",
+              "support_restricted"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "title": "CreateInvitationRequest",
         "type": "object"
       },
       "CreateLearningIndependentReviewRequest": {
@@ -3617,6 +3797,39 @@
           "occurred_on"
         ],
         "title": "IncomeValuesRequest",
+        "type": "object"
+      },
+      "InvitationResponse": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "invitation_id": {
+            "title": "Invitation Id",
+            "type": "string"
+          },
+          "invitation_token": {
+            "title": "Invitation Token",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "support_restricted"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "invitation_id",
+          "invitation_token",
+          "role",
+          "expires_at"
+        ],
+        "title": "InvitationResponse",
         "type": "object"
       },
       "IssueReportFieldResponse": {
@@ -6531,6 +6744,23 @@
         "title": "SelfReviewAttemptResponse",
         "type": "object"
       },
+      "SetAccountAvailabilityRequest": {
+        "properties": {
+          "status": {
+            "enum": [
+              "active",
+              "suspended"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "SetAccountAvailabilityRequest",
+        "type": "object"
+      },
       "SourceAccessPolicyResponse": {
         "properties": {
           "blocked": {
@@ -7815,6 +8045,342 @@
         "summary": "List Ai Providers",
         "tags": [
           "ai-configuration"
+        ]
+      }
+    },
+    "/auth/account/deletion-cancel": {
+      "post": {
+        "operationId": "cancel_account_deletion_auth_account_deletion_cancel_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Cancel Account Deletion",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/account/deletion-request": {
+      "post": {
+        "operationId": "request_account_deletion_auth_account_deletion_request_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Request Account Deletion",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/callback": {
+      "get": {
+        "operationId": "complete_authentication_auth_callback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "title": "State",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Authentication",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/invitations": {
+      "post": {
+        "operationId": "create_authentication_invitation_auth_invitations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvitationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Authentication Invitation",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/invitations/{invitation_id}/revoke": {
+      "post": {
+        "operationId": "revoke_authentication_invitation_auth_invitations__invitation_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invitation_id",
+            "required": true,
+            "schema": {
+              "title": "Invitation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Authentication Invitation",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/login/start": {
+      "post": {
+        "operationId": "begin_authentication_auth_login_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginAuthenticationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationStartResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Begin Authentication",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout_authentication_auth_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout Authentication",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/logout-all": {
+      "post": {
+        "operationId": "logout_all_authentication_auth_logout_all_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout All Authentication",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/operator/accounts/{user_id}/availability": {
+      "post": {
+        "operationId": "set_authentication_account_availability_auth_operator_accounts__user_id__availability_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAccountAvailabilityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Authentication Account Availability",
+        "tags": [
+          "authentication-9c"
+        ]
+      }
+    },
+    "/auth/session": {
+      "get": {
+        "operationId": "get_authentication_session_auth_session_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Authentication Session",
+        "tags": [
+          "authentication-9c"
         ]
       }
     },

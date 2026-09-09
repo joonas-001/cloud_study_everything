@@ -8,6 +8,14 @@
 
 当前项目仅供仓库所有者本人使用，首个技能为**算法**。项目仍处于早期开发阶段，请参阅下方的[当前进度](#当前进度)，不要将路线图中的能力视为已经实现。
 
+长期方向是成为离线优先、用户控制数据、来源可追溯且可通过受管资源包扩展的本地学习平台；
+用户未来可以完全离线使用，也可以主动启用云端保存。云端保存默认关闭且不得成为核心学习的
+前提；可选托管服务和未来社区资源库与本地核心隔离。
+
+计划中的普通用户本地入口是一行命令完成预检、迁移、启动、健康检查并打开本地网页，不再要求
+分别手工启动 Next.js 和 FastAPI。该体验尚未实现，最终命令名和支持平台将在第十二里程碑确认。
+这里的“本地网页”是浏览器承载的本地应用，不等于第十一里程碑面向境内/海外发布的公网网站。
+
 ## 项目目标
 
 这个项目希望帮助用户：
@@ -57,6 +65,10 @@
 | 第六里程碑 6A–6D | 6D 已完成并合并 | 浏览器同源 API 修复精确提交 `c781fe1` 已部署，旧 `5b4af16` 保留为回滚点；真实库 47 表／54 行、策略 `1.1.0`、远程 Runner、身份、Tailnet HTTPS、备份、资源和自动回滚均已复验。项目所有者已完成真实手机确认、账单复核并取消剩余观察期；PR #19 已合并为 `main@d4f079c`。Headless 浏览器限制继续记录，真实 AI／来源／邮件、公开访问和扩容继续关闭 |
 | 第七里程碑 7A–7F | 已完成并合并 | PR #18 已合并为 `main@90e16e2`；合并后 push CI `32806434805` 共 22 项成功。Windows 实际高对比度和连续两小时阅读疲劳为非阻断后续人工任务，未执行前不得写成已通过或声称 WCAG 合规认证 |
 | 第八里程碑 8A–8G | 8G 技术验收完成，入口待决定 | `algorithm@0.3.0` 的 12 域、46 能力、34 单元、64 题和 22 个双语言 Runner 任务已完成第二评审、迁移回滚、真实 Runner 全量复验、隐私回归和完整门禁；后端 147 项、前端 44 项、生产构建及 E2E 26 项通过。远程来源实质复核仍未授权，默认入口保持 `0.2.2`，当前推荐继续关闭 `0.3.0` 并等待项目所有者最终决定 |
+| 第九里程碑 | 9C 合成认证候选已完成 | OIDC+PKCE、MFA、一次性邀请、会话轮换/撤销、账号停用/恢复和删除等待已通过合成反例、并发和 PostgreSQL 17.6 验证；最终完整门禁通过 167 项后端、45 项前端、生产构建和 26 项 E2E。真实 Clerk 未接入，数据位置、导出/退出和精确套餐仍是门禁；9D–9H 未授权，6D 与公开注册状态不变 |
+| 第十里程碑 | 等待项目所有者号令 | 已预留第二轮前端体验重设计；当前不得设计或实施。未来完成后必须重跑第九里程碑受影响的认证、隐私、支持和无障碍门禁 |
+| 第十一里程碑 | 资质与渠道计划已形成，实施未授权 | 分开规划本地网页产品的下载官网、云端账号/保存 API、可选公网托管 Web 服务，以及 GitHub→Gitee、Android 官网、Microsoft Store、Apple App Store；“海外”尚须变成明确国家/地区允许列表，未创建官网、账号、备案或镜像 |
+| 长期方向 | 规划中 | 第十二至第十五里程碑方向依次为本地优先版与可选云保存产品化、扩展安全基础、社区资源库治理和生态内测；本地一行命令启动、加密云备份及可能的双向同步必须分阶段确认，每项仍须单独授权 |
 
 当前 Web 页面提供算法诊断、规划、学习执行和目标准备度的本地受限流程。规划、确定性练习和 5A 准备度比较由本地规则处理；自由文本和代码文本只做结构校验，不能据此判断内容正确，也不代表算法技能包已经激活、用户已经掌握相关能力或已经具备真实交付资格。
 
@@ -80,6 +92,16 @@ GitHub 同类开源项目、能力差距、采用门禁和建议复核频率见
 [`docs/architecture/milestone-8f-validation.md`](docs/architecture/milestone-8f-validation.md)。
 8G 的第二评审、迁移回滚、真实 Runner 和完整门禁证据见
 [`docs/architecture/milestone-8g-validation.md`](docs/architecture/milestone-8g-validation.md)。
+第九里程碑的多用户准备、认证、隐私、支持和放行门禁计划见
+[`docs/architecture/milestone-9-multi-user-readiness.md`](docs/architecture/milestone-9-multi-user-readiness.md)。
+9A 决策、9B 合成隔离/迁移和 9C 合成认证证据分别见
+[`docs/architecture/milestone-9a-decision-package.md`](docs/architecture/milestone-9a-decision-package.md) 和
+[`docs/architecture/milestone-9b-validation.md`](docs/architecture/milestone-9b-validation.md)、
+[`docs/architecture/milestone-9c-validation.md`](docs/architecture/milestone-9c-validation.md)。
+长期产品愿景、三种产品面和第九至第十五里程碑路线见
+[`docs/architecture/product-vision-and-roadmap.md`](docs/architecture/product-vision-and-roadmap.md)。
+第十一里程碑的中国内地/海外资质、网页版、App、商店和代码镜像计划见
+[`docs/architecture/milestone-11-global-release-and-distribution.md`](docs/architecture/milestone-11-global-release-and-distribution.md)。
 
 新窗口读取项目现状时，先查看 [`docs/project-status.md`](docs/project-status.md)，再读取
 [`AGENTS.md`](AGENTS.md) 和 [`TODO.md`](TODO.md)；状态入口不替代项目约束和用户授权。
@@ -354,5 +376,9 @@ Copyright © 2026 云奕学项目所有者（joonas-001）。
 - 商业使用需要另行获得版权所有者许可；
 - 这是一份 source-available 非商业软件许可证，不是 MIT License，也不是 OSI 认可的开源许可证；
 - 第三方依赖、工具和引用内容继续适用各自的许可证与条款。
+
+当前推荐把“商业使用云奕学软件本身”与“用户利用自己学到的技能和自己创作的成果获得收入”
+明确区分：前者继续需要项目所有者许可，后者不应因使用学习工具而被项目自动剥夺。最终 EULA、
+商业许可、服务条款、商标、社区资源和贡献者边界将在第十一里程碑另行确认。
 
 请以 [`LICENSE.md`](LICENSE.md) 中的完整英文条款为准。

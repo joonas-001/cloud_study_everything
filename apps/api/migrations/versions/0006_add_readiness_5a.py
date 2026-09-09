@@ -70,7 +70,7 @@ def upgrade() -> None:
         sa.Column("payload_json", sa.Text(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint(
-            "synthetic = 1",
+            "synthetic = true",
             name="ck_market_evidence_5a_synthetic",
         ),
         sa.CheckConstraint(
@@ -150,7 +150,7 @@ def upgrade() -> None:
         sa.Column("payload_sha256", sa.String(length=64), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint(
-            "synthetic = 1",
+            "synthetic = true",
             name="ck_path_comparisons_5a_synthetic",
         ),
         sa.ForeignKeyConstraint(

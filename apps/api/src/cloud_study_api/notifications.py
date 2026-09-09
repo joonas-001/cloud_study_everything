@@ -19,8 +19,16 @@ from cloud_study_api.models import (
     NotificationPreference,
     utc_now,
 )
+from cloud_study_api.principals import LEGACY_OWNER_USER_ID, current_principal
 
 SMTP_CREDENTIAL_REFERENCE = "cloud-study/email/smtp"
+
+
+def _smtp_credential_reference() -> str:
+    user_id = current_principal().user_id
+    if user_id == LEGACY_OWNER_USER_ID:
+        return SMTP_CREDENTIAL_REFERENCE
+    return f"{SMTP_CREDENTIAL_REFERENCE}/{user_id}"
 
 
 class NotificationError(RuntimeError):
@@ -147,10 +155,11 @@ class NotificationService:
         )
         with self._session_factory() as database:
             preference = self._preference(database)
+            scoped_credential_reference = _smtp_credential_reference()
             credential_reference = preference.credential_reference
             prospective_reference = credential_reference
             if smtp_password:
-                prospective_reference = SMTP_CREDENTIAL_REFERENCE
+                prospective_reference = scoped_credential_reference
             if email_enabled and (not configured or not prospective_reference):
                 raise NotificationError(
                     422,
@@ -163,12 +172,12 @@ class NotificationService:
             if smtp_password:
                 if credential_reference:
                     try:
-                        previous_secret = self._credential_store.get(SMTP_CREDENTIAL_REFERENCE)
+                        previous_secret = self._credential_store.get(scoped_credential_reference)
                     except CredentialStoreError:
                         previous_secret = None
                 try:
                     self._credential_store.put(
-                        SMTP_CREDENTIAL_REFERENCE,
+                        scoped_credential_reference,
                         smtp_password,
                         smtp_username,
                     )
@@ -178,7 +187,7 @@ class NotificationService:
                         "credential_store_unavailable",
                         str(error),
                     ) from error
-                credential_reference = SMTP_CREDENTIAL_REFERENCE
+                credential_reference = scoped_credential_reference
             preference.email_enabled = email_enabled
             preference.email_action_required = email_action_required
             preference.email_warning = email_warning
@@ -195,7 +204,11 @@ class NotificationService:
                 database.commit()
             except Exception:
                 if smtp_password:
-                    self._restore_credential(previous_secret, previous_username)
+                    self._restore_credential(
+                        scoped_credential_reference,
+                        previous_secret,
+                        previous_username,
+                    )
                 raise
             return self._preference_payload(preference)
 
@@ -355,7 +368,7 @@ class NotificationService:
         return {"sent": sent, "cancelled": cancelled, "failed": failed}
 
     def _preference(self, database: Session) -> NotificationPreference:
-        preference = database.get(NotificationPreference, 1)
+        preference = database.scalar(select(NotificationPreference))
         if preference is None:
             raise RuntimeError("notification preference row is missing")
         return preference
@@ -430,15 +443,16 @@ class NotificationService:
 
     def _restore_credential(
         self,
+        credential_reference: str,
         previous_secret: str | None,
         previous_username: str | None,
     ) -> None:
         try:
             if previous_secret is None:
-                self._credential_store.delete(SMTP_CREDENTIAL_REFERENCE)
+                self._credential_store.delete(credential_reference)
             else:
                 self._credential_store.put(
-                    SMTP_CREDENTIAL_REFERENCE,
+                    credential_reference,
                     previous_secret,
                     previous_username,
                 )
