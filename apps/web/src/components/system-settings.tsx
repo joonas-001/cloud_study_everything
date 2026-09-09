@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import { IssueReportPanel } from "@/components/issue-report-panel";
+import { PrivacyCenter } from "@/components/privacy-center";
 import { StatusMessage } from "@/components/status-message";
 import type {
   AiProviderProfileResponse,
@@ -238,6 +239,8 @@ export function SystemSettings() {
           </div>
         ) : null}
       </section>
+
+      <PrivacyCenter />
 
       <IssueReportPanel />
 

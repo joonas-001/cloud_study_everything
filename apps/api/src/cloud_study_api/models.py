@@ -225,6 +225,108 @@ class AuthRateLimitBucket(Base):
     attempt_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
+class PrivacyPolicyAcceptance(UserOwnedMixin, Base):
+    __tablename__ = "privacy_policy_acceptances"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "document_type",
+            "document_version",
+            "content_sha256",
+            name="uq_privacy_policy_acceptance_version",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    document_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PrivacyChoice(UserOwnedMixin, Base):
+    __tablename__ = "privacy_choices"
+    __table_args__ = (
+        UniqueConstraint("user_id", "purpose", name="uq_privacy_choice_purpose"),
+        CheckConstraint(
+            "purpose IN ('external_ai', 'external_sources', 'email_notifications', "
+            "'support_diagnostics')",
+            name="ck_privacy_choices_purpose",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    purpose: Mapped[str] = mapped_column(String(40), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    notice_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PrivacyRequest(UserOwnedMixin, Base):
+    __tablename__ = "privacy_requests"
+    __table_args__ = (
+        CheckConstraint(
+            "request_type IN ('access', 'correction', 'export')",
+            name="ck_privacy_requests_type",
+        ),
+        CheckConstraint(
+            "status IN ('completed', 'failed')",
+            name="ck_privacy_requests_status",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    request_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    scope_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class PrivacyDeletionJob(Base):
+    __tablename__ = "privacy_deletion_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('waiting', 'cancelled', 'completed', 'failed')",
+            name="ck_privacy_deletion_jobs_status",
+        ),
+        Index(
+            "uq_privacy_deletion_job_waiting_user",
+            "user_id",
+            unique=True,
+            sqlite_where=text("status = 'waiting'"),
+            postgresql_where=text("status = 'waiting'"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    # Deliberately opaque and without a foreign key so the minimal deletion ledger
+    # remains enforceable even after identity bindings and private rows are removed.
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    execute_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    backup_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failure_code: Mapped[str | None] = mapped_column(String(100))
+
+
+class PrivacyDeletionTombstone(Base):
+    __tablename__ = "privacy_deletion_tombstones"
+    __table_args__ = (
+        UniqueConstraint("deletion_job_id", name="uq_privacy_deletion_tombstone_job"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    deletion_job_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    backup_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    retain_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_reapplied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class AppSettings(Base):
     __tablename__ = "app_settings"
     __table_args__ = (

@@ -80,6 +80,9 @@ EXPECTED_USER_OWNED_TABLES = {
     "experiment_income_revisions",
     "experiment_feedback_suggestions",
     "experiment_events",
+    "privacy_policy_acceptances",
+    "privacy_choices",
+    "privacy_requests",
 }
 EXPECTED_GLOBAL_MANAGED_TABLES = {
     "app_settings",
@@ -97,6 +100,10 @@ EXPECTED_9C_SECURITY_TABLES = {
     "auth_rate_limit_buckets",
     "auth_security_events",
     "oidc_login_transactions",
+}
+EXPECTED_9D_OPERATIONAL_TABLES = {
+    "privacy_deletion_jobs",
+    "privacy_deletion_tombstones",
 }
 
 
@@ -156,7 +163,7 @@ def test_every_existing_table_has_an_explicit_private_or_managed_classification(
     }
     preexisting = (user_owned - {"user_settings"}) | EXPECTED_GLOBAL_MANAGED_TABLES
     assert user_owned == EXPECTED_USER_OWNED_TABLES
-    assert len(preexisting) == 47
+    assert len(preexisting) == 50
     assert (
         set(mapped) - preexisting
         == {
@@ -167,6 +174,7 @@ def test_every_existing_table_has_an_explicit_private_or_managed_classification(
             "account_state_events",
         }
         | EXPECTED_9C_SECURITY_TABLES
+        | EXPECTED_9D_OPERATIONAL_TABLES
     )
 
 
@@ -394,7 +402,7 @@ def test_0012_backfills_owner_preserves_global_data_and_roundtrips(tmp_path: Pat
         engine.dispose()
 
     command.upgrade(config, "head")
-    assert read_schema_version(database_path) == "0013"
+    assert read_schema_version(database_path) == "0014"
     engine = create_database_engine(database_path)
     try:
         schema = inspect(engine)

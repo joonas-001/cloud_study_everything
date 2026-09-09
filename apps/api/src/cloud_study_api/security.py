@@ -19,6 +19,7 @@ PUBLIC_AUTH_PATHS = {
     "/auth/login/start",
     "/auth/callback",
     "/auth/account/deletion-cancel",
+    "/privacy/deletion-jobs/current/cancel",
 }
 TAILSCALE_LOGIN_HEADER = "Tailscale-User-Login"
 SYNTHETIC_ISSUER_HEADER = "X-Cloud-Study-Synthetic-Issuer"

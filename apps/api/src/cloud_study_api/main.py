@@ -31,6 +31,7 @@ from cloud_study_api.issue_reporting import IssueReportService
 from cloud_study_api.learning import LearningService
 from cloud_study_api.market_research import MarketResearchService
 from cloud_study_api.notifications import NotificationService
+from cloud_study_api.privacy import PrivacyService
 from cloud_study_api.providers import ProviderRegistry
 from cloud_study_api.readiness import ReadinessService
 from cloud_study_api.routes import router
@@ -59,6 +60,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         session_factory=session_factory,
         settings=settings.authentication,
         adapter=oidc_adapter,
+    )
+    app.state.privacy_service = PrivacyService(
+        session_factory=session_factory,
+        repository_root=settings.repository_root,
     )
     validate_or_backfill_persisted_content_locks(session_factory, packages)
     credential_store = create_credential_store()

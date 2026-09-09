@@ -65,7 +65,7 @@
 | 第六里程碑 6A–6D | 6D 已完成并合并 | 浏览器同源 API 修复精确提交 `c781fe1` 已部署，旧 `5b4af16` 保留为回滚点；真实库 47 表／54 行、策略 `1.1.0`、远程 Runner、身份、Tailnet HTTPS、备份、资源和自动回滚均已复验。项目所有者已完成真实手机确认、账单复核并取消剩余观察期；PR #19 已合并为 `main@d4f079c`。Headless 浏览器限制继续记录，真实 AI／来源／邮件、公开访问和扩容继续关闭 |
 | 第七里程碑 7A–7F | 已完成并合并 | PR #18 已合并为 `main@90e16e2`；合并后 push CI `32806434805` 共 22 项成功。Windows 实际高对比度和连续两小时阅读疲劳为非阻断后续人工任务，未执行前不得写成已通过或声称 WCAG 合规认证 |
 | 第八里程碑 8A–8G | 8G 技术验收完成，入口待决定 | `algorithm@0.3.0` 的 12 域、46 能力、34 单元、64 题和 22 个双语言 Runner 任务已完成第二评审、迁移回滚、真实 Runner 全量复验、隐私回归和完整门禁；后端 147 项、前端 44 项、生产构建及 E2E 26 项通过。远程来源实质复核仍未授权，默认入口保持 `0.2.2`，当前推荐继续关闭 `0.3.0` 并等待项目所有者最终决定 |
-| 第九里程碑 | 9C 合成认证候选已完成 | OIDC+PKCE、MFA、一次性邀请、会话轮换/撤销、账号停用/恢复和删除等待已通过合成反例、并发和 PostgreSQL 17.6 验证；最终完整门禁通过 167 项后端、45 项前端、生产构建和 26 项 E2E。真实 Clerk 未接入，数据位置、导出/退出和精确套餐仍是门禁；9D–9H 未授权，6D 与公开注册状态不变 |
+| 第九里程碑 | 9D 合成隐私候选已完成 | 在 9B/9C 主体、隔离和认证候选上实现版本化政策接受、四类默认关闭的分项选择、访问/更正、当前用户全量导出、7 天可撤销删除、180 天最小墓碑及加密备份恢复后删除账本重放。政策仍是候选稿，专业审查、真实联系渠道、Clerk/供应商地区和 9E–9H 仍是门禁；未接真实身份或个人数据，未修改 6D |
 | 第十里程碑 | 等待项目所有者号令 | 已预留第二轮前端体验重设计；当前不得设计或实施。未来完成后必须重跑第九里程碑受影响的认证、隐私、支持和无障碍门禁 |
 | 第十一里程碑 | 资质与渠道计划已形成，实施未授权 | 分开规划本地网页产品的下载官网、云端账号/保存 API、可选公网托管 Web 服务，以及 GitHub→Gitee、Android 官网、Microsoft Store、Apple App Store；“海外”尚须变成明确国家/地区允许列表，未创建官网、账号、备案或镜像 |
 | 长期方向 | 规划中 | 第十二至第十五里程碑方向依次为本地优先版与可选云保存产品化、扩展安全基础、社区资源库治理和生态内测；本地一行命令启动、加密云备份及可能的双向同步必须分阶段确认，每项仍须单独授权 |
@@ -94,10 +94,11 @@ GitHub 同类开源项目、能力差距、采用门禁和建议复核频率见
 [`docs/architecture/milestone-8g-validation.md`](docs/architecture/milestone-8g-validation.md)。
 第九里程碑的多用户准备、认证、隐私、支持和放行门禁计划见
 [`docs/architecture/milestone-9-multi-user-readiness.md`](docs/architecture/milestone-9-multi-user-readiness.md)。
-9A 决策、9B 合成隔离/迁移和 9C 合成认证证据分别见
+9A 决策、9B 合成隔离/迁移、9C 合成认证和 9D 合成隐私证据分别见
 [`docs/architecture/milestone-9a-decision-package.md`](docs/architecture/milestone-9a-decision-package.md) 和
 [`docs/architecture/milestone-9b-validation.md`](docs/architecture/milestone-9b-validation.md)、
-[`docs/architecture/milestone-9c-validation.md`](docs/architecture/milestone-9c-validation.md)。
+[`docs/architecture/milestone-9c-validation.md`](docs/architecture/milestone-9c-validation.md)、
+[`docs/architecture/milestone-9d-validation.md`](docs/architecture/milestone-9d-validation.md)。
 长期产品愿景、三种产品面和第九至第十五里程碑路线见
 [`docs/architecture/product-vision-and-roadmap.md`](docs/architecture/product-vision-and-roadmap.md)。
 第十一里程碑的中国内地/海外资质、网页版、App、商店和代码镜像计划见

@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   ApiError,
+  createPrivacyDeletionJob,
+  createPrivacyExport,
   createLearningIndependentReview,
   executeRunnerAttempt,
   generateTodayLearning,
@@ -10,6 +12,7 @@ import {
   getDeploymentStatus,
   getMarketResearchHistory,
   getMarketResearchOverview,
+  getPrivacyOverview,
   getLearningBranchGates,
   getLearningStageCheckpoints,
   messageForError,
@@ -64,6 +67,42 @@ describe("diagnostic API helpers", () => {
       2,
       "http://127.0.0.1:8000/auth/logout-all",
       expect.objectContaining({ credentials: "include", method: "POST" }),
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps privacy export confirmation and deletion requests explicit", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPrivacyOverview();
+    await createPrivacyExport({ confirm_sensitive_data: true });
+    await createPrivacyDeletionJob();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "http://127.0.0.1:8000/privacy",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "http://127.0.0.1:8000/privacy/exports",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ confirm_sensitive_data: true }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "http://127.0.0.1:8000/privacy/deletion-jobs",
+      expect.objectContaining({ method: "POST" }),
     );
     vi.unstubAllGlobals();
   });

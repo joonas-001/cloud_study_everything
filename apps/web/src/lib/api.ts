@@ -14,6 +14,7 @@ import type {
   CreateLearningRunRequest,
   CreateLearningIndependentReviewRequest,
   CreatePlanningProposalRequest,
+  CreatePrivacyExportRequest,
   CreateSourceCheckRequest,
   DiagnosticSessionResponse,
   DeploymentStatusResponse,
@@ -34,6 +35,13 @@ import type {
   PathComparisonDecisionResponse,
   PathComparisonResponse,
   PrivacySettingsResponse,
+  PrivacyAccessReportResponse,
+  PrivacyDeletionJobResponse,
+  PrivacyExportResponse,
+  PrivacyOverviewResponse,
+  PrivacyCorrectionRequest,
+  AcceptPrivacyPoliciesRequest,
+  UpdatePrivacyChoicesRequest,
   ReadinessEvaluationResponse,
   ReadinessHistoryResponse,
   ResolveSourceChangeRequest,
@@ -148,6 +156,58 @@ export function updatePrivacySettings(
     method: "PUT",
     body: JSON.stringify(payload),
   });
+}
+
+export function getPrivacyOverview(): Promise<PrivacyOverviewResponse> {
+  return request("/privacy");
+}
+
+export function acceptPrivacyPolicies(
+  payload: AcceptPrivacyPoliciesRequest,
+): Promise<PrivacyOverviewResponse> {
+  return request("/privacy/policy-acceptances", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updatePrivacyChoices(
+  payload: UpdatePrivacyChoicesRequest,
+): Promise<PrivacyOverviewResponse> {
+  return request("/privacy/choices", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getPrivacyAccessReport(): Promise<PrivacyAccessReportResponse> {
+  return request("/privacy/access");
+}
+
+export function correctPrivacyData(
+  payload: PrivacyCorrectionRequest,
+): Promise<PrivacyOverviewResponse> {
+  return request("/privacy/corrections", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createPrivacyExport(
+  payload: CreatePrivacyExportRequest,
+): Promise<PrivacyExportResponse> {
+  return request("/privacy/exports", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createPrivacyDeletionJob(): Promise<PrivacyDeletionJobResponse> {
+  return request("/privacy/deletion-jobs", { method: "POST" });
+}
+
+export function cancelPrivacyDeletionJob(): Promise<PrivacyDeletionJobResponse> {
+  return request("/privacy/deletion-jobs/current/cancel", { method: "POST" });
 }
 
 export function previewIssueReport(

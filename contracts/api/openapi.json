@@ -1,6 +1,24 @@
 {
   "components": {
     "schemas": {
+      "AcceptPrivacyPoliciesRequest": {
+        "properties": {
+          "document_types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Document Types",
+            "type": "array"
+          }
+        },
+        "required": [
+          "document_types"
+        ],
+        "title": "AcceptPrivacyPoliciesRequest",
+        "type": "object"
+      },
       "ActivityAttemptResponse": {
         "properties": {
           "corrects_attempt_id": {
@@ -1869,6 +1887,19 @@
           "model_id"
         ],
         "title": "CreatePlanningProposalRequest",
+        "type": "object"
+      },
+      "CreatePrivacyExportRequest": {
+        "properties": {
+          "confirm_sensitive_data": {
+            "title": "Confirm Sensitive Data",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm_sensitive_data"
+        ],
+        "title": "CreatePrivacyExportRequest",
         "type": "object"
       },
       "CreateReadinessEvaluationRequest": {
@@ -5834,6 +5865,523 @@
         "title": "PlanningUnitResponse",
         "type": "object"
       },
+      "PrivacyAcceptanceResponse": {
+        "properties": {
+          "accepted_at": {
+            "format": "date-time",
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "content_sha256": {
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "document_type": {
+            "title": "Document Type",
+            "type": "string"
+          },
+          "document_version": {
+            "title": "Document Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_type",
+          "document_version",
+          "content_sha256",
+          "accepted_at"
+        ],
+        "title": "PrivacyAcceptanceResponse",
+        "type": "object"
+      },
+      "PrivacyAccessReportResponse": {
+        "properties": {
+          "data_categories": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Data Categories",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "scope_note": {
+            "title": "Scope Note",
+            "type": "string"
+          },
+          "subject": {
+            "additionalProperties": true,
+            "title": "Subject",
+            "type": "object"
+          },
+          "table_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Table Counts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "generated_at",
+          "subject",
+          "table_counts",
+          "data_categories",
+          "scope_note"
+        ],
+        "title": "PrivacyAccessReportResponse",
+        "type": "object"
+      },
+      "PrivacyChoiceResponse": {
+        "properties": {
+          "current_capability": {
+            "title": "Current Capability",
+            "type": "string"
+          },
+          "default_enabled": {
+            "title": "Default Enabled",
+            "type": "boolean"
+          },
+          "effective_enabled": {
+            "title": "Effective Enabled",
+            "type": "boolean"
+          },
+          "effective_reason": {
+            "title": "Effective Reason",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "notice_version": {
+            "title": "Notice Version",
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "external_ai",
+              "external_sources",
+              "email_notifications",
+              "support_diagnostics"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "purpose",
+          "label",
+          "default_enabled",
+          "current_capability",
+          "enabled",
+          "notice_version",
+          "updated_at",
+          "effective_enabled",
+          "effective_reason"
+        ],
+        "title": "PrivacyChoiceResponse",
+        "type": "object"
+      },
+      "PrivacyCorrectionRequest": {
+        "properties": {
+          "choices": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Choices",
+            "type": "object"
+          },
+          "inactivity_timeout_minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inactivity Timeout Minutes"
+          }
+        },
+        "title": "PrivacyCorrectionRequest",
+        "type": "object"
+      },
+      "PrivacyDeletionJobResponse": {
+        "properties": {
+          "backup_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backup Expires At"
+          },
+          "cancellable": {
+            "title": "Cancellable",
+            "type": "boolean"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "execute_after": {
+            "format": "date-time",
+            "title": "Execute After",
+            "type": "string"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "waiting",
+              "cancelled",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "requested_at",
+          "execute_after",
+          "cancelled_at",
+          "completed_at",
+          "backup_expires_at",
+          "failure_code",
+          "cancellable"
+        ],
+        "title": "PrivacyDeletionJobResponse",
+        "type": "object"
+      },
+      "PrivacyExportResponse": {
+        "properties": {
+          "account": {
+            "additionalProperties": true,
+            "title": "Account",
+            "type": "object"
+          },
+          "account_state_events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Account State Events",
+            "type": "array"
+          },
+          "content_sha256": {
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "external_identities": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "External Identities",
+            "type": "array"
+          },
+          "format": {
+            "const": "cloud-study-portable-export",
+            "title": "Format",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "title": "Scope",
+            "type": "object"
+          },
+          "security_events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Security Events",
+            "type": "array"
+          },
+          "table_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Table Counts",
+            "type": "object"
+          },
+          "tables": {
+            "additionalProperties": {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "title": "Tables",
+            "type": "object"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          },
+          "version": {
+            "const": "1.0.0",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "format",
+          "version",
+          "generated_at",
+          "user_id",
+          "scope",
+          "account",
+          "external_identities",
+          "roles",
+          "account_state_events",
+          "security_events",
+          "tables",
+          "table_counts",
+          "content_sha256"
+        ],
+        "title": "PrivacyExportResponse",
+        "type": "object"
+      },
+      "PrivacyOverviewResponse": {
+        "properties": {
+          "acceptances": {
+            "items": {
+              "$ref": "#/components/schemas/PrivacyAcceptanceResponse"
+            },
+            "title": "Acceptances",
+            "type": "array"
+          },
+          "blocking_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocking Reasons",
+            "type": "array"
+          },
+          "bundle_version": {
+            "title": "Bundle Version",
+            "type": "string"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/PrivacyChoiceResponse"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "controller": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Controller",
+            "type": "object"
+          },
+          "data_categories": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Data Categories",
+            "type": "array"
+          },
+          "deletion_job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrivacyDeletionJobResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/PrivacyPolicyDocumentResponse"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "professional_review": {
+            "const": "required_before_9g",
+            "title": "Professional Review",
+            "type": "string"
+          },
+          "real_user_ready": {
+            "title": "Real User Ready",
+            "type": "boolean"
+          },
+          "restricted_support_attachments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Restricted Support Attachments",
+            "type": "array"
+          },
+          "retention_rules": {
+            "additionalProperties": true,
+            "title": "Retention Rules",
+            "type": "object"
+          },
+          "status": {
+            "const": "synthetic_candidate_only",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bundle_version",
+          "status",
+          "professional_review",
+          "controller",
+          "documents",
+          "acceptances",
+          "choices",
+          "data_categories",
+          "retention_rules",
+          "restricted_support_attachments",
+          "deletion_job",
+          "real_user_ready",
+          "blocking_reasons"
+        ],
+        "title": "PrivacyOverviewResponse",
+        "type": "object"
+      },
+      "PrivacyPolicyDocumentResponse": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "content_markdown": {
+            "title": "Content Markdown",
+            "type": "string"
+          },
+          "content_sha256": {
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "document_type": {
+            "title": "Document Type",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "review_status": {
+            "title": "Review Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_type",
+          "version",
+          "title",
+          "required",
+          "summary",
+          "review_status",
+          "content_sha256",
+          "content_markdown",
+          "accepted"
+        ],
+        "title": "PrivacyPolicyDocumentResponse",
+        "type": "object"
+      },
       "PrivacySettingsResponse": {
         "properties": {
           "external_ai_enabled": {
@@ -7718,6 +8266,22 @@
           "completion_criteria"
         ],
         "title": "UpdatePlanningUnitRequest",
+        "type": "object"
+      },
+      "UpdatePrivacyChoicesRequest": {
+        "properties": {
+          "choices": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Choices",
+            "type": "object"
+          }
+        },
+        "required": [
+          "choices"
+        ],
+        "title": "UpdatePrivacyChoicesRequest",
         "type": "object"
       },
       "UpdatePrivacySettingsRequest": {
@@ -11266,6 +11830,279 @@
         "summary": "Update Planning Unit",
         "tags": [
           "planning"
+        ]
+      }
+    },
+    "/privacy": {
+      "get": {
+        "operationId": "get_privacy_overview_privacy_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Privacy Overview",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/access": {
+      "get": {
+        "operationId": "get_privacy_access_report_privacy_access_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyAccessReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Privacy Access Report",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/choices": {
+      "put": {
+        "operationId": "update_privacy_choices_privacy_choices_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePrivacyChoicesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Privacy Choices",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/corrections": {
+      "post": {
+        "operationId": "correct_privacy_data_privacy_corrections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Privacy Data",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/deletion-jobs": {
+      "post": {
+        "operationId": "create_privacy_deletion_job_privacy_deletion_jobs_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyDeletionJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Create Privacy Deletion Job",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/deletion-jobs/current/cancel": {
+      "post": {
+        "operationId": "cancel_privacy_deletion_job_privacy_deletion_jobs_current_cancel_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyDeletionJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Cancel Privacy Deletion Job",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/deletion-jobs/run-due": {
+      "post": {
+        "operationId": "run_due_privacy_deletion_jobs_privacy_deletion_jobs_run_due_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PrivacyDeletionJobResponse"
+                  },
+                  "title": "Response Run Due Privacy Deletion Jobs Privacy Deletion Jobs Run Due Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Run Due Privacy Deletion Jobs",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/exports": {
+      "post": {
+        "operationId": "create_privacy_export_privacy_exports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivacyExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyExportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Privacy Export",
+        "tags": [
+          "privacy"
+        ]
+      }
+    },
+    "/privacy/policy-acceptances": {
+      "post": {
+        "operationId": "accept_privacy_policies_privacy_policy_acceptances_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptPrivacyPoliciesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Privacy Policies",
+        "tags": [
+          "privacy"
         ]
       }
     },

@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0.0",
+  "bundle_version": "milestone-9d-candidate@1.0.0",
+  "status": "synthetic_candidate_only",
+  "professional_review": "required_before_9g",
+  "controller": {
+    "name": "云奕学项目所有者（joonas-001）",
+    "capacity": "个人身份临时数据控制者",
+    "private_contact": "not_configured",
+    "contact_gate": "9G 前必须建立专用支持/隐私邮箱"
+  },
+  "documents": [
+    {
+      "document_type": "privacy_notice",
+      "version": "2026-09-09-candidate.1",
+      "title": "隐私告知候选稿",
+      "content_path": "policies/privacy-notice-candidate.md",
+      "required": true,
+      "summary": "说明合成多用户候选中的数据类别、目的、位置、接收方、保留、导出与删除；不构成真实用户隐私文本。",
+      "review_status": "owner_reviewed_candidate_professional_review_pending"
+    },
+    {
+      "document_type": "terms",
+      "version": "2026-09-09-candidate.1",
+      "title": "服务条款候选稿",
+      "content_path": "policies/service-terms-candidate.md",
+      "required": true,
+      "summary": "说明邀请制候选、无公开注册、无可用性保证、用户成果权利及禁止将软件本身未经许可商业化。",
+      "review_status": "owner_reviewed_candidate_professional_review_pending"
+    },
+    {
+      "document_type": "acceptable_use",
+      "version": "2026-09-09-candidate.1",
+      "title": "可接受使用规则候选稿",
+      "content_path": "policies/acceptable-use-candidate.md",
+      "required": true,
+      "summary": "禁止违法、越权、攻击、绕过隔离、滥用 Runner 或外部服务；不限制用户合法利用自己所学技能和成果。",
+      "review_status": "owner_reviewed_candidate_professional_review_pending"
+    },
+    {
+      "document_type": "supplier_list",
+      "version": "2026-09-09-candidate.1",
+      "title": "供应商与数据位置清单候选稿",
+      "content_path": "policies/supplier-list-candidate.md",
+      "required": false,
+      "summary": "Clerk 尚未激活；腾讯云新加坡仅维持既有 6D 单用户范围；DeepSeek、真实来源和邮件在本阶段关闭。",
+      "review_status": "technical_candidate"
+    }
+  ],
+  "optional_purposes": [
+    {
+      "purpose": "external_ai",
+      "label": "向外部 AI 发送最少必要内容",
+      "default_enabled": false,
+      "current_capability": "disabled_in_9d"
+    },
+    {
+      "purpose": "external_sources",
+      "label": "访问已批准的真实外部来源",
+      "default_enabled": false,
+      "current_capability": "disabled_in_9d"
+    },
+    {
+      "purpose": "email_notifications",
+      "label": "发送必要或用户选择的邮件通知",
+      "default_enabled": false,
+      "current_capability": "disabled_in_9d"
+    },
+    {
+      "purpose": "support_diagnostics",
+      "label": "在具体支持请求中发送最少诊断信息",
+      "default_enabled": false,
+      "current_capability": "no_support_channel_in_9d"
+    }
+  ],
+  "data_categories": [
+    {
+      "category": "identity",
+      "purpose": "认证、账号状态和防止账号接管",
+      "necessity": "account_required",
+      "location": "synthetic_local_candidate; future region requires review",
+      "recipients": ["identity_provider_when_activated"],
+      "retention": "账号有效期；删除后只保留最小安全墓碑 180 天",
+      "deletion": "删除身份绑定并撤销全部会话"
+    },
+    {
+      "category": "learning_records",
+      "purpose": "诊断、计划、学习执行和复习",
+      "necessity": "core_function",
+      "location": "candidate_database",
+      "recipients": [],
+      "retention": "账号有效期",
+      "deletion": "删除全部用户归属记录"
+    },
+    {
+      "category": "code_and_text",
+      "purpose": "确定性练习、解释和作品验证",
+      "necessity": "user_initiated",
+      "location": "candidate_database_and_isolated_runner",
+      "recipients": ["isolated_runner_when_enabled"],
+      "retention": "账号有效期；Runner 临时数据按任务结束清理",
+      "deletion": "删除正文和任务残留"
+    },
+    {
+      "category": "capability_evidence",
+      "purpose": "证明明确范围的能力与保持情况",
+      "necessity": "core_function",
+      "location": "candidate_database",
+      "recipients": [],
+      "retention": "账号有效期；证据时效独立标记",
+      "deletion": "删除证据、快照和评审记录"
+    },
+    {
+      "category": "goals_and_income",
+      "purpose": "用户选择的目标、实验和可选收入记录",
+      "necessity": "optional",
+      "location": "candidate_database",
+      "recipients": [],
+      "retention": "账号有效期；用户可先行清除敏感金额",
+      "deletion": "清除正文与敏感值，仅保留无敏感审计墓碑"
+    },
+    {
+      "category": "credential_references",
+      "purpose": "定位由操作系统或主机只读挂载保存的密钥",
+      "necessity": "optional_feature",
+      "location": "reference_only_in_database",
+      "recipients": [],
+      "retention": "功能启用期",
+      "deletion": "撤销并删除引用；密钥原文不得进入数据库或导出"
+    },
+    {
+      "category": "support_content",
+      "purpose": "处理用户主动提交的支持、隐私或安全请求",
+      "necessity": "user_initiated",
+      "location": "not_activated_in_9d",
+      "recipients": ["authorized_support_only"],
+      "retention": "关闭后 90 天",
+      "deletion": "到期删除；禁止默认接收高风险附件"
+    },
+    {
+      "category": "operational_logs",
+      "purpose": "发现故障、安全事件和滥用",
+      "necessity": "service_security",
+      "location": "candidate_host",
+      "recipients": [],
+      "retention": "7 天",
+      "deletion": "滚动清理；不记录学习正文、代码、邮箱或凭据"
+    },
+    {
+      "category": "privacy_requests",
+      "purpose": "证明访问、更正、导出与删除请求已执行",
+      "necessity": "rights_fulfilment",
+      "location": "candidate_database",
+      "recipients": [],
+      "retention": "正文随账号删除；最小删除墓碑 180 天",
+      "deletion": "删除请求正文，只保留无敏感状态与时间"
+    },
+    {
+      "category": "backups",
+      "purpose": "灾难恢复",
+      "necessity": "service_resilience",
+      "location": "encrypted_artifact_controlled_by_offline_key",
+      "recipients": [],
+      "retention": "7 个日备份和 4 个周备份自然过期",
+      "deletion": "恢复时必须重放删除账本，最迟 28 天自然过期"
+    }
+  ],
+  "retention_rules": {
+    "deletion_cancellation_days": 7,
+    "support_days": 90,
+    "security_tombstone_days": 180,
+    "temporary_queue_days": 30,
+    "operations_log_days": 7,
+    "backup_daily_count": 7,
+    "backup_weekly_count": 4,
+    "backup_max_natural_expiry_days": 28
+  },
+  "restricted_support_attachments": [
+    "identity_document",
+    "contract",
+    "invoice",
+    "bank_record",
+    "full_log_bundle",
+    "database_copy",
+    "credential_or_token"
+  ]
+}

@@ -239,7 +239,7 @@ def test_milestone_8g_round_trip_keeps_history_and_safely_ends_paused_run(
 
     command.upgrade(config, "head")
 
-    assert read_schema_version(database_path) == "0013"
+    assert read_schema_version(database_path) == "0014"
     engine = create_database_engine(database_path)
     try:
         with engine.connect() as connection:
