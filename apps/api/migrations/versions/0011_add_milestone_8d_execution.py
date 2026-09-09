@@ -18,7 +18,7 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     op.drop_index("uq_nonterminal_learning_run_skill_version", table_name="learning_runs")
-    with op.batch_alter_table("learning_runs", recreate="always") as batch:
+    with op.batch_alter_table("learning_runs", recreate="auto") as batch:
         batch.drop_constraint("ck_learning_runs_status", type_="check")
         batch.add_column(sa.Column("paused_at", sa.DateTime(timezone=True), nullable=True))
         batch.add_column(sa.Column("pause_reason", sa.String(length=500), nullable=True))
@@ -34,7 +34,7 @@ def upgrade() -> None:
         sqlite_where=sa.text("status IN ('active', 'paused', 'retention_pending')"),
     )
 
-    with op.batch_alter_table("mastery_evidence", recreate="always") as batch:
+    with op.batch_alter_table("mastery_evidence", recreate="auto") as batch:
         batch.add_column(
             sa.Column(
                 "capability_ids_json",
@@ -101,7 +101,7 @@ def downgrade() -> None:
     )
     op.drop_table("learning_independent_reviews")
 
-    with op.batch_alter_table("mastery_evidence", recreate="always") as batch:
+    with op.batch_alter_table("mastery_evidence", recreate="auto") as batch:
         batch.drop_column("language")
         batch.drop_column("capability_ids_json")
 
@@ -112,7 +112,7 @@ def downgrade() -> None:
         "WHERE status = 'paused'"
     )
     op.drop_index("uq_nonterminal_learning_run_skill_version", table_name="learning_runs")
-    with op.batch_alter_table("learning_runs", recreate="always") as batch:
+    with op.batch_alter_table("learning_runs", recreate="auto") as batch:
         batch.drop_constraint("ck_learning_runs_status", type_="check")
         batch.drop_column("pause_reason")
         batch.drop_column("paused_at")

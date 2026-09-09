@@ -50,6 +50,31 @@ export interface AiProviderResponse {
   status_note: string;
 }
 
+export interface AuthenticationActionResponse {
+  status?: string;
+}
+
+export interface AuthenticationSessionResponse {
+  absolute_expires_at?: string | null;
+  account_status?: "active" | "suspended" | "deletion_pending" | "deleted" | null;
+  authenticated: boolean;
+  authenticated_at?: string | null;
+  idle_expires_at?: string | null;
+  mfa_authenticated?: boolean;
+  mode: "legacy_owner" | "synthetic_oidc" | "managed_oidc";
+  role?: "user" | "owner_operator" | "support_restricted" | null;
+  user_id?: string | null;
+}
+
+export interface AuthenticationStartResponse {
+  authorization_url: string;
+  expires_at: string;
+}
+
+export interface BeginAuthenticationRequest {
+  invitation_token?: string | null;
+}
+
 export interface BranchGateEvaluationResponse {
   evaluated_at: string;
   gates: Array<BranchGateResponse>;
@@ -255,6 +280,11 @@ export interface CreateFeedbackRequest {
 export interface CreateIncomeRequest {
   confirm_manual_record: boolean;
   values: IncomeValuesRequest;
+}
+
+export interface CreateInvitationRequest {
+  expires_in_minutes?: number;
+  role?: "user" | "support_restricted";
 }
 
 export interface CreateLearningIndependentReviewRequest {
@@ -610,6 +640,13 @@ export interface IncomeValuesRequest {
   platform_fee_minor: number;
   received_amount_minor: number;
   verification_level: "self_reported" | "platform_record" | "received";
+}
+
+export interface InvitationResponse {
+  expires_at: string;
+  invitation_id: string;
+  invitation_token: string;
+  role: "user" | "support_restricted";
 }
 
 export interface IssueReportFieldResponse {
@@ -1091,6 +1128,10 @@ export interface SelfReviewAttemptResponse {
   activity: LearningActivityResponse;
   attempt: ActivityAttemptResponse;
   run: LearningRunResponse;
+}
+
+export interface SetAccountAvailabilityRequest {
+  status: "active" | "suspended";
 }
 
 export interface SourceAccessPolicyResponse {

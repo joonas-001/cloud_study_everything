@@ -10,6 +10,7 @@ from cloud_study_api.ai_configuration import (
     AiConfigurationError,
     AiConfigurationService,
 )
+from cloud_study_api.authentication import AuthenticationError, AuthenticationService
 from cloud_study_api.capability_profiles import (
     CapabilityProfileError,
     CapabilityProfileService,
@@ -30,6 +31,7 @@ from cloud_study_api.issue_reporting import (
 from cloud_study_api.learning import LearningError, LearningService
 from cloud_study_api.market_research import MarketResearchError, MarketResearchService
 from cloud_study_api.notifications import NotificationError, NotificationService
+from cloud_study_api.principals import LEGACY_OWNER_PRINCIPAL
 from cloud_study_api.readiness import ReadinessError, ReadinessService
 
 
@@ -37,6 +39,47 @@ class PrivacySettingsResponse(BaseModel):
     external_ai_enabled: bool
     inactivity_timeout_minutes: int
     updated_at: datetime
+
+
+class AuthenticationSessionResponse(BaseModel):
+    mode: Literal["legacy_owner", "synthetic_oidc", "managed_oidc"]
+    authenticated: bool
+    user_id: str | None = None
+    role: Literal["user", "owner_operator", "support_restricted"] | None = None
+    account_status: Literal["active", "suspended", "deletion_pending", "deleted"] | None = None
+    idle_expires_at: datetime | None = None
+    absolute_expires_at: datetime | None = None
+    authenticated_at: datetime | None = None
+    mfa_authenticated: bool = False
+
+
+class BeginAuthenticationRequest(BaseModel):
+    invitation_token: str | None = Field(default=None, min_length=32, max_length=512)
+
+
+class AuthenticationStartResponse(BaseModel):
+    authorization_url: str
+    expires_at: datetime
+
+
+class CreateInvitationRequest(BaseModel):
+    role: Literal["user", "support_restricted"] = "user"
+    expires_in_minutes: int = Field(default=1440, ge=5, le=10080)
+
+
+class InvitationResponse(BaseModel):
+    invitation_id: str
+    invitation_token: str
+    role: Literal["user", "support_restricted"]
+    expires_at: datetime
+
+
+class AuthenticationActionResponse(BaseModel):
+    status: Literal["ok"] = "ok"
+
+
+class SetAccountAvailabilityRequest(BaseModel):
+    status: Literal["active", "suspended"]
 
 
 class DeploymentStatusResponse(BaseModel):
@@ -1515,6 +1558,17 @@ class ExperimentResponse(BaseModel):
 router = APIRouter()
 
 
+def get_authentication_service(request: Request) -> AuthenticationService:
+    service: AuthenticationService = request.app.state.authentication_service
+    return service
+
+
+AuthenticationServiceDependency = Annotated[
+    AuthenticationService,
+    Depends(get_authentication_service),
+]
+
+
 def get_diagnostic_service(request: Request) -> DiagnosticService:
     service: DiagnosticService = request.app.state.diagnostic_service
     return service
@@ -1691,6 +1745,272 @@ def _raise_service_http(
             "context": context,
         },
     ) from error
+
+
+def _raise_authentication_http(error: AuthenticationError) -> None:
+    raise HTTPException(
+        status_code=error.status_code,
+        detail={"code": error.code, "message": str(error), "context": {}},
+    ) from error
+
+
+def _authentication_rate_key(request: Request) -> str:
+    return request.client.host if request.client is not None else "unknown-client"
+
+
+def _session_cookie(request: Request, service: AuthenticationService) -> str:
+    return request.cookies.get(service.settings.session_cookie_name, "")
+
+
+@router.get(
+    "/auth/session",
+    response_model=AuthenticationSessionResponse,
+    tags=["authentication-9c"],
+)
+def get_authentication_session(
+    request: Request,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationSessionResponse:
+    if service.settings.mode == "legacy_owner":
+        return AuthenticationSessionResponse(
+            mode="legacy_owner",
+            authenticated=True,
+            user_id=LEGACY_OWNER_PRINCIPAL.user_id,
+            role=LEGACY_OWNER_PRINCIPAL.role,
+            account_status=LEGACY_OWNER_PRINCIPAL.account_status,
+            mfa_authenticated=False,
+        )
+    try:
+        session = service.authenticate_session(
+            _session_cookie(request, service),
+            allow_deletion_pending=True,
+        )
+    except AuthenticationError:
+        return AuthenticationSessionResponse(mode=service.settings.mode, authenticated=False)
+    return AuthenticationSessionResponse(
+        mode=service.settings.mode,
+        authenticated=True,
+        user_id=session.principal.user_id,
+        role=session.principal.role,
+        account_status=session.principal.account_status,
+        idle_expires_at=session.idle_expires_at,
+        absolute_expires_at=session.absolute_expires_at,
+        authenticated_at=session.authenticated_at,
+        mfa_authenticated=session.mfa_authenticated,
+    )
+
+
+@router.post(
+    "/auth/login/start",
+    response_model=AuthenticationStartResponse,
+    tags=["authentication-9c"],
+)
+def begin_authentication(
+    payload: BeginAuthenticationRequest,
+    request: Request,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationStartResponse:
+    if service.settings.mode == "legacy_owner":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "oidc_not_enabled",
+                "message": "OIDC authentication is not enabled.",
+                "context": {},
+            },
+        )
+    try:
+        result = service.begin_login(
+            invitation_token=payload.invitation_token,
+            prior_session_token=_session_cookie(request, service) or None,
+            rate_limit_identifier=_authentication_rate_key(request),
+        )
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    return AuthenticationStartResponse(
+        authorization_url=result.authorization_url,
+        expires_at=result.expires_at,
+    )
+
+
+@router.get(
+    "/auth/callback",
+    response_model=AuthenticationSessionResponse,
+    tags=["authentication-9c"],
+)
+def complete_authentication(
+    request: Request,
+    response: Response,
+    service: AuthenticationServiceDependency,
+    code: Annotated[str, Query(min_length=1, max_length=2048)],
+    state: Annotated[str, Query(min_length=1, max_length=512)],
+) -> AuthenticationSessionResponse:
+    try:
+        result = service.complete_login(
+            code=code,
+            state=state,
+            rate_limit_identifier=_authentication_rate_key(request),
+        )
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    response.set_cookie(
+        key=service.settings.session_cookie_name,
+        value=result.token,
+        max_age=service.settings.absolute_hours * 3600,
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="strict",
+    )
+    return AuthenticationSessionResponse(
+        mode=service.settings.mode,
+        authenticated=True,
+        user_id=result.principal.user_id,
+        role=result.principal.role,
+        account_status=result.principal.account_status,
+        idle_expires_at=result.idle_expires_at,
+        absolute_expires_at=result.absolute_expires_at,
+        authenticated_at=result.authenticated_at,
+        mfa_authenticated=result.mfa_authenticated,
+    )
+
+
+@router.post(
+    "/auth/logout",
+    response_model=AuthenticationActionResponse,
+    tags=["authentication-9c"],
+)
+def logout_authentication(
+    request: Request,
+    response: Response,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationActionResponse:
+    try:
+        service.logout(_session_cookie(request, service), all_devices=False)
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    response.delete_cookie(service.settings.session_cookie_name, path="/", secure=True)
+    return AuthenticationActionResponse()
+
+
+@router.post(
+    "/auth/logout-all",
+    response_model=AuthenticationActionResponse,
+    tags=["authentication-9c"],
+)
+def logout_all_authentication(
+    request: Request,
+    response: Response,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationActionResponse:
+    try:
+        service.logout(_session_cookie(request, service), all_devices=True)
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    response.delete_cookie(service.settings.session_cookie_name, path="/", secure=True)
+    return AuthenticationActionResponse()
+
+
+@router.post(
+    "/auth/invitations",
+    response_model=InvitationResponse,
+    tags=["authentication-9c"],
+)
+def create_authentication_invitation(
+    payload: CreateInvitationRequest,
+    request: Request,
+    service: AuthenticationServiceDependency,
+) -> InvitationResponse:
+    try:
+        result = service.create_invitation(
+            raw_session_token=_session_cookie(request, service),
+            role=payload.role,
+            expires_in_minutes=payload.expires_in_minutes,
+        )
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    return InvitationResponse(
+        invitation_id=result.invitation_id,
+        invitation_token=result.token,
+        role=result.role,  # type: ignore[arg-type]
+        expires_at=result.expires_at,
+    )
+
+
+@router.post(
+    "/auth/invitations/{invitation_id}/revoke",
+    response_model=AuthenticationActionResponse,
+    tags=["authentication-9c"],
+)
+def revoke_authentication_invitation(
+    invitation_id: str,
+    request: Request,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationActionResponse:
+    try:
+        service.revoke_invitation(
+            raw_session_token=_session_cookie(request, service),
+            invitation_id=invitation_id,
+        )
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    return AuthenticationActionResponse()
+
+
+@router.post(
+    "/auth/operator/accounts/{user_id}/availability",
+    response_model=AuthenticationActionResponse,
+    tags=["authentication-9c"],
+)
+def set_authentication_account_availability(
+    user_id: str,
+    payload: SetAccountAvailabilityRequest,
+    request: Request,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationActionResponse:
+    try:
+        service.set_account_availability(
+            raw_session_token=_session_cookie(request, service),
+            target_user_id=user_id,
+            new_status=payload.status,
+        )
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    return AuthenticationActionResponse()
+
+
+@router.post(
+    "/auth/account/deletion-request",
+    response_model=AuthenticationActionResponse,
+    tags=["authentication-9c"],
+)
+def request_account_deletion(
+    request: Request,
+    response: Response,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationActionResponse:
+    try:
+        service.request_deletion(_session_cookie(request, service))
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    response.delete_cookie(service.settings.session_cookie_name, path="/", secure=True)
+    return AuthenticationActionResponse()
+
+
+@router.post(
+    "/auth/account/deletion-cancel",
+    response_model=AuthenticationActionResponse,
+    tags=["authentication-9c"],
+)
+def cancel_account_deletion(
+    request: Request,
+    service: AuthenticationServiceDependency,
+) -> AuthenticationActionResponse:
+    try:
+        service.cancel_deletion(raw_session_token=_session_cookie(request, service))
+    except AuthenticationError as error:
+        _raise_authentication_http(error)
+    return AuthenticationActionResponse()
 
 
 @router.get(

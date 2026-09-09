@@ -2759,6 +2759,42 @@ select[aria-invalid="true"] {
   line-height: 1.6;
 }
 
+.sidebar-boundary p {
+  margin: 0;
+}
+
+.session-summary {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.session-summary .text-button {
+  min-height: auto;
+  padding: 4px 0;
+  color: var(--deep);
+  font-size: 0.72rem;
+  text-align: left;
+}
+
+.authentication-boundary {
+  width: min(640px, calc(100% - 32px));
+  margin: 12vh auto;
+  padding: clamp(28px, 6vw, 56px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.authentication-boundary h1 {
+  margin: 8px 0 18px;
+}
+
+.authentication-boundary .boundary-note {
+  color: var(--muted);
+}
+
 .mobile-context-bar,
 .mobile-navigation {
   display: none;

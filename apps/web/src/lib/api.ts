@@ -1,6 +1,8 @@
 import type {
   AiProviderProfileResponse,
   AiProviderResponse,
+  AuthenticationActionResponse,
+  AuthenticationSessionResponse,
   CapabilityProfileResponse,
   CapabilityScopeResponse,
   BranchGateEvaluationResponse,
@@ -102,7 +104,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    credentials: "same-origin",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...init?.headers,
@@ -125,6 +127,18 @@ export function getPrivacySettings(): Promise<PrivacySettingsResponse> {
 
 export function getDeploymentStatus(): Promise<DeploymentStatusResponse> {
   return request("/deployment/status");
+}
+
+export function getAuthenticationSession(): Promise<AuthenticationSessionResponse> {
+  return request("/auth/session");
+}
+
+export function logoutAllAuthenticationSessions(): Promise<AuthenticationActionResponse> {
+  return request("/auth/logout-all", { method: "POST" });
+}
+
+export function cancelAccountDeletion(): Promise<AuthenticationActionResponse> {
+  return request("/auth/account/deletion-cancel", { method: "POST" });
 }
 
 export function updatePrivacySettings(
@@ -449,7 +463,7 @@ export async function exportCapabilityProfile(
   const query = new URLSearchParams({ format });
   const response = await fetch(
     `${API_BASE_URL}/learning-runs/${encodeURIComponent(runId)}/capability-profile/export?${query.toString()}`,
-    { credentials: "same-origin" },
+    { credentials: "include" },
   );
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
@@ -688,7 +702,7 @@ export async function exportExperiment(
     `${API_BASE_URL}/experiments/${encodeURIComponent(experimentId)}/exports`,
     {
       method: "POST",
-      credentials: "same-origin",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     },

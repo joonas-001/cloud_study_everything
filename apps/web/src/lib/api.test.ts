@@ -6,12 +6,14 @@ import {
   executeRunnerAttempt,
   generateTodayLearning,
   getActiveDiagnosticSession,
+  getAuthenticationSession,
   getDeploymentStatus,
   getMarketResearchHistory,
   getMarketResearchOverview,
   getLearningBranchGates,
   getLearningStageCheckpoints,
   messageForError,
+  logoutAllAuthenticationSessions,
   pauseLearningRun,
   redactMarketResearchSource,
   recoverPreDispatchMarketResearch,
@@ -34,7 +36,34 @@ describe("diagnostic API helpers", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "http://127.0.0.1:8000/deployment/status",
-      expect.objectContaining({ credentials: "same-origin" }),
+      expect.objectContaining({ credentials: "include" }),
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it("uses credentialed requests for session status and all-device logout", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({ mode: "synthetic_oidc", authenticated: true, status: "ok" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getAuthenticationSession();
+    await logoutAllAuthenticationSessions();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "http://127.0.0.1:8000/auth/session",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "http://127.0.0.1:8000/auth/logout-all",
+      expect.objectContaining({ credentials: "include", method: "POST" }),
     );
     vi.unstubAllGlobals();
   });

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from cloud_study_api.credentials import CredentialStore, CredentialStoreError
 from cloud_study_api.models import AiProviderProfile, utc_now
+from cloud_study_api.principals import LEGACY_OWNER_USER_ID, current_principal
 
 
 class AiConfigurationError(RuntimeError):
@@ -167,7 +168,12 @@ class AiConfigurationService:
         profile_id = str(uuid4())
         credential_reference: str | None = None
         if api_key:
-            credential_reference = f"cloud-study/ai/{profile_id}"
+            user_id = current_principal().user_id
+            credential_reference = (
+                f"cloud-study/ai/{profile_id}"
+                if user_id == LEGACY_OWNER_USER_ID
+                else f"cloud-study/ai/{user_id}/{profile_id}"
+            )
             try:
                 self._credential_store.put(
                     credential_reference,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import type { AuthenticationSessionResponse } from "@/generated/api-schema";
 
 import {
   getActiveMobileSection,
@@ -11,7 +12,12 @@ import {
   MOBILE_NAVIGATION,
   PRIMARY_NAVIGATION,
 } from "@/lib/navigation";
-import { getNotifications } from "@/lib/api";
+import {
+  cancelAccountDeletion,
+  getAuthenticationSession,
+  getNotifications,
+  logoutAllAuthenticationSessions,
+} from "@/lib/api";
 import { INBOX_UPDATED_EVENT, unreadNotificationCount } from "@/lib/inbox";
 
 function InboxState({ count, status }: Readonly<{ count: number | null; status: "loading" | "ready" | "error" }>) {
@@ -34,6 +40,9 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
   const [inboxCount, setInboxCount] = useState<number | null>(null);
   const [inboxStatus, setInboxStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [authSession, setAuthSession] = useState<AuthenticationSessionResponse | null>(null);
+  const [authStatus, setAuthStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [authActionPending, setAuthActionPending] = useState(false);
   const activeSection = getActiveSection(pathname);
   const activeMobileSection = getActiveMobileSection(pathname);
   const activeLabel =
@@ -51,6 +60,23 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
       setInboxStatus("error");
     }
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    getAuthenticationSession()
+      .then((session) => {
+        if (active) {
+          setAuthSession(session);
+          setAuthStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (active) setAuthStatus("error");
+      });
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let active = true;
@@ -74,6 +100,69 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
       window.removeEventListener(INBOX_UPDATED_EVENT, handleUpdate);
     };
   }, [pathname, refreshInboxState]);
+
+  const logoutAll = async () => {
+    setAuthActionPending(true);
+    try {
+      await logoutAllAuthenticationSessions();
+      setAuthSession((current) =>
+        current ? { ...current, authenticated: false } : current,
+      );
+      setInboxCount(null);
+      setInboxStatus("error");
+    } finally {
+      setAuthActionPending(false);
+    }
+  };
+
+  const restoreDeletionPendingAccount = async () => {
+    setAuthActionPending(true);
+    try {
+      await cancelAccountDeletion();
+      const session = await getAuthenticationSession();
+      setAuthSession(session);
+    } finally {
+      setAuthActionPending(false);
+    }
+  };
+
+  if (
+    authStatus === "ready" &&
+    authSession?.mode !== "legacy_owner" &&
+    !authSession?.authenticated
+  ) {
+    return (
+      <main className="authentication-boundary" id="main-content">
+        <p className="eyebrow">受控认证候选</p>
+        <h1>需要登录</h1>
+        <p>当前页面只接受已完成 OIDC 与 MFA 校验的短期应用会话。</p>
+        <p className="boundary-note">
+          9C 尚未连接真实 Clerk 应用，也未开放注册、真实邀请或账号恢复后门。
+        </p>
+      </main>
+    );
+  }
+
+  if (
+    authStatus === "ready" &&
+    authSession?.account_status === "deletion_pending"
+  ) {
+    return (
+      <main className="authentication-boundary" id="main-content">
+        <p className="eyebrow">账号删除等待期</p>
+        <h1>学习数据入口已暂停</h1>
+        <p>当前会话只能撤销删除；普通学习、设置和证据入口保持关闭。</p>
+        <button
+          className="primary-button"
+          disabled={authActionPending}
+          onClick={() => void restoreDeletionPendingAccount()}
+          type="button"
+        >
+          {authActionPending ? "处理中…" : "撤销删除申请"}
+        </button>
+      </main>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -104,7 +193,22 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             ))}
           </ul>
         </nav>
-        <p className="sidebar-boundary">完成进度与掌握证据始终分开显示。</p>
+        <div className="sidebar-boundary">
+          <p>完成进度与掌握证据始终分开显示。</p>
+          {authSession?.mode !== "legacy_owner" && authSession?.authenticated ? (
+            <div className="session-summary">
+              <span>受控会话 · {authSession.role === "owner_operator" ? "所有者" : "用户"}</span>
+              <button
+                className="text-button"
+                disabled={authActionPending}
+                onClick={() => void logoutAll()}
+                type="button"
+              >
+                退出所有设备
+              </button>
+            </div>
+          ) : null}
+        </div>
       </aside>
 
       <div className="app-content">
