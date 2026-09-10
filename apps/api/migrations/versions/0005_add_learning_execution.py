@@ -20,7 +20,7 @@ _PLANNING_STATUS_0005 = "status IN ('draft', 'saved_preview', 'rejected', 'froze
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("planning_proposals", recreate="always") as batch_op:
+    with op.batch_alter_table("planning_proposals", recreate="auto") as batch_op:
         batch_op.drop_constraint("ck_planning_proposals_status", type_="check")
         batch_op.create_check_constraint(
             "ck_planning_proposals_status",
@@ -507,7 +507,7 @@ def downgrade() -> None:
         WHERE status = 'frozen_preview'
         """
     )
-    with op.batch_alter_table("planning_proposals", recreate="always") as batch_op:
+    with op.batch_alter_table("planning_proposals", recreate="auto") as batch_op:
         batch_op.drop_constraint("ck_planning_proposals_status", type_="check")
         batch_op.create_check_constraint(
             "ck_planning_proposals_status",

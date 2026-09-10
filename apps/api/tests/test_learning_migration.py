@@ -69,7 +69,7 @@ def test_existing_milestone_three_database_upgrades_to_indeterminate_status(
 
     command.upgrade(config, "head")
 
-    assert read_schema_version(database_path) == "0011"
+    assert read_schema_version(database_path) == "0015"
     engine = create_database_engine(database_path)
     try:
         with engine.begin() as connection:
@@ -232,10 +232,11 @@ def test_readiness_5a_migration_enforces_immutable_versions_and_status_ceiling(
                 text(
                     """
                     INSERT INTO user_goal_selections (
-                        id, skill_id, skill_version, capability_scope_id,
+                        id, user_id, skill_id, skill_version, capability_scope_id,
                         goal_kind, custom_label, created_at, superseded_at
                     ) VALUES (
-                        'goal-1', 'algorithm', '0.2.0',
+                        'goal-1', '8f369a6e-8b7d-4a45-9f40-39bcfd6ac789',
+                        'algorithm', '0.2.0',
                         'algorithm-entry-mastery-scope', 'learning', NULL,
                         '2026-07-29 08:00:00', NULL
                     )
@@ -264,12 +265,13 @@ def test_readiness_5a_migration_enforces_immutable_versions_and_status_ceiling(
                 text(
                     """
                     INSERT INTO readiness_evaluations (
-                        id, goal_selection_id, learning_run_id,
+                        id, user_id, goal_selection_id, learning_run_id,
                         policy_snapshot_id, market_snapshot_id, status,
                         reason_codes_json, evidence_snapshot_json,
                         limitations_json, input_sha256, created_at
                     ) VALUES (
-                        'evaluation-1', 'goal-1', NULL, 'policy-1', NULL,
+                        'evaluation-1', '8f369a6e-8b7d-4a45-9f40-39bcfd6ac789',
+                        'goal-1', NULL, 'policy-1', NULL,
                         'experiment_ready', '["unexpected"]', '{}', '[]',
                         :digest, '2026-07-29 08:02:00'
                     )

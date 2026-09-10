@@ -37,6 +37,7 @@ from cloud_study_api.models import (
     MarketResearchSynthesisAttempt,
     ReadinessEvaluation,
     UserGoalSelection,
+    UserSettings,
     utc_now,
 )
 
@@ -1167,8 +1168,14 @@ class MarketResearchService:
                     "market_research_not_synthesis_pending",
                     "当前研究状态不允许 AI 综合。",
                 )
-            settings = database.get(AppSettings, 1)
-            if settings is None or not settings.external_ai_enabled:
+            settings = database.scalar(select(UserSettings))
+            global_settings = database.get(AppSettings, 1)
+            if (
+                settings is None
+                or global_settings is None
+                or not settings.external_ai_enabled
+                or not global_settings.external_ai_enabled
+            ):
                 raise MarketResearchError(
                     409,
                     "external_ai_disabled",
@@ -1595,8 +1602,14 @@ class MarketResearchService:
                     "market_research_not_synthesis_pending",
                     "当前研究状态不允许 AI 综合。",
                 )
-            settings = database.get(AppSettings, 1)
-            if settings is None or not settings.external_ai_enabled:
+            settings = database.scalar(select(UserSettings))
+            global_settings = database.get(AppSettings, 1)
+            if (
+                settings is None
+                or global_settings is None
+                or not settings.external_ai_enabled
+                or not global_settings.external_ai_enabled
+            ):
                 raise MarketResearchError(
                     409,
                     "external_ai_disabled",

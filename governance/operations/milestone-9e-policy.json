@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "policy_version": "milestone-9e-candidate@1.0.0",
+  "status": "synthetic_candidate_only",
+  "real_user_ready": false,
+  "support": {
+    "timezone": "Asia/Shanghai",
+    "working_hours": "工作日 10:00–18:00",
+    "routes": {
+      "product_support": {"owner": "owner_operator", "first_response_workdays": 2},
+      "account_recovery": {"owner": "owner_operator", "first_response_workdays": 2},
+      "security_vulnerability": {"owner": "owner_operator", "first_response_workdays": 1},
+      "privacy_request": {"owner": "owner_operator", "first_response_workdays": 1},
+      "content_correction": {"owner": "owner_operator", "first_response_workdays": 2},
+      "abuse_appeal": {"owner": "owner_operator", "first_response_workdays": 2}
+    },
+    "allowed_fields": ["category", "summary", "description"],
+    "attachments_enabled": false,
+    "retention_days_after_close": 90,
+    "normal_access_max_minutes": 60,
+    "emergency_access_max_minutes": 30,
+    "normal_access_confirmations": ["support_restricted_request", "owner_operator_approval"],
+    "emergency_access": {
+      "scope": "ticket_metadata",
+      "incident_reference_required": true,
+      "post_notice_required": true
+    }
+  },
+  "quotas": {
+    "login": {"window_seconds": 600, "per_user": 20, "global": 200, "concurrency": 10, "timeout_seconds": 30},
+    "runner": {"window_seconds": 3600, "per_user": 20, "global": 100, "concurrency": 1, "timeout_seconds": 20},
+    "export": {"window_seconds": 86400, "per_user": 3, "global": 30, "concurrency": 1, "timeout_seconds": 120},
+    "search": {"window_seconds": 600, "per_user": 60, "global": 600, "concurrency": 4, "timeout_seconds": 15},
+    "notifications": {"window_seconds": 86400, "per_user": 100, "global": 1000, "concurrency": 4, "timeout_seconds": 30},
+    "future_ai": {"window_seconds": 86400, "per_user": 0, "global": 0, "concurrency": 0, "timeout_seconds": 0}
+  },
+  "cost": {
+    "expected_monthly_cny": 300,
+    "hard_limit_monthly_cny": 500,
+    "alert_50_cny": 250,
+    "alert_80_cny": 400,
+    "known_current_monthly_cny": 30,
+    "unknown_recurring_costs": false,
+    "automatic_recharge": false,
+    "automatic_scaling": false,
+    "email_budget_cny": 0,
+    "external_ai_budget_cny": 0,
+    "external_sources_budget_cny": 0
+  },
+  "observability": {
+    "retention_days": 7,
+    "principal_identifier": "sha256_internal_user_id",
+    "allowed_fields": ["principal_hash", "action", "outcome", "reason_code", "status_code", "occurred_at"],
+    "forbidden_fields": ["learning_text", "code", "token", "email", "private_url", "support_description"]
+  },
+  "hard_stop_events": [
+    "cross_user_disclosure",
+    "account_takeover",
+    "deletion_failure",
+    "unpriceable_cost",
+    "runner_isolation_failure"
+  ],
+  "blocking_reasons": [
+    "synthetic_candidate_only",
+    "private_support_and_privacy_contact_not_configured",
+    "professional_privacy_and_security_review_pending",
+    "real_identity_provider_not_activated",
+    "9f_candidate_acceptance_not_completed",
+    "9g_real_user_authorization_not_granted"
+  ]
+}
