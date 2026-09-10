@@ -812,7 +812,7 @@ def test_latest_migration_upgrades_and_downgrades_cleanly(tmp_path: Path) -> Non
     )
     command.upgrade(config, "0009")
     command.upgrade(config, "head")
-    assert read_schema_version(database_path) == "0014"
+    assert read_schema_version(database_path) == "0015"
     engine = create_database_engine(database_path)
     try:
         assert "monetization_experiments" in inspect(engine).get_table_names()

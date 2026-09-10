@@ -308,6 +308,46 @@
         "title": "AiProviderResponse",
         "type": "object"
       },
+      "AuditChainResponse": {
+        "properties": {
+          "event_count": {
+            "title": "Event Count",
+            "type": "integer"
+          },
+          "failed_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Event Id"
+          },
+          "head_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head Hash"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "event_count"
+        ],
+        "title": "AuditChainResponse",
+        "type": "object"
+      },
       "AuthenticationActionResponse": {
         "properties": {
           "status": {
@@ -1380,6 +1420,19 @@
           "response_kind"
         ],
         "title": "CorrectAnswerRequest",
+        "type": "object"
+      },
+      "CountResponse": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "CountResponse",
         "type": "object"
       },
       "CreateAiProviderProfileRequest": {
@@ -2645,6 +2698,51 @@
           "failed"
         ],
         "title": "EmailOutboxProcessResponse",
+        "type": "object"
+      },
+      "EmergencySupportAccessRequest": {
+        "properties": {
+          "case_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Case Id",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "incident_reference": {
+            "maxLength": 80,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9_.:-]+$",
+            "title": "Incident Reference",
+            "type": "string"
+          },
+          "reason_code": {
+            "maxLength": 80,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9_.:-]+$",
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "support_user_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Support User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "support_user_id",
+          "incident_reference",
+          "reason_code",
+          "duration_minutes"
+        ],
+        "title": "EmergencySupportAccessRequest",
         "type": "object"
       },
       "ExecuteRunnerAttemptResponse": {
@@ -5471,6 +5569,153 @@
         "title": "NotificationResponse",
         "type": "object"
       },
+      "OperationsControlResponse": {
+        "properties": {
+          "email_enabled": {
+            "title": "Email Enabled",
+            "type": "boolean"
+          },
+          "external_ai_enabled": {
+            "title": "External Ai Enabled",
+            "type": "boolean"
+          },
+          "external_sources_enabled": {
+            "title": "External Sources Enabled",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "invitations_enabled": {
+            "title": "Invitations Enabled",
+            "type": "boolean"
+          },
+          "reason_code": {
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "runner_enabled": {
+            "title": "Runner Enabled",
+            "type": "boolean"
+          },
+          "service_mode": {
+            "enum": [
+              "normal",
+              "read_only",
+              "stopped"
+            ],
+            "title": "Service Mode",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "updated_by_user_id": {
+            "title": "Updated By User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "service_mode",
+          "invitations_enabled",
+          "runner_enabled",
+          "external_ai_enabled",
+          "external_sources_enabled",
+          "email_enabled",
+          "revision",
+          "reason_code",
+          "updated_by_user_id",
+          "updated_at"
+        ],
+        "title": "OperationsControlResponse",
+        "type": "object"
+      },
+      "OperationsOverviewResponse": {
+        "properties": {
+          "blocking_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocking Reasons",
+            "type": "array"
+          },
+          "controls": {
+            "$ref": "#/components/schemas/OperationsControlResponse"
+          },
+          "cost": {
+            "additionalProperties": true,
+            "title": "Cost",
+            "type": "object"
+          },
+          "hard_stop_events": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hard Stop Events",
+            "type": "array"
+          },
+          "observability": {
+            "additionalProperties": true,
+            "title": "Observability",
+            "type": "object"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "quotas": {
+            "additionalProperties": true,
+            "title": "Quotas",
+            "type": "object"
+          },
+          "real_user_ready": {
+            "title": "Real User Ready",
+            "type": "boolean"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "owner_operator",
+              "support_restricted"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "const": "synthetic_candidate_only",
+            "title": "Status",
+            "type": "string"
+          },
+          "support": {
+            "additionalProperties": true,
+            "title": "Support",
+            "type": "object"
+          }
+        },
+        "required": [
+          "policy_version",
+          "status",
+          "real_user_ready",
+          "role",
+          "support",
+          "controls",
+          "quotas",
+          "cost",
+          "observability",
+          "hard_stop_events",
+          "blocking_reasons"
+        ],
+        "title": "OperationsOverviewResponse",
+        "type": "object"
+      },
       "PathComparisonDecisionResponse": {
         "properties": {
           "comparison_id": {
@@ -6544,6 +6789,22 @@
           "events"
         ],
         "title": "ReadinessHistoryResponse",
+        "type": "object"
+      },
+      "ReasonCodeRequest": {
+        "properties": {
+          "reason_code": {
+            "maxLength": 80,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9_.:-]+$",
+            "title": "Reason Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason_code"
+        ],
+        "title": "ReasonCodeRequest",
         "type": "object"
       },
       "ReconcileMarketResearchRequest": {
@@ -7991,6 +8252,308 @@
         "title": "SubmitAnswerRequest",
         "type": "object"
       },
+      "SupportAccessGrantResponse": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "emergency": {
+            "title": "Emergency",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Reference"
+          },
+          "post_notice_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Post Notice At"
+          },
+          "post_notice_pending": {
+            "title": "Post Notice Pending",
+            "type": "boolean"
+          },
+          "reason_code": {
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "scope": {
+            "enum": [
+              "ticket_metadata",
+              "case_content"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "requested",
+              "active",
+              "denied",
+              "revoked",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "status",
+          "scope",
+          "reason_code",
+          "emergency",
+          "incident_reference",
+          "requested_at",
+          "approved_at",
+          "expires_at",
+          "revoked_at",
+          "post_notice_at",
+          "post_notice_pending"
+        ],
+        "title": "SupportAccessGrantResponse",
+        "type": "object"
+      },
+      "SupportAccessRequest": {
+        "properties": {
+          "case_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Case Id",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "reason_code": {
+            "maxLength": 80,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9_.:-]+$",
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "ticket_metadata",
+              "case_content"
+            ],
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "scope",
+          "reason_code",
+          "duration_minutes"
+        ],
+        "title": "SupportAccessRequest",
+        "type": "object"
+      },
+      "SupportCaseRequest": {
+        "properties": {
+          "category": {
+            "enum": [
+              "product_support",
+              "account_recovery",
+              "security_vulnerability",
+              "privacy_request",
+              "content_correction",
+              "abuse_appeal"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 4000,
+            "minLength": 3,
+            "title": "Description",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "summary",
+          "description"
+        ],
+        "title": "SupportCaseRequest",
+        "type": "object"
+      },
+      "SupportCaseResponse": {
+        "properties": {
+          "access_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Expires At"
+          },
+          "access_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Scope"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "content_visible": {
+            "title": "Content Visible",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "waiting_user",
+              "resolved",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "status",
+          "created_at",
+          "updated_at",
+          "closed_at",
+          "content_visible"
+        ],
+        "title": "SupportCaseResponse",
+        "type": "object"
+      },
       "SynthesizeMarketResearchRequest": {
         "additionalProperties": false,
         "properties": {
@@ -8203,6 +8766,93 @@
           "smtp_security"
         ],
         "title": "UpdateNotificationPreferenceRequest",
+        "type": "object"
+      },
+      "UpdateOperationsControlRequest": {
+        "properties": {
+          "email_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Enabled"
+          },
+          "external_ai_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ai Enabled"
+          },
+          "external_sources_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Sources Enabled"
+          },
+          "invitations_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invitations Enabled"
+          },
+          "reason_code": {
+            "maxLength": 80,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9_.:-]+$",
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "runner_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner Enabled"
+          },
+          "service_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "normal",
+                  "read_only",
+                  "stopped"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Mode"
+          }
+        },
+        "required": [
+          "reason_code"
+        ],
+        "title": "UpdateOperationsControlRequest",
         "type": "object"
       },
       "UpdatePlanningStatusRequest": {
@@ -11582,6 +12232,307 @@
         ]
       }
     },
+    "/operations/accounts/{user_id}/sessions/revoke-all": {
+      "post": {
+        "operationId": "revoke_all_user_sessions_operations_accounts__user_id__sessions_revoke_all_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke All User Sessions",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/audit/verify": {
+      "get": {
+        "operationId": "verify_operations_audit_operations_audit_verify_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditChainResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Verify Operations Audit",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/controls": {
+      "put": {
+        "operationId": "update_operations_controls_operations_controls_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOperationsControlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsControlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Operations Controls",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/invitations/revoke-all": {
+      "post": {
+        "operationId": "revoke_all_operations_invitations_operations_invitations_revoke_all_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke All Operations Invitations",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/status": {
+      "get": {
+        "operationId": "get_operations_status_operations_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Operations Status",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/support/access-requests/{grant_id}/approve": {
+      "post": {
+        "operationId": "approve_support_access_operations_support_access_requests__grant_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "title": "Grant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportAccessGrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Support Access",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/support/access-requests/{grant_id}/post-notice": {
+      "post": {
+        "operationId": "mark_emergency_support_notice_operations_support_access_requests__grant_id__post_notice_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "title": "Grant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportAccessGrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Emergency Support Notice",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
+    "/operations/support/emergency-access": {
+      "post": {
+        "operationId": "create_emergency_support_access_operations_support_emergency_access_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencySupportAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportAccessGrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Emergency Support Access",
+        "tags": [
+          "operations-9e"
+        ]
+      }
+    },
     "/planning-proposals": {
       "post": {
         "operationId": "create_planning_proposal_planning_proposals_post",
@@ -12841,6 +13792,228 @@
         "summary": "Create Source Check Run",
         "tags": [
           "sources"
+        ]
+      }
+    },
+    "/support/access-requests": {
+      "get": {
+        "operationId": "list_support_access_requests_support_access_requests_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SupportAccessGrantResponse"
+                  },
+                  "title": "Response List Support Access Requests Support Access Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Support Access Requests",
+        "tags": [
+          "support-9e"
+        ]
+      },
+      "post": {
+        "operationId": "request_support_access_support_access_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportAccessGrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Support Access",
+        "tags": [
+          "support-9e"
+        ]
+      }
+    },
+    "/support/access-requests/{grant_id}/revoke": {
+      "post": {
+        "operationId": "revoke_support_access_support_access_requests__grant_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "title": "Grant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportAccessGrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Support Access",
+        "tags": [
+          "support-9e"
+        ]
+      }
+    },
+    "/support/access-requests/{grant_id}/view": {
+      "post": {
+        "operationId": "view_support_case_with_grant_support_access_requests__grant_id__view_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "title": "Grant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportCaseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View Support Case With Grant",
+        "tags": [
+          "support-9e"
+        ]
+      }
+    },
+    "/support/cases": {
+      "get": {
+        "operationId": "list_support_cases_support_cases_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SupportCaseResponse"
+                  },
+                  "title": "Response List Support Cases Support Cases Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Support Cases",
+        "tags": [
+          "support-9e"
+        ]
+      },
+      "post": {
+        "operationId": "create_support_case_support_cases_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportCaseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Support Case",
+        "tags": [
+          "support-9e"
         ]
       }
     }

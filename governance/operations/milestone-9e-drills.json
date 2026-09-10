@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "record_version": "milestone-9e-tabletop@1.0.0",
+  "performed_at": "2026-09-09T16:00:00+08:00",
+  "environment": "local synthetic identities and synthetic data only",
+  "limitations": [
+    "No real Clerk tenant, email channel, cloud change, personal data or paid resource was used.",
+    "Tabletop and deterministic tests do not constitute a security or compliance certification.",
+    "Backup RPO/RTO and remote Runner evidence remain the previously accepted 6D evidence and must be rerun in 9F."
+  ],
+  "drills": [
+    {"incident": "security_vulnerability", "owner": "owner_operator", "result": "passed", "evidence": "support category routing and service stop control"},
+    {"incident": "dependency_or_image_update", "owner": "owner_operator", "result": "passed", "evidence": "locked dependency and Runner digest gates remain mandatory"},
+    {"incident": "credential_rotation", "owner": "owner_operator", "result": "passed", "evidence": "all-session revocation control and no-secret logging rule"},
+    {"incident": "identity_provider_outage", "owner": "owner_operator", "result": "passed", "evidence": "fail-closed rule; invitation stop and no provider/model fallback"},
+    {"incident": "cross_user_disclosure", "owner": "owner_operator", "result": "passed", "evidence": "full stop, invitation stop, session revocation and append-only audit path"},
+    {"incident": "runner_isolation_failure", "owner": "owner_operator", "result": "passed", "evidence": "independent Runner kill switch and existing labeled-resource cleanup boundary"},
+    {"incident": "backup_failure", "owner": "owner_operator", "result": "passed", "evidence": "read-only mode and 24-hour RPO / 4-hour RTO escalation rule"},
+    {"incident": "capacity_exhaustion", "owner": "owner_operator", "result": "passed", "evidence": "per-user/global quotas, concurrency rejection and no-auto-scale rule"},
+    {"incident": "supplier_exit", "owner": "owner_operator", "result": "passed", "evidence": "feature stop, export-first exit and no silent supplier substitution"}
+  ]
+}

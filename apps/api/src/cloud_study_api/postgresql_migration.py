@@ -13,7 +13,7 @@ from cloud_study_api.database import create_database_engine, create_postgresql_e
 from cloud_study_api.models import Base
 
 SYNTHETIC_DATABASE_NAME = "cloud_study_synthetic_9b"
-CURRENT_SCHEMA_REVISION = "0013"
+CURRENT_SCHEMA_REVISION = "0015"
 
 
 class PostgreSqlMigrationError(RuntimeError):

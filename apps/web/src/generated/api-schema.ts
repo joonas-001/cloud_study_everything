@@ -54,6 +54,13 @@ export interface AiProviderResponse {
   status_note: string;
 }
 
+export interface AuditChainResponse {
+  event_count: number;
+  failed_event_id?: string | null;
+  head_hash?: string | null;
+  valid: boolean;
+}
+
 export interface AuthenticationActionResponse {
   status?: string;
 }
@@ -244,6 +251,10 @@ export interface CapabilityScopeResponse {
 export interface CorrectAnswerRequest {
   content?: string | null;
   response_kind: "answered" | "skipped" | "uncertain";
+}
+
+export interface CountResponse {
+  count: number;
 }
 
 export interface CreateAiProviderProfileRequest {
@@ -458,6 +469,14 @@ export interface EmailOutboxProcessResponse {
   cancelled: number;
   failed: number;
   sent: number;
+}
+
+export interface EmergencySupportAccessRequest {
+  case_id: string;
+  duration_minutes: number;
+  incident_reference: string;
+  reason_code: string;
+  support_user_id: string;
 }
 
 export interface ExecuteRunnerAttemptResponse {
@@ -895,6 +914,34 @@ export interface NotificationResponse {
   title: string;
 }
 
+export interface OperationsControlResponse {
+  email_enabled: boolean;
+  external_ai_enabled: boolean;
+  external_sources_enabled: boolean;
+  id: number;
+  invitations_enabled: boolean;
+  reason_code: string;
+  revision: number;
+  runner_enabled: boolean;
+  service_mode: "normal" | "read_only" | "stopped";
+  updated_at: string;
+  updated_by_user_id: string;
+}
+
+export interface OperationsOverviewResponse {
+  blocking_reasons: Array<string>;
+  controls: OperationsControlResponse;
+  cost: Record<string, unknown>;
+  hard_stop_events: Array<string>;
+  observability: Record<string, unknown>;
+  policy_version: string;
+  quotas: Record<string, unknown>;
+  real_user_ready: boolean;
+  role: "user" | "owner_operator" | "support_restricted";
+  status: string;
+  support: Record<string, unknown>;
+}
+
 export interface PathComparisonDecisionResponse {
   comparison_id: string;
   created_at: string;
@@ -1087,6 +1134,10 @@ export interface ReadinessHistoryResponse {
   evaluations: Array<ReadinessEvaluationResponse>;
   events: Array<Record<string, unknown>>;
   goal: UserGoalResponse;
+}
+
+export interface ReasonCodeRequest {
+  reason_code: string;
 }
 
 export interface ReconcileMarketResearchRequest {
@@ -1335,6 +1386,49 @@ export interface SubmitAnswerRequest {
   response_kind: "answered" | "skipped" | "uncertain";
 }
 
+export interface SupportAccessGrantResponse {
+  approved_at: string | null;
+  case_id: string | null;
+  emergency: boolean;
+  expires_at: string;
+  id: string;
+  incident_reference: string | null;
+  post_notice_at: string | null;
+  post_notice_pending: boolean;
+  reason_code: string;
+  requested_at: string;
+  revoked_at: string | null;
+  scope: "ticket_metadata" | "case_content";
+  status: "requested" | "active" | "denied" | "revoked" | "expired";
+}
+
+export interface SupportAccessRequest {
+  case_id: string;
+  duration_minutes: number;
+  reason_code: string;
+  scope: "ticket_metadata" | "case_content";
+}
+
+export interface SupportCaseRequest {
+  category: "product_support" | "account_recovery" | "security_vulnerability" | "privacy_request" | "content_correction" | "abuse_appeal";
+  description: string;
+  summary: string;
+}
+
+export interface SupportCaseResponse {
+  access_expires_at?: string | null;
+  access_scope?: string | null;
+  category: string;
+  closed_at: string | null;
+  content_visible: boolean;
+  created_at: string;
+  description?: string | null;
+  id: string;
+  status: "open" | "waiting_user" | "resolved" | "closed";
+  summary?: string | null;
+  updated_at: string;
+}
+
 export interface SynthesizeMarketResearchRequest {
   confirm_external_ai: boolean;
 }
@@ -1368,6 +1462,16 @@ export interface UpdateNotificationPreferenceRequest {
   smtp_port?: number | null;
   smtp_security: "starttls" | "ssl";
   smtp_username?: string | null;
+}
+
+export interface UpdateOperationsControlRequest {
+  email_enabled?: boolean | null;
+  external_ai_enabled?: boolean | null;
+  external_sources_enabled?: boolean | null;
+  invitations_enabled?: boolean | null;
+  reason_code: string;
+  runner_enabled?: boolean | null;
+  service_mode?: "normal" | "read_only" | "stopped" | null;
 }
 
 export interface UpdatePlanningStatusRequest {

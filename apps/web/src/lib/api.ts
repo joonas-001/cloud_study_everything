@@ -23,6 +23,8 @@ import type {
   EmailOutboxProcessResponse,
   NotificationPreferenceResponse,
   NotificationResponse,
+  OperationsControlResponse,
+  OperationsOverviewResponse,
   PlanningProposalResponse,
   PlanningOptionResponse,
   LearningEvidenceResponse,
@@ -39,6 +41,7 @@ import type {
   PrivacyDeletionJobResponse,
   PrivacyExportResponse,
   PrivacyOverviewResponse,
+  ReasonCodeRequest,
   PrivacyCorrectionRequest,
   AcceptPrivacyPoliciesRequest,
   UpdatePrivacyChoicesRequest,
@@ -49,6 +52,9 @@ import type {
   SourceChangeCandidateResponse,
   SourceCheckRunResponse,
   SubmitAnswerRequest,
+  SupportAccessGrantResponse,
+  SupportCaseRequest,
+  SupportCaseResponse,
   SubmitActivityAttemptRequest,
   SelfReviewAttemptRequest,
   SelfReviewAttemptResponse,
@@ -83,6 +89,7 @@ import type {
   UpdatePlanningStatusRequest,
   UpdatePlanningUnitRequest,
   UpdatePrivacySettingsRequest,
+  UpdateOperationsControlRequest,
   UserGoalResponse,
 } from "@/generated/api-schema";
 
@@ -208,6 +215,56 @@ export function createPrivacyDeletionJob(): Promise<PrivacyDeletionJobResponse> 
 
 export function cancelPrivacyDeletionJob(): Promise<PrivacyDeletionJobResponse> {
   return request("/privacy/deletion-jobs/current/cancel", { method: "POST" });
+}
+
+export function getOperationsOverview(): Promise<OperationsOverviewResponse> {
+  return request("/operations/status");
+}
+
+export function updateOperationsControls(
+  payload: UpdateOperationsControlRequest,
+): Promise<OperationsControlResponse> {
+  return request("/operations/controls", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getSupportCases(): Promise<Array<SupportCaseResponse>> {
+  return request("/support/cases");
+}
+
+export function createSupportCase(
+  payload: SupportCaseRequest,
+): Promise<SupportCaseResponse> {
+  return request("/support/cases", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getSupportAccessRequests(): Promise<
+  Array<SupportAccessGrantResponse>
+> {
+  return request("/support/access-requests");
+}
+
+export function approveSupportAccess(
+  grantId: string,
+): Promise<SupportAccessGrantResponse> {
+  return request(`/operations/support/access-requests/${grantId}/approve`, {
+    method: "POST",
+  });
+}
+
+export function revokeSupportAccess(
+  grantId: string,
+  payload: ReasonCodeRequest,
+): Promise<SupportAccessGrantResponse> {
+  return request(`/support/access-requests/${grantId}/revoke`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function previewIssueReport(

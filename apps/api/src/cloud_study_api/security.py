@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from cloud_study_api.authentication import AuthenticationError
 from cloud_study_api.config import Settings
 from cloud_study_api.identity import IdentityError
+from cloud_study_api.operations import OperationsError, OperationsService
 from cloud_study_api.principals import LEGACY_OWNER_PRINCIPAL, Principal, principal_scope
 
 RequestHandler = Callable[[Request], Awaitable[Response]]
@@ -24,6 +25,7 @@ PUBLIC_AUTH_PATHS = {
 TAILSCALE_LOGIN_HEADER = "Tailscale-User-Login"
 SYNTHETIC_ISSUER_HEADER = "X-Cloud-Study-Synthetic-Issuer"
 SYNTHETIC_SUBJECT_HEADER = "X-Cloud-Study-Synthetic-Subject"
+SUPPORT_ALLOWED_PREFIXES = ("/support/access-requests", "/operations/status")
 
 
 def _error(status_code: int, code: str, message: str) -> JSONResponse:
@@ -94,7 +96,9 @@ async def enforce_deployment_security(request: Request, call_next: RequestHandle
                 return response
             principal = auth_session.principal
             request.state.auth_session = auth_session
-            if principal.role == "support_restricted":
+            if principal.role == "support_restricted" and not request.url.path.startswith(
+                SUPPORT_ALLOWED_PREFIXES
+            ):
                 response = _error(
                     403,
                     "role_access_denied",
@@ -143,7 +147,9 @@ async def enforce_deployment_security(request: Request, call_next: RequestHandle
             response = _error(error.status_code, error.code, str(error))
             _apply_security_headers(response, private_preview=False)
             return response
-        if principal.role == "support_restricted":
+        if principal.role == "support_restricted" and not request.url.path.startswith(
+            SUPPORT_ALLOWED_PREFIXES
+        ):
             response = _error(
                 403,
                 "role_access_denied",
@@ -154,7 +160,21 @@ async def enforce_deployment_security(request: Request, call_next: RequestHandle
         request.state.synthetic_identity = True
 
     request.state.principal = principal
+    operations: OperationsService = request.app.state.operations_service
     with principal_scope(principal):
-        final_response = await call_next(request)
+        try:
+            reservation = operations.authorize_request(
+                request.url.path, request.method.upper(), principal
+            )
+        except OperationsError as error:
+            response = _error(error.status_code, error.code, str(error))
+            _apply_security_headers(response, private_preview=private_preview)
+            return response
+        try:
+            final_response = await call_next(request)
+        except Exception:
+            operations.release_request(reservation, principal, status_code=500)
+            raise
+        operations.release_request(reservation, principal, status_code=final_response.status_code)
     _apply_security_headers(final_response, private_preview=private_preview)
     return final_response

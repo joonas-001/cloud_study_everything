@@ -327,6 +327,156 @@ class PrivacyDeletionTombstone(Base):
     last_reapplied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class SupportCase(UserOwnedMixin, Base):
+    __tablename__ = "support_cases"
+    __table_args__ = (
+        CheckConstraint(
+            "category IN ('product_support', 'account_recovery', 'security_vulnerability', "
+            "'privacy_request', 'content_correction', 'abuse_appeal')",
+            name="ck_support_cases_category",
+        ),
+        CheckConstraint(
+            "status IN ('open', 'waiting_user', 'resolved', 'closed')",
+            name="ck_support_cases_status",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    category: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="open")
+    summary: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SupportAccessGrant(Base):
+    __tablename__ = "support_access_grants"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('requested', 'active', 'denied', 'revoked', 'expired')",
+            name="ck_support_access_grants_status",
+        ),
+        CheckConstraint(
+            "scope IN ('ticket_metadata', 'case_content')",
+            name="ck_support_access_grants_scope",
+        ),
+        CheckConstraint(
+            "expires_at > requested_at",
+            name="ck_support_access_grants_positive_lifetime",
+        ),
+        CheckConstraint(
+            "(status != 'active') OR (approved_by_user_id IS NOT NULL AND approved_at IS NOT NULL)",
+            name="ck_support_access_grants_active_approval",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    case_id: Mapped[str] = mapped_column(
+        ForeignKey("support_cases.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    target_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    support_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    requested_by_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
+    )
+    approved_by_user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    scope: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(80), nullable=False)
+    incident_reference: Mapped[str | None] = mapped_column(String(80))
+    emergency: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    post_notice_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class OperationsControl(Base):
+    __tablename__ = "operations_controls"
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_operations_controls_singleton"),
+        CheckConstraint(
+            "service_mode IN ('normal', 'read_only', 'stopped')",
+            name="ck_operations_controls_service_mode",
+        ),
+        CheckConstraint("revision >= 1", name="ck_operations_controls_positive_revision"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    service_mode: Mapped[str] = mapped_column(String(24), nullable=False, default="normal")
+    invitations_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    runner_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    external_ai_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    external_sources_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    email_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    reason_code: Mapped[str] = mapped_column(String(80), nullable=False)
+    updated_by_user_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OperationsQuotaBucket(Base):
+    __tablename__ = "operations_quota_buckets"
+    __table_args__ = (
+        UniqueConstraint(
+            "capability", "principal_hash", name="uq_operations_quota_capability_principal"
+        ),
+        CheckConstraint("used_count >= 0", name="ck_operations_quota_nonnegative_usage"),
+        CheckConstraint("active_count >= 0", name="ck_operations_quota_nonnegative_active"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    capability: Mapped[str] = mapped_column(String(32), nullable=False)
+    principal_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    window_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    active_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OperationsAuditEvent(Base):
+    __tablename__ = "operations_audit_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    event_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    actor_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_hash: Mapped[str | None] = mapped_column(String(64))
+    case_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    grant_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    outcome: Mapped[str] = mapped_column(String(24), nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(80), nullable=False)
+    payload_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    previous_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    event_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+
+
+class OperationsMetric(Base):
+    __tablename__ = "operations_metrics"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    principal_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    action: Mapped[str] = mapped_column(String(40), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(24), nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(80), nullable=False)
+    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+
+
 class AppSettings(Base):
     __tablename__ = "app_settings"
     __table_args__ = (

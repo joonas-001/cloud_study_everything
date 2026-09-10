@@ -170,14 +170,20 @@ class PrivacyService:
         choices = []
         for definition in self._policy["optional_purposes"]:
             row = choice_rows.get(definition["purpose"])
+            enabled = row.enabled if row is not None else False
+            support_access_enabled = definition["purpose"] == "support_diagnostics" and enabled
             choices.append(
                 {
                     **definition,
-                    "enabled": row.enabled if row is not None else False,
+                    "enabled": enabled,
                     "notice_version": row.notice_version if row is not None else notice["version"],
                     "updated_at": row.updated_at if row is not None else None,
-                    "effective_enabled": False,
-                    "effective_reason": "9D 仅保存分项选择; 真实外部能力仍受独立门禁并保持关闭。",
+                    "effective_enabled": support_access_enabled,
+                    "effective_reason": (
+                        "9E 仅允许已双确认的本地工单正文访问;不会外发,也不开放普通用户数据。"
+                        if support_access_enabled
+                        else "真实外部能力仍受独立门禁并保持关闭。"
+                    ),
                 }
             )
         return {

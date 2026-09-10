@@ -1084,6 +1084,27 @@ select[aria-invalid="true"] {
   padding: clamp(24px, 4vw, 40px);
 }
 
+.operations-controls,
+.support-form,
+.support-grants {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.operations-controls small,
+.support-form small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.support-form textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
 .plan-editor,
 .settings-form {
   display: grid;

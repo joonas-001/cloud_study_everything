@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import { IssueReportPanel } from "@/components/issue-report-panel";
+import { OperationsCenter } from "@/components/operations-center";
 import { PrivacyCenter } from "@/components/privacy-center";
 import { StatusMessage } from "@/components/status-message";
 import type {
@@ -241,6 +242,8 @@ export function SystemSettings() {
       </section>
 
       <PrivacyCenter />
+
+      <OperationsCenter />
 
       <IssueReportPanel />
 

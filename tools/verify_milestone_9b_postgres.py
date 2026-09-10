@@ -184,8 +184,20 @@ def verify(
             with owner_engine.connect() as owner_connection:
                 policy_count = owner_connection.execute(
                     text(
-                        "SELECT COUNT(*) FROM pg_policies "
-                        "WHERE schemaname = 'public' AND policyname LIKE 'pl_%_user_isolation'"
+                        "SELECT COUNT(DISTINCT tablename) FROM pg_policies "
+                        "WHERE schemaname = 'public'"
+                    )
+                ).scalar_one()
+                support_rls_forced = owner_connection.execute(
+                    text(
+                        "SELECT relforcerowsecurity FROM pg_class "
+                        "WHERE relname = 'support_cases'"
+                    )
+                ).scalar_one()
+                immutable_audit_trigger_count = owner_connection.execute(
+                    text(
+                        "SELECT COUNT(*) FROM pg_trigger "
+                        "WHERE tgname = 'operations_audit_events_immutable' AND NOT tgisinternal"
                     )
                 ).scalar_one()
                 role = owner_connection.execute(
@@ -194,7 +206,9 @@ def verify(
                         "FROM pg_roles WHERE rolname = 'cloud_study_app'"
                     )
                 ).one()
-            assert policy_count == 40
+            assert policy_count == 44
+            assert support_rls_forced is True
+            assert immutable_audit_trigger_count == 1
             assert role == (False, False, False)
         finally:
             owner_engine.dispose()
@@ -207,6 +221,8 @@ def verify(
             "source_unchanged": migration["source_unchanged"],
             "target_digest_verified": migration["target_verified"],
             "rls_policy_count": policy_count,
+            "support_rls_forced": support_rls_forced,
+            "immutable_audit_trigger_count": immutable_audit_trigger_count,
             "application_role_superuser": role[0],
             "application_role_create_database": role[1],
             "application_role_create_role": role[2],

@@ -31,6 +31,7 @@ from cloud_study_api.issue_reporting import (
 from cloud_study_api.learning import LearningError, LearningService
 from cloud_study_api.market_research import MarketResearchError, MarketResearchService
 from cloud_study_api.notifications import NotificationError, NotificationService
+from cloud_study_api.operations import OperationsError, OperationsService
 from cloud_study_api.principals import LEGACY_OWNER_PRINCIPAL
 from cloud_study_api.privacy import PrivacyError, PrivacyService
 from cloud_study_api.readiness import ReadinessError, ReadinessService
@@ -81,6 +82,117 @@ class AuthenticationActionResponse(BaseModel):
 
 class SetAccountAvailabilityRequest(BaseModel):
     status: Literal["active", "suspended"]
+
+
+class SupportCaseRequest(BaseModel):
+    category: Literal[
+        "product_support",
+        "account_recovery",
+        "security_vulnerability",
+        "privacy_request",
+        "content_correction",
+        "abuse_appeal",
+    ]
+    summary: str = Field(min_length=3, max_length=160)
+    description: str = Field(min_length=3, max_length=4000)
+
+
+class SupportCaseResponse(BaseModel):
+    id: str
+    category: str
+    status: Literal["open", "waiting_user", "resolved", "closed"]
+    summary: str | None = None
+    description: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    closed_at: datetime | None
+    content_visible: bool
+    access_scope: str | None = None
+    access_expires_at: datetime | None = None
+
+
+class SupportAccessRequest(BaseModel):
+    case_id: str = Field(min_length=36, max_length=36)
+    scope: Literal["ticket_metadata", "case_content"]
+    reason_code: str = Field(min_length=3, max_length=80, pattern=r"^[a-z0-9][a-z0-9_.:-]+$")
+    duration_minutes: int = Field(ge=1, le=60)
+
+
+class EmergencySupportAccessRequest(BaseModel):
+    case_id: str = Field(min_length=36, max_length=36)
+    support_user_id: str = Field(min_length=36, max_length=36)
+    incident_reference: str = Field(min_length=3, max_length=80, pattern=r"^[a-z0-9][a-z0-9_.:-]+$")
+    reason_code: str = Field(min_length=3, max_length=80, pattern=r"^[a-z0-9][a-z0-9_.:-]+$")
+    duration_minutes: int = Field(ge=1, le=30)
+
+
+class ReasonCodeRequest(BaseModel):
+    reason_code: str = Field(min_length=3, max_length=80, pattern=r"^[a-z0-9][a-z0-9_.:-]+$")
+
+
+class SupportAccessGrantResponse(BaseModel):
+    id: str
+    case_id: str | None
+    status: Literal["requested", "active", "denied", "revoked", "expired"]
+    scope: Literal["ticket_metadata", "case_content"]
+    reason_code: str
+    emergency: bool
+    incident_reference: str | None
+    requested_at: datetime
+    approved_at: datetime | None
+    expires_at: datetime
+    revoked_at: datetime | None
+    post_notice_at: datetime | None
+    post_notice_pending: bool
+
+
+class OperationsControlResponse(BaseModel):
+    id: int
+    service_mode: Literal["normal", "read_only", "stopped"]
+    invitations_enabled: bool
+    runner_enabled: bool
+    external_ai_enabled: bool
+    external_sources_enabled: bool
+    email_enabled: bool
+    revision: int
+    reason_code: str
+    updated_by_user_id: str
+    updated_at: datetime
+
+
+class UpdateOperationsControlRequest(BaseModel):
+    service_mode: Literal["normal", "read_only", "stopped"] | None = None
+    invitations_enabled: bool | None = None
+    runner_enabled: bool | None = None
+    external_ai_enabled: bool | None = None
+    external_sources_enabled: bool | None = None
+    email_enabled: bool | None = None
+    reason_code: str = Field(min_length=3, max_length=80, pattern=r"^[a-z0-9][a-z0-9_.:-]+$")
+
+
+class OperationsOverviewResponse(BaseModel):
+    policy_version: str
+    status: Literal["synthetic_candidate_only"]
+    real_user_ready: bool
+    role: Literal["user", "owner_operator", "support_restricted"]
+    support: dict[str, Any]
+    controls: OperationsControlResponse
+    quotas: dict[str, Any]
+    cost: dict[str, Any]
+    observability: dict[str, Any]
+    hard_stop_events: list[str]
+    blocking_reasons: list[str]
+
+
+class CountResponse(BaseModel):
+    count: int
+
+
+class AuditChainResponse(BaseModel):
+    valid: bool
+    event_count: int
+    head_hash: str | None = None
+    failed_event_id: str | None = None
 
 
 class DeploymentStatusResponse(BaseModel):
@@ -1803,6 +1915,17 @@ DeploymentGuardDependency = Annotated[
 ]
 
 
+def get_operations_service(request: Request) -> OperationsService:
+    service: OperationsService = request.app.state.operations_service
+    return service
+
+
+OperationsServiceDependency = Annotated[
+    OperationsService,
+    Depends(get_operations_service),
+]
+
+
 def _require_external_calls(guard: DeploymentGuard) -> None:
     try:
         guard.require_external_calls()
@@ -1868,6 +1991,13 @@ def _raise_authentication_http(error: AuthenticationError) -> Never:
 
 
 def _raise_privacy_http(error: PrivacyError) -> Never:
+    raise HTTPException(
+        status_code=error.status_code,
+        detail={"code": error.code, "message": str(error), "context": {}},
+    ) from error
+
+
+def _raise_operations_http(error: OperationsError) -> Never:
     raise HTTPException(
         status_code=error.status_code,
         detail={"code": error.code, "message": str(error), "context": {}},
@@ -2151,6 +2281,229 @@ def cancel_account_deletion(
 
 
 @router.get(
+    "/operations/status",
+    response_model=OperationsOverviewResponse,
+    tags=["operations-9e"],
+)
+def get_operations_status(
+    service: OperationsServiceDependency,
+) -> OperationsOverviewResponse:
+    return OperationsOverviewResponse.model_validate(service.overview())
+
+
+@router.put(
+    "/operations/controls",
+    response_model=OperationsControlResponse,
+    tags=["operations-9e"],
+)
+def update_operations_controls(
+    payload: UpdateOperationsControlRequest,
+    service: OperationsServiceDependency,
+) -> OperationsControlResponse:
+    try:
+        values = payload.model_dump(exclude={"reason_code"}, exclude_none=True)
+        return OperationsControlResponse.model_validate(
+            service.update_controls(values, reason_code=payload.reason_code)
+        )
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/operations/invitations/revoke-all",
+    response_model=CountResponse,
+    tags=["operations-9e"],
+)
+def revoke_all_operations_invitations(
+    payload: ReasonCodeRequest,
+    service: OperationsServiceDependency,
+) -> CountResponse:
+    try:
+        return CountResponse(count=service.revoke_all_invitations(reason_code=payload.reason_code))
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/operations/accounts/{user_id}/sessions/revoke-all",
+    response_model=CountResponse,
+    tags=["operations-9e"],
+)
+def revoke_all_user_sessions(
+    user_id: str,
+    payload: ReasonCodeRequest,
+    service: OperationsServiceDependency,
+) -> CountResponse:
+    try:
+        return CountResponse(
+            count=service.revoke_user_sessions(user_id, reason_code=payload.reason_code)
+        )
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.get(
+    "/operations/audit/verify",
+    response_model=AuditChainResponse,
+    tags=["operations-9e"],
+)
+def verify_operations_audit(
+    service: OperationsServiceDependency,
+) -> AuditChainResponse:
+    try:
+        return AuditChainResponse.model_validate(service.verify_audit_chain())
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/support/cases",
+    response_model=SupportCaseResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["support-9e"],
+)
+def create_support_case(
+    payload: SupportCaseRequest,
+    service: OperationsServiceDependency,
+) -> SupportCaseResponse:
+    try:
+        return SupportCaseResponse.model_validate(service.create_case(**payload.model_dump()))
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.get(
+    "/support/cases",
+    response_model=list[SupportCaseResponse],
+    tags=["support-9e"],
+)
+def list_support_cases(
+    service: OperationsServiceDependency,
+) -> list[SupportCaseResponse]:
+    try:
+        return [SupportCaseResponse.model_validate(item) for item in service.list_cases()]
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.get(
+    "/support/access-requests",
+    response_model=list[SupportAccessGrantResponse],
+    tags=["support-9e"],
+)
+def list_support_access_requests(
+    service: OperationsServiceDependency,
+) -> list[SupportAccessGrantResponse]:
+    try:
+        return [
+            SupportAccessGrantResponse.model_validate(item)
+            for item in service.list_visible_grants()
+        ]
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/support/access-requests",
+    response_model=SupportAccessGrantResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["support-9e"],
+)
+def request_support_access(
+    payload: SupportAccessRequest,
+    service: OperationsServiceDependency,
+) -> SupportAccessGrantResponse:
+    try:
+        return SupportAccessGrantResponse.model_validate(
+            service.request_support_access(**payload.model_dump())
+        )
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/support/access-requests/{grant_id}/view",
+    response_model=SupportCaseResponse,
+    response_model_exclude_none=True,
+    tags=["support-9e"],
+)
+def view_support_case_with_grant(
+    grant_id: str,
+    service: OperationsServiceDependency,
+) -> SupportCaseResponse:
+    try:
+        return SupportCaseResponse.model_validate(service.view_with_grant(grant_id))
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/support/access-requests/{grant_id}/revoke",
+    response_model=SupportAccessGrantResponse,
+    tags=["support-9e"],
+)
+def revoke_support_access(
+    grant_id: str,
+    payload: ReasonCodeRequest,
+    service: OperationsServiceDependency,
+) -> SupportAccessGrantResponse:
+    try:
+        return SupportAccessGrantResponse.model_validate(
+            service.revoke_access(grant_id, reason_code=payload.reason_code)
+        )
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/operations/support/access-requests/{grant_id}/approve",
+    response_model=SupportAccessGrantResponse,
+    tags=["operations-9e"],
+)
+def approve_support_access(
+    grant_id: str,
+    service: OperationsServiceDependency,
+) -> SupportAccessGrantResponse:
+    try:
+        return SupportAccessGrantResponse.model_validate(service.approve_support_access(grant_id))
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/operations/support/emergency-access",
+    response_model=SupportAccessGrantResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["operations-9e"],
+)
+def create_emergency_support_access(
+    payload: EmergencySupportAccessRequest,
+    service: OperationsServiceDependency,
+) -> SupportAccessGrantResponse:
+    try:
+        return SupportAccessGrantResponse.model_validate(
+            service.create_emergency_access(**payload.model_dump())
+        )
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.post(
+    "/operations/support/access-requests/{grant_id}/post-notice",
+    response_model=SupportAccessGrantResponse,
+    tags=["operations-9e"],
+)
+def mark_emergency_support_notice(
+    grant_id: str,
+    service: OperationsServiceDependency,
+) -> SupportAccessGrantResponse:
+    try:
+        return SupportAccessGrantResponse.model_validate(service.mark_emergency_notice(grant_id))
+    except OperationsError as error:
+        _raise_operations_http(error)
+
+
+@router.get(
     "/deployment/status",
     response_model=DeploymentStatusResponse,
     tags=["deployment-6a"],
@@ -2382,8 +2735,13 @@ def create_diagnostic_session(
     payload: CreateDiagnosticSessionRequest,
     service: DiagnosticServiceDependency,
     deployment_guard: DeploymentGuardDependency,
+    operations: OperationsServiceDependency,
 ) -> DiagnosticSessionResponse:
     if payload.external_ai_consent:
+        try:
+            operations.require_feature("external_ai")
+        except OperationsError as error:
+            _raise_operations_http(error)
         _require_external_calls(deployment_guard)
     try:
         result = service.create_session(**payload.model_dump())
@@ -2596,7 +2954,12 @@ def create_source_check_run(
     payload: CreateSourceCheckRequest,
     service: LearningServiceDependency,
     deployment_guard: DeploymentGuardDependency,
+    operations: OperationsServiceDependency,
 ) -> SourceCheckRunResponse:
+    try:
+        operations.require_feature("external_sources")
+    except OperationsError as error:
+        _raise_operations_http(error)
     _require_external_calls(deployment_guard)
     try:
         result = service.check_sources(**payload.model_dump())
@@ -2676,7 +3039,12 @@ def update_notification_preferences(
 def send_test_email(
     service: NotificationServiceDependency,
     deployment_guard: DeploymentGuardDependency,
+    operations: OperationsServiceDependency,
 ) -> NotificationResponse:
+    try:
+        operations.require_feature("email")
+    except OperationsError as error:
+        _raise_operations_http(error)
     _require_external_calls(deployment_guard)
     try:
         result = service.send_test_email()
@@ -2708,7 +3076,12 @@ def list_notifications(
 def process_email_outbox(
     service: NotificationServiceDependency,
     deployment_guard: DeploymentGuardDependency,
+    operations: OperationsServiceDependency,
 ) -> EmailOutboxProcessResponse:
+    try:
+        operations.require_feature("email")
+    except OperationsError as error:
+        _raise_operations_http(error)
     _require_external_calls(deployment_guard)
     return EmailOutboxProcessResponse.model_validate(service.process_outbox())
 
@@ -3325,7 +3698,13 @@ def create_market_research_run(
     payload: CreateMarketResearchRunRequest,
     service: MarketResearchServiceDependency,
     deployment_guard: DeploymentGuardDependency,
+    operations: OperationsServiceDependency,
 ) -> MarketResearchRunResponse:
+    if payload.confirm_external_sources:
+        try:
+            operations.require_feature("external_sources")
+        except OperationsError as error:
+            _raise_operations_http(error)
     _require_external_calls(deployment_guard)
     try:
         result = service.create_run(**payload.model_dump())
@@ -3360,7 +3739,13 @@ def synthesize_market_research_run(
     payload: SynthesizeMarketResearchRequest,
     service: MarketResearchServiceDependency,
     deployment_guard: DeploymentGuardDependency,
+    operations: OperationsServiceDependency,
 ) -> MarketResearchRunResponse:
+    if payload.confirm_external_ai:
+        try:
+            operations.require_feature("external_ai")
+        except OperationsError as error:
+            _raise_operations_http(error)
     _require_external_calls(deployment_guard)
     try:
         result = service.synthesize(run_id, **payload.model_dump())
